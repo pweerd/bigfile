@@ -1,0 +1,33 @@
+### visual studio files
+
+*.cache
+*.suo
+*.vshost*
+*.user
+*.dll
+*.props
+*.dll.refresh
+*.vsmdi
+**/.vs/**
+**/packages/**
+
+### end visual studio files
+
+#references/_disabled
+
+Thumbs.db
+**/obj/**
+**/bin/**
+*/testresults/
+*/DotNet4/src/**
+*/DotNet4/test/**
+*/DotNet4Tests/src/**
+*/DotNet4Tests/test/**
+
+*.swp
+*.disabled
+*.old
+*.tmp
+*.bak
+*.ini
+.dropbox
