@@ -62,19 +62,24 @@ namespace Bitmanager.BigFile
 
          synchronizationContext = SynchronizationContext.Current;
          encodings = new Encoding[6];
-         dropdownEncoding.Items.Clear();
          encodings[0] = Encoding.UTF8;
-         dropdownEncoding.Items.Add("Utf8");
          encodings[1] = Encoding.Unicode;
-         dropdownEncoding.Items.Add("Utf16");
          encodings[2] = Encoding.BigEndianUnicode;
-         dropdownEncoding.Items.Add("Utf16BE");
          encodings[3] = Encoding.Default;
-         dropdownEncoding.Items.Add("Windows");
          encodings[4] = new Utf81();
-         dropdownEncoding.Items.Add("Utf8 with arr");
-         encodings[5] = new Utf82(); ;
-         dropdownEncoding.Items.Add("Utf8 with ptrs");
+         encodings[5] = new Utf82(); 
+
+         dropdownEncoding.Items.Clear();
+         dropdownEncoding.Items.Add("Utf8");
+         dropdownEncoding.Items.Add("Utf16");
+         dropdownEncoding.Items.Add("Utf16BE");
+         dropdownEncoding.Items.Add("Windows");
+
+         if (Globals.IsDebug)
+         {
+            dropdownEncoding.Items.Add("Utf8 with arr");
+            dropdownEncoding.Items.Add("Utf8 with ptrs");
+         }
          dropdownEncoding.SelectedIndex = 0;
          listLines.VirtualListDataSource = listDatasource = new VirtualDataSource(listLines);
 
@@ -243,10 +248,8 @@ namespace Bitmanager.BigFile
 
 
       /// <summary>
-      /// 
+      /// Creates a LogFile object and let it asynchronously load the file
       /// </summary>
-      /// <param name="filePath"></param>
-      /// <returns></returns>
       private void LoadFile(string filePath)
       {
          indicateProcessing();
@@ -336,10 +339,8 @@ namespace Bitmanager.BigFile
 
 
       /// <summary>
-      /// 
+      /// Determines how a row(item) in the listview is formatted
       /// </summary>
-      /// <param name="sender"></param>
-      /// <param name="e"></param>
       private void listLines_FormatRow(object sender, BrightIdeasSoftware.FormatRowEventArgs e)
       {
          if (e.Model == null) return;
@@ -482,11 +483,6 @@ namespace Bitmanager.BigFile
          Application.Exit();
       }
 
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <param name="sender"></param>
-      /// <param name="e"></param>
       private void menuHelpHelp_Click(object sender, EventArgs e)
       {
          String fn = IOUtils.FindFileToRoot(Globals.LoadDir, "help.html", FindToTootFlags.ReturnNull);
@@ -494,11 +490,6 @@ namespace Bitmanager.BigFile
             Process.Start(fn);
       }
 
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <param name="sender"></param>
-      /// <param name="e"></param>
       private void menuHelpAbout_Click(object sender, EventArgs e)
       {
          using (FormAbout f = new FormAbout())
@@ -525,8 +516,6 @@ namespace Bitmanager.BigFile
          btnSearch.Enabled = false;
          processing = true;
          statusProgress.Value = 0;
-         //statusProgress.Visible = true;
-
          setHourGlass();
          cancellationTokenSource = new CancellationTokenSource();
       }
@@ -537,16 +526,17 @@ namespace Bitmanager.BigFile
          btnSearch.Enabled = true;
          processing = false;
          statusProgress.Value = 0;
-         //statusProgress.Visible = false;
-
          clrHourGlass();
          Utils.FreeAndNil (ref cancellationTokenSource);
       }
 
       private void statusProgress_Click(object sender, EventArgs e)
       {
-         logger.Log("Cancelling");
-         this.cancellationTokenSource.Cancel();
+         if (cancellationTokenSource != null)
+         {
+            logger.Log("Cancelling");
+            this.cancellationTokenSource.Cancel();
+         }
       }
 
       private void listLines_Scroll(object sender, ScrollEventArgs e)
@@ -734,7 +724,6 @@ namespace Bitmanager.BigFile
          listLines.SelectedIndex = index;
          listLines.EnsureVisible(index);
          listLines.Update();
-         //listLines.TopItemIndex = index;
       }
 
       private void FormMain_KeyUp(object sender, KeyEventArgs e)
