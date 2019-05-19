@@ -71,6 +71,8 @@ namespace Bitmanager.BigFile
       public String FileName { get { return fileName; } }
       private Encoding encoding = Encoding.UTF8;
 
+      public IDirectStream DirectStream { get { return threadCtx == null ? null : threadCtx.DirectStream; } }
+
       public Encoding SetEncoding(Encoding c)
       {
          var old = encoding;
@@ -528,7 +530,8 @@ namespace Bitmanager.BigFile
       {
          byte[] tempBuffer = new byte[512 * 1024];
 
-         var fileStream = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read);
+         var directStream = new DirectFileStreamWrapper(fn, 4096);
+         var fileStream = directStream.BaseStream;
 
          long totalLength = fileStream.Length;
 
@@ -540,7 +543,7 @@ namespace Bitmanager.BigFile
             return;
          }
 
-         this.threadCtx = new ThreadContext(encoding, new DirectStreamWrapper(fileStream), partialLines);
+         this.threadCtx = new ThreadContext(encoding, directStream, partialLines);
          // Calcs and finally point the position to the end of the line
          long position = 0;
          int counter = 0;
@@ -549,7 +552,7 @@ namespace Bitmanager.BigFile
          AddLine(0);
          while (position < fileStream.Length)
          {
-            int bytesRead = fileStream.Read(tempBuffer, 0, 1024 * 1024);
+            int bytesRead = fileStream.Read(tempBuffer, 0, tempBuffer.Length);
             if (bytesRead == 0) break;
 
             position = addLinesForBuffer(position, tempBuffer, bytesRead);

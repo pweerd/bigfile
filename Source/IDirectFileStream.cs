@@ -17,6 +17,7 @@
  * under the License.
  */
 
+using Bitmanager.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,20 +37,41 @@ namespace Bitmanager.IO
       void CloseInstance();
    }
 
-   public class DirectStreamWrapper: IDirectStream
-   {
-      private readonly Object _lock;
-      public readonly Stream BaseStream;
 
-      public DirectStreamWrapper(Stream wrapped)
+
+   /// <summary>
+   /// Support IDirectStream for a FileStream.
+   /// This is done by giving each instance its own FileStream
+   /// (Needed for multithreaded support)
+   /// </summary>
+   public class DirectFileStreamWrapper : IDirectStream
+   {
+      public readonly String FileName;
+      public readonly FileStream BaseStream;
+      public readonly int BufferSize;
+
+      public DirectFileStreamWrapper(String fileName, FileStream wrapped)
       {
-         _lock = new object();
+         FileName = fileName;
          BaseStream = wrapped;
+         BufferSize = 128 * 64;
       }
-      public DirectStreamWrapper(DirectStreamWrapper other)
+      public DirectFileStreamWrapper(String fileName, int bufsize=0)
       {
-         _lock = other._lock;
-         BaseStream = other.BaseStream;
+         FileName = fileName;
+         BufferSize = bufsize > 0 ? bufsize : 128 * 64;
+         BaseStream = createNewFileStream();
+      }
+
+      private FileStream createNewFileStream()
+      {
+         return new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize);
+      }
+      public DirectFileStreamWrapper(DirectFileStreamWrapper other)
+      {
+         FileName = other.FileName;
+         BufferSize = other.BufferSize;
+         BaseStream = createNewFileStream();
       }
 
       public virtual void PrepareForNewInstance()
@@ -58,34 +80,31 @@ namespace Bitmanager.IO
 
       public virtual IDirectStream NewInstanceForThread()
       {
-         return this;
+         return new DirectFileStreamWrapper(this);
       }
 
       public virtual void CloseInstance()
       {
+         BaseStream.Close();
       }
 
-      public int ReadByte(long offset)
+      public virtual int ReadByte(long offset)
       {
-         lock(_lock)
-         {
             BaseStream.Position = offset;
             return BaseStream.ReadByte();
-         }
       }
 
-      public int Read(long offset, byte[] buffer, int bufOffset, int count)
+      public virtual int Read(long offset, byte[] buffer, int bufOffset, int count)
       {
-         lock (_lock)
-         {
-            BaseStream.Position = offset;
-            return BaseStream.Read (buffer,bufOffset, count);
-         }
+         BaseStream.Position = offset;
+         return BaseStream.Read(buffer, bufOffset, count);
       }
 
       public virtual void Close()
       {
+         //Logs.ErrorLog.Log("Closed at: {0}", Environment.StackTrace);
          BaseStream.Close();
       }
    }
+
 }
