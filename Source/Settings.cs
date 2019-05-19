@@ -67,15 +67,7 @@ namespace Bitmanager.BigFile
 
       public Settings()
       {
-         try
-         {
-            GzipExe = GzipProcessInputStream.FindGzip();
-         }
-         catch (Exception e)
-         {
-            Logs.ErrorLog.Log("Cannot load settings");
-            Logs.ErrorLog.Log(e);
-         }
+         GzipExe = gzipExe;
       }
 
       public int GetActualNumSearchThreads()
@@ -250,6 +242,20 @@ namespace Bitmanager.BigFile
       {
          if (key == null) return;
          writeVal(key, valName, ColorTranslator.ToHtml(val));
+      }
+
+      private static readonly String gzipExe;
+      static Settings()
+      {
+         try
+         {
+            gzipExe = GzipProcessInputStream.FindGzip();
+         }
+         catch (Exception e)
+         {
+            Logs.ErrorLog.Log("Failure while searching for gzip.exe.");
+            Logs.ErrorLog.Log(e);
+         }
       }
    }
 }
