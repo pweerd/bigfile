@@ -46,15 +46,23 @@ namespace Bitmanager.BigFile
             }
         }
 
-        public int GetTextPixels(String x, int add=0)
-        {
-            const int MAX = 0x7FFF;  //short
-            double ret = x == null ? 0 : x.Length;
-            ret *= perChar * 1.05;
-            ret += add;
-            return ret > MAX ? MAX : (int)ret;
-        }
-        public int GetTextPixels(String x, String y, int add=0)
+      public int GetTextPixels(String x, int add = 0)
+      {
+         const int MAX = 0x7FFF;  //short
+         double ret = x == null ? 0 : x.Length;
+         ret *= perChar * 1.05;
+         ret += add;
+         return ret > MAX ? MAX : (int)ret;
+      }
+      public int GetTextPixels(int strlen, int add = 0)
+      {
+         const int MAX = 0x7FFF;  //short
+         double ret = strlen;
+         ret *= perChar * 1.05;
+         ret += add;
+         return ret > MAX ? MAX : (int)ret;
+      }
+      public int GetTextPixels(String x, String y, int add=0)
         {
             return Math.Max(GetTextPixels(x, add), GetTextPixels(y, add));
         }
