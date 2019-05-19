@@ -32,13 +32,20 @@ using Bitmanager.Core;
 
 namespace Bitmanager.IO
 {
-   /// <summary>Creates a stream whose backing store is memory.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
-   /// <filterpriority>2</filterpriority>
+   /// <summary>
+   /// Compressing memory stream.
+   /// Based on the ChunkedMemoryStream, that is based on .Net's memory stream.
+   /// This one compresses blocks of memory on the fly.
+   /// It will stop compressing after it encounters compression errors or 
+   /// when compression is not effective (compsize > 60%) 
+   /// </summary>
    public class CompressedChunkedMemoryStream : Stream, IDirectStream
    {
       private ICompressor _compressor;
       private enum Mode { _None, _Reading, _Writing, _Seeking };
-      private List<byte[]> _buffers;
+      private readonly List<byte[]> _buffers;
+      private readonly Stack<byte[]> _recycledBuffers;
+
       private long _position;
       private long _length;
       private readonly byte[] _decompressBuffer;
@@ -48,6 +55,7 @@ namespace Bitmanager.IO
       private int _compressedUntil;
       private bool _isOpen;
       private Mode _mode;
+      private bool _compressDisabled;
 
       /// <summary>Initializes a new instance of the <see cref="T:System.IO.MemoryStream" /> class with an expandable capacity initialized to zero.</summary>
       public CompressedChunkedMemoryStream(Logger logger = null)
@@ -64,7 +72,8 @@ namespace Bitmanager.IO
       {
          if (chunckSize < 4096)
             throw new ArgumentOutOfRangeException(String.Format("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
-         this._buffers = new List<byte[]>();
+         this._buffers = new List<byte[]>(100);
+         this._recycledBuffers = new Stack<byte[]>(50);
          this._chunckSize = chunckSize;
          this._isOpen = true;
          this._mode = Mode._None;
@@ -82,7 +91,8 @@ namespace Bitmanager.IO
       {
          if (chunckSize < 4096)
             throw new ArgumentOutOfRangeException(String.Format("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
-         this._buffers = new List<byte[]>(buffers);
+         this._buffers = new List<byte[]>(100);
+         this._recycledBuffers = new Stack<byte[]>(50);
          this._chunckSize = chunckSize;
          this._isOpen = true;
          this._mode = Mode._Writing;
@@ -104,12 +114,14 @@ namespace Bitmanager.IO
          this._chunckSize = other._chunckSize;
          this._isOpen = other._isOpen;
          this._buffers = new List<byte[]>(other._buffers);
+         this._recycledBuffers = new Stack<byte[]>();
          this._length = other._length;
          this._position = other._position;
          this._mode = other._mode;
          this._decompressBuffer = new byte[_chunckSize];
          this._compressor = other._compressor;
          this._decompressBufferIdx = -1;
+         this._compressDisabled = other._compressDisabled;
          this._compressedUntil = other._compressedUntil;
          this._logger = other._logger;
       }
@@ -171,14 +183,28 @@ namespace Bitmanager.IO
             _compressorTask.Wait();
             _compressorTask = null;
          }
-         if (_logger != null) _logger.Log("-- Compressor done");
+         if (_logger != null)
+         {
+            _logger.Log("-- Compressor done. Buffers={0}, recycled={1}, allocated={2}, stacked={3}, max={4}", _buffers.Count, _numRecycled, _numAllocated, _recycledBuffers.Count, _maxRecycledSize);
+         }
+         if (all)
+         {
+            lock(_recycledBuffers)
+            {
+               _recycledBuffers.Clear();
+            }
+         }
       }
+
+      public bool IsCompressionEnabled { get { return !_compressDisabled; } }
 
       volatile bool _backgroundProcessorStop;
       volatile int _compressUntil;
       Task _compressorTask;
       private void backgroundCompressor ()
       {
+         if (_compressDisabled) return;
+         int maxCompressSize = (int)(0.6 * _decompressBuffer.Length);
          while (true)
          {
             if (_compressedUntil >= _compressUntil)
@@ -189,20 +215,36 @@ namespace Bitmanager.IO
             }
 
             int idx = _compressedUntil;
-            _compressedUntil = idx + 1; //Prevent retry
             try
             {
-               var src = _buffers[idx];
-               var rc = _compressor.CompressLZ4(ref src[0], ref _decompressBuffer[0], src.Length, _decompressBuffer.Length);
+               var curBuf = _buffers[idx];
+               var rc = _compressor.CompressLZ4(ref curBuf[0], ref _decompressBuffer[0], curBuf.Length, _decompressBuffer.Length);
                if (rc <= 0)
-                  throw new BMException("Unexpected compress rc={0}. Offset=0x{1:X}", rc, idx * _chunckSize);
+               {
+                  if (_logger != null) _logger.Log(Core._LogType.ltError, "Unexpected compress rc={0}. Offset=0x{1:X}", rc, idx * _chunckSize);
+                  _compressDisabled = true;
+                  break;
+               }
+
+               if (rc > maxCompressSize)
+               {
+                  if (this._logger != null) _logger.Log(Core._LogType.ltError, "Compress disabled because not preforming well. Length is {0} from {1}.", rc, curBuf.Length);
+                  _compressDisabled = true;
+                  break;
+               }
                //logger.Log("Compressed {0} from {1} into {2}", idx, src.Length, rc);
                byte[] b = new byte[rc];
                Buffer.BlockCopy(_decompressBuffer, 0, b, 0, rc);
                _buffers[idx] = b;
+               _compressedUntil = idx + 1;
+               lock (_recycledBuffers)
+               {
+                  _recycledBuffers.Push(curBuf);
+               }
             }
             catch (Exception e)
             {
+               _compressDisabled = true;
                String msg = Invariant.Format("Compression error at index {0}, offset 0x{1}: {2}", idx, idx * _chunckSize, e.Message);
                Logs.ErrorLog.Log(e, msg);
                throw new BMException(e, msg);
@@ -233,6 +275,24 @@ namespace Bitmanager.IO
          }
       }
 
+      //Gets a new buffer from the recycled pool or creates a new one.
+      private byte[] createNewBuffer()
+      {
+         byte[] buf;
+         lock (_recycledBuffers)
+         {
+            int N = _recycledBuffers.Count;
+            if (N > _maxRecycledSize) _maxRecycledSize = N;
+            buf = _recycledBuffers.Count==0 ? null : _recycledBuffers.Pop();
+         }
+         if (buf != null) ++_numRecycled; else ++_numAllocated;
+         return buf==null ? new byte[_chunckSize] : buf;
+      }
+      int _maxRecycledSize;
+      int _numRecycled;
+      int _numAllocated;
+
+      //Make sure we have enough buffers allocated to hold a size of value bytes. 
       private bool EnsureCapacity(long value)
       {
          if (value < 0) value = 0;
@@ -242,7 +302,7 @@ namespace Bitmanager.IO
 
 
          for (int i = _buffers.Count; i < dirs; i++)
-            _buffers.Add(new byte[_chunckSize]);
+            _buffers.Add(createNewBuffer());
          return true;
       }
 
@@ -511,7 +571,6 @@ namespace Bitmanager.IO
          if (rest > 0)
             stream.Write(_buffers[i], 0, rest);
       }
-
 
    }
 }
