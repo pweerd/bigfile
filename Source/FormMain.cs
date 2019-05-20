@@ -86,6 +86,10 @@ namespace Bitmanager.BigFile
          searchboxDriver = new SearchHistory(cbSearch);
          btnResetSearch.Visible = Globals.IsDebug;
          btnWarning.Visible = false;
+
+         olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
+         olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
+
       }
 
       private Encoding getCurrentEncoding()
@@ -308,9 +312,12 @@ namespace Bitmanager.BigFile
       {
          if (fontMeasures == null) return;
          int needed = listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width;
+
          //logger.Log("Pixels={0}: pos={1}, w={2}, hw={3}", needed, listLines.LowLevelScrollPosition.X, listLines.Width, olvcLineNumber.Width);
 
          neededTextLength = fontMeasures.GetTextLengthForPixels(needed);
+         int pixels = fontMeasures.GetTextPixels(neededTextLength);
+         logger.Log("(Re)size... Needed pixels is {0}, chrs={1}, pixels for these chars is: {2}", needed, neededTextLength, pixels);
          //logger.Log("NeededTextLen={0}", neededTextLength);
       }
 
@@ -602,14 +609,23 @@ namespace Bitmanager.BigFile
 
          if (newLF.PartialLineCount > 0)
          {
-            olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
             olvcLineNumber.Width = 20 + fontMeasures.GetTextPixels(newLF.PartialLineCount.ToString(), olvcLineNumber.Text);
 
-            int w = 20 + fontMeasures.GetTextPixels(getLine(newLF.LongestPartialIndex));
+            int largestIndex = newLF.LongestPartialIndex;
+            String largestLine = getLine(largestIndex);
+            int w = fontMeasures.GetTextPixels(largestLine, 20);
             int min = listLines.Width - olvcLineNumber.Width - 20 - listLines.Margin.Horizontal;
+            logger.Log("-- w={0}, min={1}", w, min);
             if (w < min) w = min;
             olvcText.Width = w;
+            
+            logger.Log("-- new width={0}", olvcText.Width);
             computeNeededTextLength();
+            logger.Log("-- largest partial: {0} at {1}, largest line at {2}",
+               largestLine.Length,
+               largestIndex,
+               newLF.LongestLineIndex);
+            logger.Log("-- Max width is {0} pixels, pixels in screen is {1}", w, listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width);
          }
          listDatasource.SetContent(newLF.PartialLineCount);
       }
