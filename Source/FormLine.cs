@@ -288,6 +288,11 @@ namespace Bitmanager.BigFile
          if (--matchIdx < 0) matchIdx = curMatches.Count - 1;
          scrollToCharPos(curMatches[matchIdx].Item1);
       }
+
+      private void FormLine_Load(object sender, EventArgs e)
+      {
+
+      }
    }
 
    static class ControlExtensions
@@ -310,6 +315,10 @@ namespace Bitmanager.BigFile
          SendMessage(c.Handle, WM_SETREDRAW, one, IntPtr.Zero);
          c.Refresh();
          //   //SendMessage(textLine.Handle, EM_SETEVENTMASK, IntPtr.Zero, status);
+      }
+      public static IntPtr SendMessage(this Control c, int msg, int wParam, long lParam)
+      {
+         return SendMessage(c.Handle, msg, new IntPtr(wParam), new IntPtr(lParam));
       }
    }
 }

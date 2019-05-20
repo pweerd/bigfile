@@ -174,6 +174,7 @@ namespace Bitmanager.BigFile
          this.ShowInTaskbar = false;
          this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
          this.Text = "Line";
+         this.Load += new System.EventHandler(this.FormLine_Load);
          this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textLine_KeyPress);
          this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textLine_KeyUp);
          this.splitContainer1.Panel1.ResumeLayout(false);
