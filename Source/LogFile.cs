@@ -285,13 +285,14 @@ namespace Bitmanager.BigFile
             {
                if ((flags & CONTINUATION_FLAG) == 0)
                {
-                  lines.Add(i);
                   len = (int)(offset - prevLine);
                   if (len > maxLineLen)
                   {
-                     maxLineIdx = lines[lines.Count-1];
+                     maxLineIdx = lines.Count-1;
                      maxLineLen = len;
                   }
+                  prevLine = offset;
+                  lines.Add(i);
                }
             }
 
@@ -303,7 +304,7 @@ namespace Bitmanager.BigFile
             maxPartialIdx = i - 1;
          }
          LongestPartialIndex = maxPartialIdx;
-         LongestLineIndex = maxLineIdx;
+         LongestLineIndex = lines != null ? maxLineIdx : maxPartialIdx;
          return Math.Max(maxPartialLen, maxLineLen);
       }
 
