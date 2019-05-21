@@ -221,6 +221,86 @@ namespace Bitmanager.BigFile
          Assert.AreEqual(5, logFile.LongestLineIndex);
          //Assert.AreEqual(7464, logFile.GetLine(logFile.LongestLineIndex).Length);
          Assert.AreEqual(7464, logFile.GetLine(5).Length);
+
+         testNextLine(logFile);
+         testPrevLine(logFile);
+
+         //Match all lines
+         Assert.AreEqual (logFile.PartialLineCount, search(logFile, "r:."));
+         testNextPartial(logFile);
+         testPrevPartial(logFile);
+
+         //Test the next/prev by using a line filter
+         var matches = new List<int>();
+         matches.Add(logFile.LineNumberToPartial(3));
+         matches.Add(logFile.LineNumberToPartial(5));
+         logger.Log("Matching lines: {0} for line 3 and {1} for line 5", matches[0], matches[1]);
+         //dumpOffsets(logFile, "test");
+         Assert.AreEqual(3, logFile.NextLineNumber(-123, matches));
+         Assert.AreEqual(5, logFile.NextLineNumber(3, matches));
+         Assert.AreEqual(int.MaxValue, logFile.NextLineNumber(5, matches));
+
+         Assert.AreEqual(5, logFile.PrevLineNumber(99999, matches));
+         Assert.AreEqual(3, logFile.PrevLineNumber(5, matches));
+         Assert.AreEqual(-1, logFile.PrevLineNumber(3, matches));
+      }
+
+      private void testNextLine(LogFile lf)
+      {
+         Assert.AreEqual(0, lf.NextLineNumber(-123, null));
+         int line = -1;
+         while (true)
+         {
+            int next = lf.NextLineNumber(line, null);
+            logger.Log("Line={0}, next={1}", line, next);
+            if (next == int.MaxValue) break;
+
+            Assert.AreEqual(line + 1, next);
+            line = next;
+         }
+      }
+      private void testPrevLine(LogFile lf)
+      {
+         Assert.AreEqual(lf.LineCount-1, lf.PrevLineNumber(int.MaxValue, null));
+         int line = lf.LineCount;
+         while (true)
+         {
+            int prev = lf.PrevLineNumber(line, null);
+            logger.Log("Line={0}, prev={1}", line, prev);
+            if (prev < 0) break;
+
+            Assert.AreEqual(line-1, prev);
+            line = prev;
+         }
+      }
+
+      private void testNextPartial(LogFile lf)
+      {
+         Assert.AreEqual(0, lf.NextPartialHit(-123));
+         int line = -1;
+         while (true)
+         {
+            int next = lf.NextLineNumber(line, null);
+            logger.Log("Line={0}, next={1}", line, next);
+            if (next == int.MaxValue) break;
+
+            Assert.AreEqual(line + 1, next);
+            line = next;
+         }
+      }
+      private void testPrevPartial(LogFile lf)
+      {
+         Assert.AreEqual(lf.PartialLineCount - 1, lf.PrevPartialHit(int.MaxValue));
+         int line = lf.LineCount;
+         while (true)
+         {
+            int prev = lf.PrevLineNumber(line, null);
+            logger.Log("Line={0}, prev={1}", line, prev);
+            if (prev < 0) break;
+
+            Assert.AreEqual(line - 1, prev);
+            line = prev;
+         }
       }
    }
 

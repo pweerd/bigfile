@@ -737,6 +737,7 @@ namespace Bitmanager.BigFile
 
       private void gotoAndSelectLogicalLineIndex(int index)
       {
+         if (index < 0 || index >= listLines.GetItemCount()) return;
          listLines.SelectedIndex = index;
          listLines.EnsureVisible(index);
          listLines.Update();

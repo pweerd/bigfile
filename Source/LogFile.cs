@@ -139,10 +139,11 @@ namespace Bitmanager.BigFile
       /// </summary>
       public int NextLineNumber(int line, List<int> partialFilter)
       {
+         if (line < -1) line = -1;
          int lineCount = LineCount;
          logger.Log("nextLineNumber ({0})", line, lineCount);
          ++line;
-         if (line >= lineCount) return lineCount;
+         if (line >= lineCount) return int.MaxValue;
          if (partialFilter == null) return line;
 
 
@@ -162,7 +163,7 @@ namespace Bitmanager.BigFile
             logger.Log("-- next partial: {0} line: {1}", partialFilter[j], LineNumberFromPartial(partialFilter[j]));
 
          dumpFilter(partialFilter, i);
-         return j >= partialFilter.Count ? lineCount : LineNumberFromPartial(partialFilter[j]);
+         return j >= partialFilter.Count ? int.MaxValue : LineNumberFromPartial(partialFilter[j]);
       }
 
       /// <summary>
@@ -217,6 +218,7 @@ namespace Bitmanager.BigFile
       public int PrevLineNumber(int line, List<int> partialFilter)
       {
          int lineCount = LineCount;
+         if (line > lineCount) line = lineCount;
          logger.Log("prevLineNumber ({0})", line, lineCount);
          if (line <= 0) return -1;
          if (partialFilter == null) return line - 1;
@@ -310,15 +312,17 @@ namespace Bitmanager.BigFile
 
       public int NextPartialHit(int idxPartial)
       {
+         if (idxPartial < -1) idxPartial = -1;
          long mask = (int)LineFlags.Match;
          for (int i = idxPartial + 1; i < partialLines.Count - 1; i++)
          {
             if ((partialLines[i] & mask) != 0) return i;
          }
-         return partialLines.Count - 1;
+         return int.MaxValue;
       }
       public int PrevPartialHit(int idxPartial)
       {
+         if (idxPartial > PartialLineCount) idxPartial = PartialLineCount;
          long mask = (int)LineFlags.Match;
          for (int i = idxPartial - 1; i >= 0; i--)
          {
