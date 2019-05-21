@@ -26,7 +26,7 @@ using Bitmanager.BigFile.Query;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Bitmanager.Core;
 
-namespace Bitmanager.BigFile.Tests
+namespace Bitmanager.BigFile
 {
    [TestClass]
    public class LogFileTests: TestBase
@@ -41,8 +41,8 @@ namespace Bitmanager.BigFile.Tests
       [TestMethod]
       public void TestLoad()
       {
-         _load(dataDir + "logfile.gz");  //gzip
-         _load(dataDir + "logfile.txt"); //unpacked
+         _load(dataDir + "allcountries.txt.gz");  //gzip
+         _load(dataDir + "allcountries.txt"); //unpacked
       }
 
       [TestMethod]
@@ -108,6 +108,30 @@ namespace Bitmanager.BigFile.Tests
          Assert.AreEqual(3, searchNodes.Count);
       }
 
+      [TestMethod]
+      public void TestCompressErrors()
+      {
+         var settings = new Settings();
+         settings.CompressMemoryIfBigger = "0";
+         settings.LoadMemoryIfBigger = "0";
+         var cb = new CB();
+         var logFile = new LogFile(cb, settings, null);
+         logFile.Load(dataDir + "compress-errors.txt", CancellationToken.None).Wait();
+
+         var mem = checkAndCast<CompressedChunkedMemoryStream>(logFile.DirectStream);
+         Assert.AreEqual(false, mem.IsCompressionEnabled);
+         logFile.Dispose();
+      }
+
+      private T checkAndCast<T> (IDirectStream strm) where T: IDirectStream
+      {
+         Assert.IsNotNull(strm);
+         Assert.IsInstanceOfType(strm, typeof (T));
+         return (T)strm;
+      }
+
+
+
       private void dumpOffsets(LogFile lf, String why)
       {
          logger.Log();
@@ -150,18 +174,20 @@ namespace Bitmanager.BigFile.Tests
          logFile.Load(fn, CancellationToken.None).Wait();
          cb.Result.ThrowIfError();
 
-         Assert.AreEqual(35268, logFile.LineCount);
+         Assert.AreEqual(18, logFile.LineCount);
          Assert.AreEqual(0, logFile.GetLineOffset(0));
-         Assert.AreEqual(209008, logFile.GetLineOffset(1));
-         Assert.AreEqual(210358, logFile.GetLineOffset(2));
+         Assert.AreEqual(6914, logFile.GetLineOffset(1));
+         Assert.AreEqual(13114, logFile.GetLineOffset(2));
 
-         Assert.AreEqual(186411, logFile.GetLine(0).Length);
-         Assert.AreEqual(1349, logFile.GetLine(1).Length);
-         Assert.AreEqual(1352, logFile.GetLine(2).Length);
+         Assert.AreEqual(6007, logFile.GetLine(0).Length);
+         Assert.AreEqual(5688, logFile.GetLine(1).Length);
+         Assert.AreEqual(4757, logFile.GetLine(2).Length);
 
          //Checking longest line
-         Assert.AreEqual(0, logFile.LongestPartialIndex);
-         Assert.AreEqual(186411, logFile.GetPartialLine(logFile.LongestPartialIndex).Length);
+         Assert.AreEqual(5, logFile.LongestPartialIndex);
+         Assert.AreEqual(7464, logFile.GetPartialLine(logFile.LongestPartialIndex).Length);
+         Assert.AreEqual(5, logFile.LongestLineIndex);
+         Assert.AreEqual(7464, logFile.GetLine(logFile.LongestLineIndex).Length);
 
 
          //Partials
@@ -169,27 +195,32 @@ namespace Bitmanager.BigFile.Tests
          logFile = new LogFile(cb, settings);
          settings.MaxPartialSize = -1;
          logFile.Load(fn, CancellationToken.None).Wait();
-         Assert.AreEqual(35268, logFile.LineCount);
+         Assert.AreEqual(18, logFile.LineCount);
          Assert.AreEqual(0, logFile.GetLineOffset(0));
-         Assert.AreEqual(209008, logFile.GetLineOffset(1));
-         Assert.AreEqual(210358, logFile.GetLineOffset(2));
+         Assert.AreEqual(6914, logFile.GetLineOffset(1));
+         Assert.AreEqual(13114, logFile.GetLineOffset(2));
 
-         Assert.AreEqual(186411, logFile.GetLine(0).Length);
-         Assert.AreEqual(1349, logFile.GetLine(1).Length);
-         Assert.AreEqual(1352, logFile.GetLine(2).Length);
+         Assert.AreEqual(6007, logFile.GetLine(0).Length);
+         Assert.AreEqual(5688, logFile.GetLine(1).Length);
+         Assert.AreEqual(4757, logFile.GetLine(2).Length);
 
-         Assert.AreEqual(37681, logFile.PartialLineCount);
+         Assert.AreEqual(90, logFile.PartialLineCount);
          Assert.AreEqual(0, logFile.GetPartialLineOffset(0));
-         Assert.AreEqual(1014, logFile.GetPartialLineOffset(1));
-         Assert.AreEqual(2038, logFile.GetPartialLineOffset(2));
+         Assert.AreEqual(1018, logFile.GetPartialLineOffset(1));
+         Assert.AreEqual(2042, logFile.GetPartialLineOffset(2));
 
-         Assert.AreEqual(1014, logFile.GetPartialLine(0).Length);
-         Assert.AreEqual(1024, logFile.GetPartialLine(1).Length);
-         Assert.AreEqual(1013, logFile.GetPartialLine(2).Length);
+         Assert.AreEqual(940, logFile.GetPartialLine(0).Length);
+         Assert.AreEqual(965, logFile.GetPartialLine(1).Length);
+         Assert.AreEqual(882, logFile.GetPartialLine(2).Length);
 
-         //Checking longest line
-         Assert.AreEqual(12, logFile.LongestPartialIndex);
-         Assert.AreEqual(782, logFile.GetPartialLine(logFile.LongestPartialIndex).Length);
+         //Checking longest partial line
+         Assert.AreEqual(56, logFile.LongestPartialIndex);
+         Assert.AreEqual(859, logFile.GetPartialLine(logFile.LongestPartialIndex).Length);
+
+         //Checking longest  line
+         Assert.AreEqual(5, logFile.LongestLineIndex);
+         //Assert.AreEqual(7464, logFile.GetLine(logFile.LongestLineIndex).Length);
+         Assert.AreEqual(7464, logFile.GetLine(5).Length);
       }
    }
 
