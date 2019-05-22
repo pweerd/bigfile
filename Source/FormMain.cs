@@ -89,7 +89,6 @@ namespace Bitmanager.BigFile
 
          olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
          olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
-
       }
 
       private Encoding getCurrentEncoding()
@@ -105,8 +104,7 @@ namespace Bitmanager.BigFile
       {
          Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
          GCSettings.LatencyMode = GCLatencyMode.Batch;
-         this.settings = new Settings();
-         this.settings.Load();
+         this.settings = new Settings(true);
 
          this.olvcLineNumber.AspectGetter = getLineNumber;
          this.olvcText.AspectGetter = getLimitedLine;
@@ -124,7 +122,7 @@ namespace Bitmanager.BigFile
          }
          else
             toolStripButton2.Visible = false;
-         
+
          var sb = new StringBuilder();
          sb.Append("You can enter boolean expressions (AND, OR, NOT) in the search bar.");
          sb.Append("\nAlso, you can specify search-types by using : like cs:Paris, to do a case sensitive search for Paris");
@@ -661,7 +659,7 @@ namespace Bitmanager.BigFile
          synchronizationContext.Post(new SendOrPostCallback(o =>
          {
             setLogFile(cloned);
-            statusLabelMain.Text = String.Format("Loading...  {0} lines / {1}", cloned.PartialLineCount, Pretty.PrintSize(cloned.Size));
+            statusLabelMain.Text = String.Format("Loading...  {0} lines / {1} sofar.", cloned.PartialLineCount, Pretty.PrintSize(cloned.Size));
          }), null);
       }
 

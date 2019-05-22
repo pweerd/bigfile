@@ -65,9 +65,12 @@ namespace Bitmanager.BigFile
          set { _CompressMemoryIfBigger = CheckAndRepairSize(value, true); }
       }
 
-      public Settings()
+      public Settings(bool autoLoad=false)
       {
-         GzipExe = gzipExe;
+         if (!autoLoad)
+            GzipExe = gzipExe;
+         else
+            Load();
       }
 
       public int GetActualNumSearchThreads()
@@ -96,6 +99,7 @@ namespace Bitmanager.BigFile
             SearchThreadsAsText = readVal(key, "search_threads", SearchThreadsAsText);
             LoadMemoryIfBigger = CheckAndRepairSize (readVal(key, "load_memory", LoadMemoryIfBigger), false);
             CompressMemoryIfBigger = CheckAndRepairSize (readVal(key, "compress_memory", CompressMemoryIfBigger), false);
+            if (GzipExe == null) GzipExe = gzipExe;
          }
       }
 
@@ -244,18 +248,25 @@ namespace Bitmanager.BigFile
          writeVal(key, valName, ColorTranslator.ToHtml(val));
       }
 
-      private static readonly String gzipExe;
-      static Settings()
+      private static String _gzipExe;
+
+      private String gzipExe
       {
-         try
+         get
          {
-            gzipExe = GzipProcessInputStream.FindGzip();
-         }
-         catch (Exception e)
-         {
-            Logs.ErrorLog.Log("Failure while searching for gzip.exe.");
-            Logs.ErrorLog.Log(e);
+            if (_gzipExe != null) return _gzipExe;
+            try
+            {
+               _gzipExe = GzipProcessInputStream.FindGzip();
+            }
+            catch (Exception e)
+            {
+               Logs.ErrorLog.Log("Failure while searching for gzip.exe.");
+               Logs.ErrorLog.Log(e);
+            }
+            return _gzipExe;
          }
       }
+
    }
 }
