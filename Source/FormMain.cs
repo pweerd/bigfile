@@ -49,6 +49,7 @@ namespace Bitmanager.BigFile
       private readonly SearchHistory searchboxDriver;
       private CancellationTokenSource cancellationTokenSource;
       private bool processing;
+      private int prevGoto;
       private Settings settings;
       private FixedFontMeasures fontMeasures;
       private readonly VirtualDataSource listDatasource;
@@ -89,6 +90,8 @@ namespace Bitmanager.BigFile
 
          olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
          olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
+
+         prevGoto = -1;
       }
 
       private Encoding getCurrentEncoding()
@@ -254,6 +257,7 @@ namespace Bitmanager.BigFile
       /// </summary>
       private void LoadFile(string filePath)
       {
+         prevGoto = -1;
          indicateProcessing();
 
          // Clear any existing filters/reset values
@@ -718,12 +722,13 @@ namespace Bitmanager.BigFile
          if (lf == null) return;
          gotoDialog();
       }
+
       private void gotoDialog()
       {
-         using (FormGoToLine f = new FormGoToLine())
+         using (FormGoToLine f = new FormGoToLine(prevGoto))
          {
             if (f.ShowDialog(this) == DialogResult.OK)
-               gotoLine(f.LineNumber);
+               gotoLine(prevGoto = f.LineNumber);
          }
       }
       private void gotoLine(int line)

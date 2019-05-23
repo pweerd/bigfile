@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using Bitmanager.Xml;
 using System.Runtime.InteropServices;
 using Bitmanager.Query;
+using System.Text;
 
 namespace Bitmanager.BigFile
 {
@@ -36,6 +37,7 @@ namespace Bitmanager.BigFile
    /// </summary>
    public partial class FormLine : Form
    {
+      private static int lastViewAsIndex;
       private static Logger logger = Globals.MainLogger.Clone("line");
       private readonly Settings settings;
       private readonly List<SearchNode> searchNodes;
@@ -52,7 +54,7 @@ namespace Bitmanager.BigFile
       public FormLine(Settings c, LogFile lf, List<int> filter, int lineNo, ParserNode<SearchContext> lastQuery)
       {
          InitializeComponent();
-         cbViewAs.SelectedIndex = 0;
+         cbViewAs.SelectedIndex = lastViewAsIndex;
          ShowInTaskbar = true;
 
          this.settings = c;
@@ -120,6 +122,52 @@ namespace Bitmanager.BigFile
          return hlp.SaveToString().Replace("\r\n", "\n");
       }
 
+      private static String convertToCsv(String s)
+      {
+         if (String.IsNullOrEmpty(s)) return s;
+
+         int commas = 0;
+         int semi = 0;
+         int tabs = 0;
+         foreach (char c in s)
+         {
+            switch (c)
+            {
+               default: continue;
+               case ',': ++commas; continue;
+               case ';': ++semi; continue;
+               case '\t': ++tabs; continue;
+            }
+         }
+
+         int cnt = tabs;
+         char sep = '\t';
+         String sepAsText = "tab";
+         if (commas > cnt)
+         {
+            cnt = commas;
+            sep = ',';
+            sepAsText = "comma";
+         }
+         if (semi > cnt)
+         {
+            cnt = semi;
+            sep = ';';
+            sepAsText = "semicolon";
+         }
+         if (cnt == 0) return s;
+
+         var sb = new StringBuilder(s.Length + 64);
+         sb.AppendFormat("Fields separated by {0}:\n", sepAsText);
+         int i = 0;
+         foreach (String x in s.Split(sep))
+         {
+            sb.AppendFormat("[{0:d2}]: '{1}'\n", i, x);
+            i++;
+         }
+         return sb.ToString();
+      }
+
 
       private int getIndexInLogFile(int ix)
       {
@@ -166,6 +214,7 @@ namespace Bitmanager.BigFile
                default: break;
                case 1: content = convertToJson(curLine); break;
                case 2: content = convertToXml(curLine); break;
+               case 3: content = convertToCsv(curLine); break;
             }
          }
          catch (Exception err)
@@ -220,6 +269,7 @@ namespace Bitmanager.BigFile
 
       private void cbViewAs_SelectedIndexChanged(object sender, EventArgs e)
       {
+         lastViewAsIndex = cbViewAs.SelectedIndex;
          loadLineInControl();
          textLine.Focus();
       }

@@ -114,7 +114,8 @@ namespace Bitmanager.BigFile
          this.cbViewAs.Items.AddRange(new object[] {
             "Text",
             "Json",
-            "Xml"});
+            "Xml",
+            "Csv"});
          this.cbViewAs.Location = new System.Drawing.Point(71, 13);
          this.cbViewAs.Name = "cbViewAs";
          this.cbViewAs.Size = new System.Drawing.Size(140, 21);

@@ -23,31 +23,32 @@ using System.Windows.Forms;
 
 namespace Bitmanager.BigFile
 {
-    /// <summary>
-    /// Let the user input a line number
-    /// </summary>
-    public partial class FormGoToLine : Form
-    {
-        public int LineNumber { get { return Invariant.ToInt32(textLineNum.Text); } }
+   /// <summary>
+   /// Let the user input a line number
+   /// </summary>
+   public partial class FormGoToLine : Form
+   {
+      public int LineNumber { get { return Invariant.ToInt32(textLineNum.Text); } }
 
-        public FormGoToLine()
-        {
-            InitializeComponent();
-            Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
-        }
+      public FormGoToLine(int prevGoto)
+      {
+         InitializeComponent();
+         Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
+         if (prevGoto >= 0) textLineNum.Text = prevGoto.ToString();
+      }
 
-        private void buttonOK_Click(object sender, EventArgs e)
-        {
-            if (textLineNum.Text.Trim().Length == 0)
-                throw new Exception ("The line number must be entered");
+      private void buttonOK_Click(object sender, EventArgs e)
+      {
+         if (textLineNum.Text.Trim().Length == 0)
+            throw new Exception("The line number must be entered");
 
-            Invariant.ToInt32(textLineNum.Text);
-            this.DialogResult = DialogResult.OK;
-        }
+         Invariant.ToInt32(textLineNum.Text);
+         this.DialogResult = DialogResult.OK;
+      }
 
-        private void buttonCancel_Click(object sender, EventArgs e)
-        {
-            this.DialogResult = DialogResult.Cancel;
-        }
-    }
+      private void buttonCancel_Click(object sender, EventArgs e)
+      {
+         this.DialogResult = DialogResult.Cancel;
+      }
+   }
 }
