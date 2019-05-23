@@ -311,12 +311,9 @@ namespace Bitmanager.BigFile
          if (fontMeasures == null) return;
          int needed = listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width;
 
-         //logger.Log("Pixels={0}: pos={1}, w={2}, hw={3}", needed, listLines.LowLevelScrollPosition.X, listLines.Width, olvcLineNumber.Width);
-
          neededTextLength = fontMeasures.GetTextLengthForPixels(needed);
-         int pixels = fontMeasures.GetTextPixels(neededTextLength);
-         logger.Log("(Re)size... Needed pixels is {0}, chrs={1}, pixels for these chars is: {2}", needed, neededTextLength, pixels);
-         //logger.Log("NeededTextLen={0}", neededTextLength);
+         //int pixels = fontMeasures.GetTextPixels(neededTextLength);
+         //logger.Log("(Re)size... Needed pixels is {0}, chrs={1}, pixels for these chars is: {2}", needed, neededTextLength, pixels);
       }
 
       private String getLimitedLine(Object model)
@@ -473,6 +470,8 @@ namespace Bitmanager.BigFile
          // Clear any existing filters/reset values
          clearAll();
          listLines.ClearObjects();
+         listDatasource.SetContent(0);
+
          setLogFile(null);
 
          menuFileClose.Enabled = false;
@@ -594,16 +593,14 @@ namespace Bitmanager.BigFile
 
       private void setLogFile (LogFile newLF)
       {
-         if (newLF != null) newLF.SetEncoding(getCurrentEncoding());
+         if (newLF != null)
+            newLF.SetEncoding(getCurrentEncoding());
+         else
+            listDatasource.SetContent(0);
 
          if (lf != null && lf != newLF) lf.Dispose();
          lf = newLF;
-
-         if (newLF == null)
-         {
-            listDatasource.SetContent(0);
-            return;
-         }
+         if (newLF == null) return;
 
          if (newLF.PartialLineCount > 0)
          {
