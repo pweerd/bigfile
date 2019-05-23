@@ -454,7 +454,7 @@ namespace Bitmanager.BigFile
                strm = gz;
             }
 
-            loadStreamIntoMemory(strm, -1, ct);
+            loadStreamIntoMemory(strm, new LoadProgress(this, -1, ct), false);
          }
          finally
          {
@@ -462,8 +462,13 @@ namespace Bitmanager.BigFile
          }
       }
 
-
-      private void loadStreamIntoMemory (Stream strm, long fileLength, CancellationToken ct)
+      /// <summary>
+      /// Tries to load a stream into a compressed memory buffer.
+      /// If compression fails, we fallback to a non-compressed memory buffer.
+      /// If the size of the file is too large, and we load from a filestream, we simply exit
+      /// and let our caller do the rest
+      /// </summary>
+      private bool loadStreamIntoMemory (Stream strm, LoadProgress loadProgress, bool allowDegradeToNonMem)
       {
          const int chunksize = 256 * 1024;
          Logger compressLogger = Globals.MainLogger.Clone("compress");
@@ -475,114 +480,92 @@ namespace Bitmanager.BigFile
 
          threadCtx = new ThreadContext(encoding, mem as IDirectStream, this.partialLines);
 
-         var tmp = new byte[64 * 1024];
-
+         var readBuffer = new byte[64 * 1024];
          long position = 0;
-         int counter = 0;
-         int nextPartial = 10000;
-         AddLine(0);
          bool checkCompress = true;
          while (true)
          {
-            int len = strm.Read(tmp, 0, tmp.Length);
+            int len = strm.Read(readBuffer, 0, readBuffer.Length);
             if (len == 0) break;
-            mem.Write(tmp, 0, len);
+            mem.Write(readBuffer, 0, len);
 
-            position = addLinesForBuffer(position, tmp, len);
-
-            if (counter++ % 100 == 0)
+            position = addLinesForBuffer(position, readBuffer, len);
+            if (loadProgress.HandleProgress(position))
             {
-               int x;
-               if (fileLength >= 0)
-                  x = perc(position, fileLength);
-               else
+               logger.Log(_LogType.ltProgress, "Handle progress pos={0}", Pretty.PrintSize(position));
+               if (mem is ChunkedMemoryStream)
                {
-                  x = (counter / 100) % 200;
-                  if (x >= 100) x = 200 - x;
+                  if (checkCompress && position > compressIfBigger)
+                  {
+                     logger.Log(_LogType.ltWarning, "Switching to compressed since size {0} > {1}.", Pretty.PrintSize(position), Pretty.PrintSize(compressIfBigger));
+                     checkCompress = false;
+                     mem = ((ChunkedMemoryStream)mem).CreateCompressedChunkedMemoryStream(compressLogger);
+                     threadCtx = new ThreadContext(encoding, mem as IDirectStream, this.partialLines);
+                  }
+                  continue;
                }
-               if (disposed || ct.IsCancellationRequested) break;
-               cb.OnProgress(this, x);
-
-               if (checkCompress && position > compressIfBigger && mem is ChunkedMemoryStream)
+               //then it is a CompressedChunkedMemoryStream
+               if (allowDegradeToNonMem)
                {
-                  logger.Log("Switching to compressed since size {0} > {1}.", Pretty.PrintSize(position), Pretty.PrintSize(compressIfBigger));
-                  checkCompress = false;
-                  mem = ((ChunkedMemoryStream)mem).CreateCompressedChunkedMemoryStream(compressLogger);
-                  threadCtx = new ThreadContext(encoding, mem as IDirectStream, this.partialLines);
-               }
-
-               if (partialLines.Count >= nextPartial)
-               {
-                  nextPartial = nextTriggerForPartialLoad();
-                  threadCtx.DirectStream.PrepareForNewInstance();
-                  cb.OnLoadCompletePartial(new LogFile(this));
+                  var compress = mem as CompressedChunkedMemoryStream;
+                  if (compress.IsCompressionEnabled) continue;
+                  logger.Log("Checking degrade: compr={0}, fs={1}", compress.IsCompressionEnabled, loadProgress.FileSize);
+                  if (loadProgress.FileSize > 10)
+                  {
+                     logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since the filesize({0}) > {1}",
+                        Pretty.PrintSize(loadProgress.FileSize), Pretty.PrintSize(10));
+                     return false;
+                  }
+                  allowDegradeToNonMem = false; //Don't check this again
                }
             }
          }
-         long o2 = partialLines[partialLines.Count - 1] >> FLAGS_SHIFT;
-         if (o2 != position)
-            AddLine(position);
 
-         var c = mem as CompressedChunkedMemoryStream;
-         if (c != null)
-         {
-            c.FinalizeCompressor(true);
-            logger.Log("File len={0}, compressed={1}, ratio={2:F1}%", c.Length, c.GetCompressedSize(), 100.0 * c.GetCompressedSize() / c.Length);
-         }
+         addSentinelForLastPartial(position);
+         return true;
       }
 
       private void loadNormalFile(string fn, CancellationToken ct)
       {
-         byte[] tempBuffer = new byte[512 * 1024];
+         byte[] tempBuffer = new byte[64 * 1024];
 
          var directStream = new DirectFileStreamWrapper(fn, 4096);
          var fileStream = directStream.BaseStream;
 
          long totalLength = fileStream.Length;
+         var loadProgress = new LoadProgress(this, fileStream.Length, ct);
 
          logger.Log("Loading '{0}' via FileStream.", fn);
          if (totalLength >= this.loadInMemoryIfBigger)
          {
             logger.Log("-- Loading into memory since '{0}' > '{1}'.", Pretty.PrintSize(totalLength), Pretty.PrintSize(loadInMemoryIfBigger));
-            loadStreamIntoMemory(fileStream, totalLength, ct);
-            return;
+            if (loadStreamIntoMemory(fileStream, loadProgress, true)) return;
+            //Fallthrough, since the compression failed. We fallback to filestream loading
          }
 
-         this.threadCtx = new ThreadContext(encoding, directStream, partialLines);
-         // Calcs and finally point the position to the end of the line
-         long position = 0;
-         int counter = 0;
-         int nextPartial = 10000;
 
-         AddLine(0);
-         while (position < fileStream.Length)
+         //Loading the complete file (or last piece of the file) from the filestream itself.
+         //This involves creating a directStream from it.
+         this.threadCtx = new ThreadContext(encoding, directStream, partialLines);
+         long position = fileStream.Position;
+         while (true)
          {
             int bytesRead = fileStream.Read(tempBuffer, 0, tempBuffer.Length);
             if (bytesRead == 0) break;
 
             position = addLinesForBuffer(position, tempBuffer, bytesRead);
-
-            if (counter++ % 30 == 0)
-            {
-               if (ct.IsCancellationRequested || disposed) break;
-               cb.OnProgress(this, perc(position, totalLength));
-
-               if (partialLines.Count >= nextPartial)
-               {
-                  nextPartial = nextTriggerForPartialLoad();
-                  cb.OnLoadCompletePartial(new LogFile(this));
-               }
-            }
+            loadProgress.HandleProgress(position);
          }
+         addSentinelForLastPartial(position);
+      }
+
+      private void addSentinelForLastPartial (long position)
+      {
          long o2 = partialLines[partialLines.Count - 1] >> FLAGS_SHIFT;
          if (o2 != position)
             AddLine(position);
       }
 
-      int nextTriggerForPartialLoad ()
-      {
-         return (int)(partialLines.Count * 1.5);
-      }
       static int perc (long partial, long all)
       {
          if (all == 0) return 0;
@@ -652,16 +635,30 @@ namespace Bitmanager.BigFile
             {
                LongestPartialIndex = -1;
                bool dozip = String.Equals(".gz", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
+               AddLine(0);
                if (dozip) loadZipFile(fileName, ct); else loadNormalFile(fileName, ct);
                logger.Log("-- Loaded. Size={0}, #Lines={1}", Pretty.PrintSize(GetPartialLineOffset(partialLines.Count-1)), partialLines.Count-1);
             }
             catch (Exception ex)
             {
-               err = ex;
-               Logs.ErrorLog.Log(ex);
+               if (!(ex is TaskCanceledException))
+               {
+                  err = ex;
+                  Logs.ErrorLog.Log(ex);
+               }
             }
             finally
             {
+               if (threadCtx != null)
+               {
+                  var c = threadCtx.DirectStream as CompressedChunkedMemoryStream;
+                  if (c != null)
+                  {
+                     c.FinalizeCompressor(true);
+                     logger.Log("File len={0}, compressed={1}, ratio={2:F1}%", c.Length, c.GetCompressedSize(), 100.0 * c.GetCompressedSize() / c.Length);
+                  }
+               }
+
                int maxBufferSize = finalizeAdministration();
                if (threadCtx != null) threadCtx.SetMaxBufferSize (maxBufferSize);
                if (!disposed)
@@ -1004,6 +1001,76 @@ namespace Bitmanager.BigFile
       }
 
 
+
+      /// <summary>
+      /// Helper class to handle the progress during loading
+      /// </summary>
+      private class LoadProgress
+      {
+         const long ticksPerSeconds = TimeSpan.TicksPerMillisecond * 1000;
+         private readonly LogFile parent;
+         public readonly long FileSize;
+         private readonly long startTime;
+         private readonly CancellationToken ct;
+         private long reloadAt;
+         private long deltaReloadAt;
+
+         private int prevPerc;
+         //private Logger logger = Globals.MainLogger.Clone("progress");
+
+         public LoadProgress(LogFile parent, long fileSize, CancellationToken ct)
+         {
+            this.parent = parent;
+            this.FileSize = fileSize;
+            this.ct = ct;
+            prevPerc = -1;
+            startTime = DateTime.UtcNow.Ticks;
+            deltaReloadAt = 2 * ticksPerSeconds;
+            reloadAt = startTime + ticksPerSeconds;
+         }
+
+         public bool HandleProgress(long pos)
+         {
+            //return true;
+            long ticks = DateTime.UtcNow.Ticks;
+            int cur;
+            if (FileSize > 0)
+               cur = perc(pos, FileSize);
+            else
+            {
+               cur = (int)(20 * (ticks - startTime) / ticksPerSeconds) % 201;
+               if (cur > 100) cur = 200 - cur;
+            }
+            if (cur != prevPerc)
+            {
+               if (parent.disposed || ct.IsCancellationRequested)
+                  throw new TaskCanceledException();
+
+               parent.cb.OnProgress(parent, cur);
+               prevPerc = cur;
+            }
+
+            if (ticks > reloadAt)
+            {
+               //logger.Log("Load partial");
+               if (parent.disposed || ct.IsCancellationRequested)
+                  throw new TaskCanceledException();
+               reloadAt += deltaReloadAt;
+               deltaReloadAt = (long)(1.5 * deltaReloadAt);
+               parent.threadCtx.DirectStream.PrepareForNewInstance();
+               parent.cb.OnLoadCompletePartial(new LogFile(parent));
+               return true;
+            }
+            return false;
+         }
+
+         static int perc(long partial, long all)
+         {
+            if (all == 0) return 0;
+            return (int)((100.0 * partial) / all);
+         }
+
+      }
    }
 
 
@@ -1047,4 +1114,5 @@ namespace Bitmanager.BigFile
          this.NumSearchTerms = numSearchTerms;
       }
    }
+
 }
