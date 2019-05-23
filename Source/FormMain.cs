@@ -668,6 +668,7 @@ namespace Bitmanager.BigFile
       {
          synchronizationContext.Post(new SendOrPostCallback(o =>
          {
+            logger.Log(); //Separate by empty line
             setLogFile(cloned);
             statusLabelMain.Text = String.Format("Loading...  {0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize(cloned.Size));
          }), null);
