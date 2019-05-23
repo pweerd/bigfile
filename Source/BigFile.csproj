@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Encodings.cs" />
+    <Compile Include="FileHistory.cs" />
     <Compile Include="SearchHistory.cs" />
     <Compile Include="ThreadContext.cs" />
     <Compile Include="ToolStripToolTipHelper.cs" />

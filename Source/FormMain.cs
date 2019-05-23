@@ -102,12 +102,16 @@ namespace Bitmanager.BigFile
          return encodings[sel];
       }
 
+      FileHistory fileHistory;
+
       ToolStripToolTipHelper tooltipHelper;
       private void FormMain_Load(object sender, EventArgs e)
       {
          Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
          GCSettings.LatencyMode = GCLatencyMode.Batch;
          this.settings = new Settings(true);
+         this.fileHistory = new FileHistory();
+         createRecentItems();
 
          this.olvcLineNumber.AspectGetter = getLineNumber;
          this.olvcText.AspectGetter = getLimitedLine;
@@ -147,7 +151,7 @@ namespace Bitmanager.BigFile
          checkWarnings();
 
          int left, top, width, height;
-         settings.LoadFormPosition(out left, out top, out width, out height);
+         Settings.LoadFormPosition(out left, out top, out width, out height);
          if (left > 0) Left = left;
          if (top > 0) Top = top;
          if (width > 300) Width = width;
@@ -197,11 +201,13 @@ namespace Bitmanager.BigFile
       private bool saveError;
       private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
       {
+         logger.Log("Initiating close");
          if (!saveError)
          {
             saveError = true;
             settings.Save();
-            settings.SaveFormPosition(Left, Top, Width, Height);
+            Settings.SaveFormPosition(Left, Top, Width, Height);
+            fileHistory.Save();
          }
       }
 
@@ -251,6 +257,30 @@ namespace Bitmanager.BigFile
          FormMain_DragEnter(sender, e);
       }
 
+      private void createRecentItems ()
+      {
+         String[] history = fileHistory.Items;
+
+         var subItems = new List<ToolStripMenuItem>();
+         foreach (var x in history)
+         {
+            if (x == null) break;
+            var subItem = new ToolStripMenuItem();
+            subItem.Text = x;
+            subItem.AutoSize = true;
+            subItem.Click += recentFile_Click;
+            subItems.Add(subItem);
+         }
+         menuRecentFiles.DropDownItems.Clear();
+         if (subItems.Count>0) menuRecentFiles.DropDownItems.AddRange(subItems.ToArray());
+      }
+
+      private void recentFile_Click(object sender, EventArgs e)
+      {
+         String fn = ((ToolStripMenuItem)sender).Text;
+         if (!String.IsNullOrEmpty(fn))
+            LoadFile(fn);
+      }
 
       /// <summary>
       /// Creates a LogFile object and let it asynchronously load the file
@@ -258,6 +288,8 @@ namespace Bitmanager.BigFile
       private void LoadFile(string filePath)
       {
          prevGoto = -1;
+         fileHistory.Add(filePath);
+         createRecentItems();
          indicateProcessing();
 
          // Clear any existing filters/reset values
@@ -455,6 +487,9 @@ namespace Bitmanager.BigFile
          OpenFileDialog openFileDialog = new OpenFileDialog();
          openFileDialog.Filter = "All Files|*.*";
          openFileDialog.FileName = "*.*";
+         String top = fileHistory.Items[0];
+         if (!String.IsNullOrEmpty(top))
+            openFileDialog.InitialDirectory = Path.GetDirectoryName(top);
          openFileDialog.Title = "Select log file";
 
          if (openFileDialog.ShowDialog(this) == System.Windows.Forms.DialogResult.Cancel)

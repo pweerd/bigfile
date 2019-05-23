@@ -92,6 +92,8 @@ namespace Bitmanager.BigFile
          this.olvcText = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuRecentFiles = new System.Windows.Forms.ToolStripMenuItem();
+         this.boeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -119,6 +121,7 @@ namespace Bitmanager.BigFile
          // 
          this.menuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuFileOpen,
+            this.menuRecentFiles,
             this.menuFileSep1,
             this.menuFileClose,
             this.toolStripMenuItem3,
@@ -130,31 +133,31 @@ namespace Bitmanager.BigFile
          // menuFileOpen
          // 
          this.menuFileOpen.Name = "menuFileOpen";
-         this.menuFileOpen.Size = new System.Drawing.Size(103, 22);
+         this.menuFileOpen.Size = new System.Drawing.Size(180, 22);
          this.menuFileOpen.Text = "&Open";
          this.menuFileOpen.Click += new System.EventHandler(this.menuFileOpen_Click);
          // 
          // menuFileSep1
          // 
          this.menuFileSep1.Name = "menuFileSep1";
-         this.menuFileSep1.Size = new System.Drawing.Size(100, 6);
+         this.menuFileSep1.Size = new System.Drawing.Size(177, 6);
          // 
          // menuFileClose
          // 
          this.menuFileClose.Name = "menuFileClose";
-         this.menuFileClose.Size = new System.Drawing.Size(103, 22);
+         this.menuFileClose.Size = new System.Drawing.Size(180, 22);
          this.menuFileClose.Text = "Close";
          this.menuFileClose.Click += new System.EventHandler(this.menuFileClose_Click);
          // 
          // toolStripMenuItem3
          // 
          this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-         this.toolStripMenuItem3.Size = new System.Drawing.Size(100, 6);
+         this.toolStripMenuItem3.Size = new System.Drawing.Size(177, 6);
          // 
          // menuFileExit
          // 
          this.menuFileExit.Name = "menuFileExit";
-         this.menuFileExit.Size = new System.Drawing.Size(103, 22);
+         this.menuFileExit.Size = new System.Drawing.Size(180, 22);
          this.menuFileExit.Text = "&Exit";
          this.menuFileExit.Click += new System.EventHandler(this.menuFileExit_Click);
          // 
@@ -499,6 +502,20 @@ namespace Bitmanager.BigFile
          this.contextMenuCopy.Text = "Copy";
          this.contextMenuCopy.Click += new System.EventHandler(this.contextMenuCopy_Click);
          // 
+         // recentFilesToolStripMenuItem
+         // 
+         this.menuRecentFiles.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.boeToolStripMenuItem});
+         this.menuRecentFiles.Name = "recentFilesToolStripMenuItem";
+         this.menuRecentFiles.Size = new System.Drawing.Size(180, 22);
+         this.menuRecentFiles.Text = "RecentFiles";
+         // 
+         // boeToolStripMenuItem
+         // 
+         this.boeToolStripMenuItem.Name = "boeToolStripMenuItem";
+         this.boeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.boeToolStripMenuItem.Text = "boe";
+         // 
          // FormMain
          // 
          this.AllowDrop = true;
@@ -549,6 +566,8 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem menuHelpHelp;
       private System.Windows.Forms.ToolStripMenuItem menuHelpAbout;
       private System.Windows.Forms.ToolStripMenuItem menuFileOpen;
+      private System.Windows.Forms.ToolStripMenuItem menuRecentFiles;
+      private System.Windows.Forms.ToolStripMenuItem boeToolStripMenuItem;
       private System.Windows.Forms.ToolStripSeparator menuFileSep1;
       private System.Windows.Forms.ToolStripMenuItem menuFileExit;
       private System.Windows.Forms.ToolStripProgressBar statusProgress;

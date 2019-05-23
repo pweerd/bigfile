@@ -169,7 +169,7 @@ namespace Bitmanager.BigFile
          }
          Load();
       }
-      public void SaveFormPosition(int left, int top, int w, int h)
+      public static void SaveFormPosition(int left, int top, int w, int h)
       {
          String sizeStr = Invariant.Format("{0};{1};{2};{3}", w, h, left, top);
          var rootKey = Registry.CurrentUser;
@@ -178,11 +178,11 @@ namespace Bitmanager.BigFile
             writeVal(key, "position", sizeStr);
          }
       }
-      public bool LoadFormPosition(out int left, out int top, out int w, out int h)
+      public static bool LoadFormPosition(out int left, out int top, out int w, out int h)
       {
          String sizeStr;
          var rootKey = Registry.CurrentUser;
-         using (var key = rootKey.CreateSubKey(_KEY, true))
+         using (var key = rootKey.CreateSubKey(_KEY, false))
          {
             sizeStr = readVal(key, "position", null);
          }
@@ -213,6 +213,32 @@ namespace Bitmanager.BigFile
          return (w >= 0);
       }
 
+      public static void SaveFileHistory (String[] list)
+      {
+         var rootKey = Registry.CurrentUser;
+         using (var key = rootKey.CreateSubKey(_KEY, true))
+         {
+            for (int i=0; i<list.Length; i++)
+            {
+               if (list[i] == null) break;
+               writeVal(key, "h" + i.ToString(), list[i]);
+            }
+         }
+      }
+      public static String[] LoadFileHistory()
+      {
+         String[] ret = new string[10];
+         var rootKey = Registry.CurrentUser;
+         using (var key = rootKey.CreateSubKey(_KEY, false))
+         {
+            for (int i = 0; i < ret.Length; i++)
+            {
+               ret[i] = readVal(key, "h" + i.ToString(), null);
+               if (ret[i] == null) break;
+            }
+         }
+         return ret;
+      }
 
       private static String readVal(RegistryKey key, String valName, String def)
       {
