@@ -42,6 +42,7 @@ namespace Bitmanager.BigFile
       static Globals()
       {
          MainLogger = Logs.CreateLogger("bigfile", "main");
+         MainLogger.Log();
          LoadDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
          IsDebug = File.Exists(Path.Combine(LoadDir, "debug.txt"));
 
