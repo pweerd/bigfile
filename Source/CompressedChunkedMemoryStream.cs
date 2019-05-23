@@ -221,14 +221,14 @@ namespace Bitmanager.IO
                var rc = _compressor.CompressLZ4(ref curBuf[0], ref _decompressBuffer[0], curBuf.Length, _decompressBuffer.Length);
                if (rc <= 0)
                {
-                  if (_logger != null) _logger.Log(Core._LogType.ltError, "Unexpected compress rc={0}. Offset=0x{1:X}", rc, idx * _chunckSize);
+                  if (_logger != null) _logger.Log(Core._LogType.ltWarning, "Compression disabled because: unexpected compress rc={0}. Offset=0x{1:X}", rc, idx * _chunckSize);
                   _compressDisabled = true;
                   break;
                }
 
                if (rc > maxCompressSize)
                {
-                  if (this._logger != null) _logger.Log(Core._LogType.ltError, "Compress disabled because not preforming well. Length is {0} from {1}.", rc, curBuf.Length);
+                  if (this._logger != null) _logger.Log(Core._LogType.ltWarning, "Compression disabled because: not performing well. Length is {0} from {1}.", rc, curBuf.Length);
                   _compressDisabled = true;
                   break;
                }
