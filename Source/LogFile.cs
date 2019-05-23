@@ -28,6 +28,7 @@ using Bitmanager.Core;
 using Bitmanager.IO;
 using Bitmanager.Query;
 using Bitmanager.BigFile.Query;
+using System.Runtime;
 
 namespace Bitmanager.BigFile
 {
@@ -55,7 +56,7 @@ namespace Bitmanager.BigFile
    /// </summary>
    public class LogFile
    {
-      static readonly Logger logger = Globals.MainLogger.Clone ("logfile");
+      static readonly Logger logger = Globals.MainLogger.Clone("logfile");
       public const int FLAGS_SHIFT = 24; //Doublecheck with LineFlags!
       public const int FLAGS_MASK = (1 << 24) - 1;
       public const int MAX_NUM_MASKS = 21;
@@ -66,7 +67,7 @@ namespace Bitmanager.BigFile
       public int LongestPartialIndex { get; private set; }
       public int LongestLineIndex { get; private set; }
       public int PartialLineCount { get { return partialLines.Count - 1; } }
-      public long Size {  get { return partialLines[partialLines.Count - 1] >> FLAGS_SHIFT; } }
+      public long Size { get { return partialLines[partialLines.Count - 1] >> FLAGS_SHIFT; } }
       public int LineCount { get { return lines == null ? partialLines.Count - 1 : lines.Count - 1; } }
       public String FileName { get { return fileName; } }
       private Encoding encoding = Encoding.UTF8;
@@ -81,12 +82,13 @@ namespace Bitmanager.BigFile
          return old;
       }
 
-      public void SyncSettings (Settings settings)
+      public void SyncSettings(Settings settings)
       {
          loadInMemoryIfBigger = Settings.GetActualSize(settings.LoadMemoryIfBigger, "0");
-         compressIfBigger = Globals.CanCompress 
+         compressIfBigger = Globals.CanCompress
             ? Settings.GetActualSize(settings.CompressMemoryIfBigger, "1GB")
             : long.MaxValue;
+         availableMemory = settings.AvailablePhysicalMemory;
          searchThreads = settings.GetActualNumSearchThreads();
       }
 
@@ -99,6 +101,7 @@ namespace Bitmanager.BigFile
       private int searchThreads;
       private long loadInMemoryIfBigger;
       private long compressIfBigger;
+      private long availableMemory;
       #endregion
 
       private bool disposed;
@@ -119,6 +122,7 @@ namespace Bitmanager.BigFile
          this.gzipExe = other.gzipExe;
          this.loadInMemoryIfBigger = other.loadInMemoryIfBigger;
          this.compressIfBigger = other.compressIfBigger;
+         this.availableMemory = other.availableMemory;
          this.searchThreads = other.searchThreads;
 
          this.fileName = other.fileName;
@@ -180,8 +184,8 @@ namespace Bitmanager.BigFile
 
          if (line >= lineCount)
          {
-            logicalIndex = PartialLineCount-1;
-            return lineCount-1;
+            logicalIndex = PartialLineCount - 1;
+            return lineCount - 1;
          }
          if (partialFilter == null)
          {
@@ -290,7 +294,7 @@ namespace Bitmanager.BigFile
                   len = (int)(offset - prevLine);
                   if (len > maxLineLen)
                   {
-                     maxLineIdx = lines.Count-1;
+                     maxLineIdx = lines.Count - 1;
                      maxLineLen = len;
                   }
                   prevLine = offset;
@@ -468,7 +472,7 @@ namespace Bitmanager.BigFile
       /// If the size of the file is too large, and we load from a filestream, we simply exit
       /// and let our caller do the rest
       /// </summary>
-      private bool loadStreamIntoMemory (Stream strm, LoadProgress loadProgress, bool allowDegradeToNonMem)
+      private bool loadStreamIntoMemory(Stream strm, LoadProgress loadProgress, bool allowDegradeToNonMem)
       {
          const int chunksize = 256 * 1024;
          Logger compressLogger = Globals.MainLogger.Clone("compress");
@@ -483,46 +487,58 @@ namespace Bitmanager.BigFile
          var readBuffer = new byte[64 * 1024];
          long position = 0;
          bool checkCompress = true;
+         bool checkDegrade = allowDegradeToNonMem;
          while (true)
          {
             int len = strm.Read(readBuffer, 0, readBuffer.Length);
             if (len == 0) break;
-            mem.Write(readBuffer, 0, len);
 
+            mem.Write(readBuffer, 0, len);
             position = addLinesForBuffer(position, readBuffer, len);
-            if (loadProgress.HandleProgress(position))
+            if (!loadProgress.HandleProgress(position)) continue;
+
+
+            logger.Log(_LogType.ltProgress, "Handle progress pos={0}", Pretty.PrintSize(position));
+            if (mem is ChunkedMemoryStream)
             {
-               logger.Log(_LogType.ltProgress, "Handle progress pos={0}", Pretty.PrintSize(position));
-               if (mem is ChunkedMemoryStream)
+               if (checkCompress && position > compressIfBigger)
                {
-                  if (checkCompress && position > compressIfBigger)
-                  {
-                     logger.Log(_LogType.ltWarning, "Switching to compressed since size {0} > {1}.", Pretty.PrintSize(position), Pretty.PrintSize(compressIfBigger));
-                     checkCompress = false;
-                     mem = ((ChunkedMemoryStream)mem).CreateCompressedChunkedMemoryStream(compressLogger);
-                     threadCtx = new ThreadContext(encoding, mem as IDirectStream, this.partialLines);
-                  }
-                  continue;
+                  logger.Log(_LogType.ltWarning, "Switching to compressed since size {0} > {1}.", Pretty.PrintSize(position), Pretty.PrintSize(compressIfBigger));
+                  checkCompress = false;
+                  mem = ((ChunkedMemoryStream)mem).CreateCompressedChunkedMemoryStream(compressLogger);
+                  threadCtx = new ThreadContext(encoding, mem as IDirectStream, this.partialLines);
                }
-               //then it is a CompressedChunkedMemoryStream
-               if (allowDegradeToNonMem)
-               {
-                  var compress = mem as CompressedChunkedMemoryStream;
-                  if (compress.IsCompressionEnabled) continue;
-                  logger.Log("Checking degrade: compr={0}, fs={1}", compress.IsCompressionEnabled, loadProgress.FileSize);
-                  if (loadProgress.FileSize > 10)
-                  {
-                     logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since the filesize({0}) > {1}",
-                        Pretty.PrintSize(loadProgress.FileSize), Pretty.PrintSize(10));
-                     return false;
-                  }
-                  allowDegradeToNonMem = false; //Don't check this again
-               }
+               continue;
             }
+
+            //then it is a CompressedChunkedMemoryStream
+            if (checkDegrade)
+            {
+               var compress = mem as CompressedChunkedMemoryStream;
+               if (compress.IsCompressionEnabled) continue;
+               logger.Log("Checking degrade: compr={0}, fs={1}", compress.IsCompressionEnabled, loadProgress.FileSize);
+               long limit = availableMemory - 800 * 1024 * 1024;
+               if (loadProgress.FileSize > limit)
+               {
+                  logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since the filesize({0}) more than the available memory {1}",
+                     Pretty.PrintSize(loadProgress.FileSize), Pretty.PrintSize(limit));
+                  goto EXIT_DEGRADED;
+               }
+               checkDegrade = false; //Don't check this again
+            }
+
+            if (loadProgress.ShouldDegrade()) goto EXIT_DEGRADED;
          }
 
          addSentinelForLastPartial(position);
          return true;
+
+
+         EXIT_DEGRADED:;
+         mem.Dispose();
+         mem = null;
+         GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
+         return false;
       }
 
       private void loadNormalFile(string fn, CancellationToken ct)
@@ -538,9 +554,17 @@ namespace Bitmanager.BigFile
          logger.Log("Loading '{0}' via FileStream.", fn);
          if (totalLength >= this.loadInMemoryIfBigger)
          {
-            logger.Log("-- Loading into memory since '{0}' > '{1}'.", Pretty.PrintSize(totalLength), Pretty.PrintSize(loadInMemoryIfBigger));
-            if (loadStreamIntoMemory(fileStream, loadProgress, true)) return;
-            //Fallthrough, since the compression failed. We fallback to filestream loading
+            long limit = availableMemory - 800*1024*1024;
+            if (totalLength >= compressIfBigger) limit *= 3;
+            if (totalLength < limit)
+            {
+               logger.Log("-- Loading into memory since '{0}' is between {1} and {2}.",
+                  Pretty.PrintSize(totalLength),
+                  Pretty.PrintSize(loadInMemoryIfBigger),
+                  Pretty.PrintSize(limit));
+               if (loadStreamIntoMemory(fileStream, loadProgress, true)) return;
+               //Fallthrough, since the compression failed. We fallback to filestream loading
+            }
          }
 
 
@@ -559,14 +583,14 @@ namespace Bitmanager.BigFile
          addSentinelForLastPartial(position);
       }
 
-      private void addSentinelForLastPartial (long position)
+      private void addSentinelForLastPartial(long position)
       {
          long o2 = partialLines[partialLines.Count - 1] >> FLAGS_SHIFT;
          if (o2 != position)
             AddLine(position);
       }
 
-      static int perc (long partial, long all)
+      static int perc(long partial, long all)
       {
          if (all == 0) return 0;
          return (int)((100.0 * partial) / all);
@@ -636,8 +660,11 @@ namespace Bitmanager.BigFile
                LongestPartialIndex = -1;
                bool dozip = String.Equals(".gz", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
                AddLine(0);
-               if (dozip) loadZipFile(fileName, ct); else loadNormalFile(fileName, ct);
-               logger.Log("-- Loaded. Size={0}, #Lines={1}", Pretty.PrintSize(GetPartialLineOffset(partialLines.Count-1)), partialLines.Count-1);
+               if (dozip)
+                  loadZipFile(fileName, ct);
+               else
+                  loadNormalFile(fileName, ct);
+               logger.Log("-- Loaded. Size={0}, #Lines={1}", Pretty.PrintSize(GetPartialLineOffset(partialLines.Count - 1)), partialLines.Count - 1);
             }
             catch (Exception ex)
             {
@@ -660,7 +687,7 @@ namespace Bitmanager.BigFile
                }
 
                int maxBufferSize = finalizeAdministration();
-               if (threadCtx != null) threadCtx.SetMaxBufferSize (maxBufferSize);
+               if (threadCtx != null) threadCtx.SetMaxBufferSize(maxBufferSize);
                if (!disposed)
                {
                   cb.OnProgress(this, 100);
@@ -728,10 +755,10 @@ namespace Bitmanager.BigFile
 
             try
             {
-               Task<int>[] tasks = new Task<int>[searchThreads-1];
+               Task<int>[] tasks = new Task<int>[searchThreads - 1];
                int N = partialLines.Count - 1;
                int M = N / searchThreads;
-               for (int i=0; i<tasks.Length; i++)
+               for (int i = 0; i < tasks.Length; i++)
                {
                   int end = N;
                   N -= M;
@@ -836,12 +863,12 @@ namespace Bitmanager.BigFile
          goto EXIT_RTN;
 
          EXIT_RTN:
-         logger.Log("Search: thread end: from {0} to {1}: {2} out of {3}", start, end, matches, end-start);
+         logger.Log("Search: thread end: from {0} to {1}: {2} out of {3}", start, end, matches, end - start);
          return matches;
       }
       private bool progressAndCheck(int index, CancellationToken ct)
       {
-         if (!onProgress ((100.0*index) / partialLines.Count)) return false;
+         if (!onProgress((100.0 * index) / partialLines.Count)) return false;
          return !ct.IsCancellationRequested;
       }
 
@@ -891,8 +918,8 @@ namespace Bitmanager.BigFile
                      int ix = (int)ll;
                      int len = ctx.ReadPartialLineBytesInBuffer(ix, ix + 1);
                      fs.Write(ctx.ByteBuffer, 0, len);
-                        // Add \r\n
-                        fs.Write(endLine, 0, 2);
+                     // Add \r\n
+                     fs.Write(endLine, 0, 2);
 
                      if (counter++ % 50 == 0)
                      {
@@ -946,12 +973,12 @@ namespace Bitmanager.BigFile
          return (int)(partialLines[line] >> FLAGS_SHIFT);
       }
 
-      public string GetPartialLine(int index, int maxChars = -1)
+      public string GetPartialLine(int index, int maxChars = -1, Action<char[], int> replacer=null)
       {
          if (index < 0 || index >= partialLines.Count - 1) return String.Empty;
-         return threadCtx.GetPartialLine(index, index + 1, maxChars);
+         return threadCtx.GetPartialLine(index, index + 1, maxChars, replacer);
       }
-      
+
 
       public String GetLine(int index)
       {
@@ -959,10 +986,10 @@ namespace Bitmanager.BigFile
          if (lines != null)
          {
             if (index >= lines.Count - 1) return String.Empty;
-            return threadCtx.GetPartialLine(lines[index], lines[index+1], -1);
+            return threadCtx.GetPartialLine(lines[index], lines[index + 1]);
          }
          if (index >= partialLines.Count - 1) return String.Empty;
-         return threadCtx.GetPartialLine(index, index + 1, -1);
+         return threadCtx.GetPartialLine(index, index + 1);
       }
 
       public LineFlags GetLineFlags(int line)
@@ -1008,12 +1035,12 @@ namespace Bitmanager.BigFile
       private class LoadProgress
       {
          const long ticksPerSeconds = TimeSpan.TicksPerMillisecond * 1000;
-         private readonly LogFile parent;
+         protected readonly LogFile parent;
          public readonly long FileSize;
-         private readonly long startTime;
-         private readonly CancellationToken ct;
-         private long reloadAt;
-         private long deltaReloadAt;
+         protected readonly long startTime;
+         protected readonly CancellationToken ct;
+         protected long reloadAt;
+         protected long deltaReloadAt;
 
          private int prevPerc;
          //private Logger logger = Globals.MainLogger.Clone("progress");
@@ -1029,7 +1056,11 @@ namespace Bitmanager.BigFile
             reloadAt = startTime + ticksPerSeconds;
          }
 
-         public bool HandleProgress(long pos)
+         public virtual bool ShouldDegrade()
+         {
+            return false;
+         }
+         public virtual bool HandleProgress(long pos)
          {
             //return true;
             long ticks = DateTime.UtcNow.Ticks;
@@ -1070,6 +1101,55 @@ namespace Bitmanager.BigFile
             return (int)((100.0 * partial) / all);
          }
 
+      }
+      private class MemCheckingLoadProgress : LoadProgress
+      {
+         const int CHUNCK_MB = 100;
+         const int MB = 1024*1024;
+         private int cnt;
+         private bool shouldDegrade;
+         private readonly Logger logger;
+
+         private long nextCheckAtPos;
+         private MemoryFailPoint failpoint;
+
+         public MemCheckingLoadProgress(LogFile parent, long fileSize, CancellationToken ct) :
+            base(parent, fileSize, ct)
+         {
+            this.logger = LogFile.logger;
+            nextCheckAtPos = CHUNCK_MB * MB;
+         }
+
+         public override bool ShouldDegrade()
+         {
+            return shouldDegrade;
+         }
+
+         public override bool HandleProgress(long pos)
+         {
+            if (pos> nextCheckAtPos)
+            {
+               nextCheckAtPos += CHUNCK_MB * MB;
+               logger.Log(_LogType.ltTimerStart, "failpoint start, pos={0}mb, tot={1}mb", pos/MB, GC.GetTotalMemory(false)/MB);
+
+               if (failpoint != null) failpoint.Dispose();
+               failpoint = null;
+               try
+               {
+                  // Check for available memory.
+                  failpoint = new MemoryFailPoint(500);
+               }
+               catch (InsufficientMemoryException e)
+               {
+                  logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since there was not enough memory available.");
+                  shouldDegrade = true;
+                  return true;
+               }
+               logger.Log(_LogType.ltTimerStop, "failpoint done");
+               return base.HandleProgress(pos);
+            }
+            return false;
+         }
       }
    }
 

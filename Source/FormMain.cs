@@ -147,8 +147,8 @@ namespace Bitmanager.BigFile
          settings.LoadFormPosition(out left, out top, out width, out height);
          if (left > 0) Left = left;
          if (top > 0) Top = top;
-         if (width > 0) Width = width;
-         if (height > 0) Height = height;
+         if (width > 300) Width = width;
+         if (height > 200) Height = height;
       }
 
       private void checkWarnings()
@@ -318,10 +318,18 @@ namespace Bitmanager.BigFile
 
       private String getLimitedLine(Object model)
       {
-         String x = model == null ? String.Empty : lf.GetPartialLine((int)model, neededTextLength);
+         String x = model == null ? String.Empty : lf.GetPartialLine((int)model, neededTextLength, replaceTabs);
          //logger.Log("Needed={0}, returned={1}", neededTextLength, x.Length);
          return x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x;
       }
+      private static void replaceTabs(char[] arr, int len)
+      {
+         for (int i = 0; i < len; i++)
+         {
+            if (arr[i] == '\t') arr[i] = (char)0x279c; // 0x21e5;// 0xbb;
+         }
+      }
+
       private String getLine(Object model)
       {
          String x = model == null ? String.Empty : lf.GetPartialLine((int)model);
@@ -534,13 +542,18 @@ namespace Bitmanager.BigFile
          Utils.FreeAndNil (ref cancellationTokenSource);
       }
 
-      private void statusProgress_Click(object sender, EventArgs e)
+      private void cancel()
       {
          if (cancellationTokenSource != null)
          {
             logger.Log("Cancelling");
             this.cancellationTokenSource.Cancel();
          }
+      }
+
+      private void statusProgress_Click(object sender, EventArgs e)
+      {
+         cancel();
       }
 
       private void listLines_Scroll(object sender, ScrollEventArgs e)
@@ -656,7 +669,7 @@ namespace Bitmanager.BigFile
          synchronizationContext.Post(new SendOrPostCallback(o =>
          {
             setLogFile(cloned);
-            statusLabelMain.Text = String.Format("Loading...  {0} lines / {1} sofar.", cloned.PartialLineCount, Pretty.PrintSize(cloned.Size));
+            statusLabelMain.Text = String.Format("Loading...  {0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize(cloned.Size));
          }), null);
       }
 
@@ -839,8 +852,7 @@ namespace Bitmanager.BigFile
          {
             default: return;
             case (char)27: //escape
-               logger.Log("Cancelling");
-               this.cancellationTokenSource.Cancel();
+               cancel();
                break;
 
             case '/':
@@ -882,6 +894,7 @@ namespace Bitmanager.BigFile
             listLines.Focus();
          }
       }
+
 
       private unsafe void toolStripButton2_Click(object sender, EventArgs e)
       {

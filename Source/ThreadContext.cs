@@ -198,11 +198,21 @@ namespace Bitmanager.BigFile
          return Encoding.GetChars(byteBuffer, 0, bytes, charBuffer, 0);
       }
 
-      public String GetPartialLine (int from, int until, int maxChars)
+      public String GetPartialLine(int from, int until)
+      {
+         int len = ReadPartialLineCharsInBuffer(from, until);
+         return new string(charBuffer, 0, len);
+      }
+
+      public String GetPartialLine(int from, int until, int maxChars, Action<char[], int> replacer)
       {
          int len = maxChars >= 0 ? ReadPartialLineCharsInBuffer(from, until, maxChars)
                                  : ReadPartialLineCharsInBuffer(from, until);
+         if (replacer != null)
+            replacer(charBuffer, len);
          return new string(charBuffer, 0, len);
       }
    }
+
+
 }

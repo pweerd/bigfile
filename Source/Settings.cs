@@ -31,6 +31,8 @@ namespace Bitmanager.BigFile
    public class Settings
    {
       private const String _KEY = @"software\bitmanager\bigfile";
+      public readonly long TotalPhysicalMemory;
+      public readonly long AvailablePhysicalMemory;
 
       public Color HighlightColor = Color.Lime;
       public Color ContextColor = Color.LightGray;
@@ -71,6 +73,11 @@ namespace Bitmanager.BigFile
             GzipExe = gzipExe;
          else
             Load();
+
+         var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
+         this.TotalPhysicalMemory = (long)ci.TotalPhysicalMemory;
+         this.AvailablePhysicalMemory = (long)Math.Min (ci.AvailablePhysicalMemory, ci.AvailableVirtualMemory);
+         Globals.MainLogger.Log("Total memory={0}, available={1}.", Pretty.PrintSize(TotalPhysicalMemory), Pretty.PrintSize(AvailablePhysicalMemory));
       }
 
       public int GetActualNumSearchThreads()
@@ -179,6 +186,8 @@ namespace Bitmanager.BigFile
          {
             sizeStr = readVal(key, "position", null);
          }
+         Globals.MainLogger.Log("Loaded size str={0}", sizeStr);
+
          left = -1;
          top = -1;
          w = -1;
