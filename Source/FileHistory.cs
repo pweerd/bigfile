@@ -31,17 +31,19 @@ namespace Bitmanager.BigFile
    public class FileHistory
    {
       private readonly String[] history;
+      private readonly String regPrefix;
 
       public string[] Items { get { return history; } }
 
-      public FileHistory ()
+      public FileHistory (String prefix="fh_")
       {
-         history = Settings.LoadFileHistory();
+         this.regPrefix = prefix;
+         history = Settings.LoadFileHistory(prefix);
       }
 
       public void Save()
       {
-         Settings.SaveFileHistory(history);
+         Settings.SaveFileHistory(history, regPrefix);
       }
 
       public void Add (String fn)

@@ -102,7 +102,7 @@ namespace Bitmanager.BigFile
          return encodings[sel];
       }
 
-      FileHistory fileHistory;
+      FileHistory fileHistory, directoryHistory;
 
       ToolStripToolTipHelper tooltipHelper;
       private void FormMain_Load(object sender, EventArgs e)
@@ -110,7 +110,8 @@ namespace Bitmanager.BigFile
          Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
          GCSettings.LatencyMode = GCLatencyMode.Batch;
          this.settings = new Settings(true);
-         this.fileHistory = new FileHistory();
+         this.fileHistory = new FileHistory("fh_");
+         this.directoryHistory = new FileHistory("dh_");
          createRecentItems();
 
          this.olvcLineNumber.AspectGetter = getLineNumber;
@@ -156,6 +157,21 @@ namespace Bitmanager.BigFile
          if (top > 0) Top = top;
          if (width > 300) Width = width;
          if (height > 200) Height = height;
+
+         logger.Log("cmdline=" + Environment.CommandLine);
+         var lexer = new Lexer(Environment.CommandLine);
+         for (int i=0; i<2; i++)
+         {
+            var x = lexer.NextToken();
+            if (x == null) break;
+            if (i==1 && x.Type== Lexer.TokenType.Value)
+            {
+               String startFile = x.Text;
+               if (File.Exists(startFile)) LoadFile(startFile);
+               else if (Directory.Exists(startFile)) ShowOpenDialogAndLoad(startFile);
+               break;
+            }
+         }
       }
 
       private void checkWarnings()
@@ -208,6 +224,7 @@ namespace Bitmanager.BigFile
             settings.Save();
             Settings.SaveFormPosition(Left, Top, Width, Height);
             fileHistory.Save();
+            directoryHistory.Save();
          }
       }
 
@@ -257,9 +274,15 @@ namespace Bitmanager.BigFile
          FormMain_DragEnter(sender, e);
       }
 
-      private void createRecentItems ()
+      private void createRecentItems()
       {
-         String[] history = fileHistory.Items;
+         createRecentItems(fileHistory, menuRecentFiles);
+         createRecentItems(directoryHistory, menuRecentFolders);
+      }
+         
+      private void createRecentItems(FileHistory hist, ToolStripMenuItem menuItem)
+      {
+         String[] history = hist.Items;
 
          var subItems = new List<ToolStripMenuItem>();
          foreach (var x in history)
@@ -271,15 +294,20 @@ namespace Bitmanager.BigFile
             subItem.Click += recentFile_Click;
             subItems.Add(subItem);
          }
-         menuRecentFiles.DropDownItems.Clear();
-         if (subItems.Count>0) menuRecentFiles.DropDownItems.AddRange(subItems.ToArray());
+         menuItem.DropDownItems.Clear();
+         if (subItems.Count > 0) menuItem.DropDownItems.AddRange(subItems.ToArray());
       }
 
       private void recentFile_Click(object sender, EventArgs e)
       {
          String fn = ((ToolStripMenuItem)sender).Text;
          if (!String.IsNullOrEmpty(fn))
-            LoadFile(fn);
+         {
+            if (Directory.Exists(fn))
+               ShowOpenDialogAndLoad(fn);
+            else
+               LoadFile(fn);
+         }
       }
 
       /// <summary>
@@ -289,6 +317,7 @@ namespace Bitmanager.BigFile
       {
          prevGoto = -1;
          fileHistory.Add(filePath);
+         directoryHistory.Add(Path.GetDirectoryName(filePath));
          createRecentItems();
          indicateProcessing();
 
@@ -484,20 +513,30 @@ namespace Bitmanager.BigFile
 
       private void menuFileOpen_Click(object sender, EventArgs e)
       {
+         ShowOpenDialogAndLoad(null);
+      }
+      private void ShowOpenDialogAndLoad (String initialDir)
+      {
          OpenFileDialog openFileDialog = new OpenFileDialog();
          openFileDialog.Filter = "All Files|*.*";
          openFileDialog.FileName = "*.*";
-         String top = fileHistory.Items[0];
-         if (!String.IsNullOrEmpty(top))
-            openFileDialog.InitialDirectory = Path.GetDirectoryName(top);
-         openFileDialog.Title = "Select log file";
+         openFileDialog.Title = "Select file to view";
 
-         if (openFileDialog.ShowDialog(this) == System.Windows.Forms.DialogResult.Cancel)
+         if (initialDir != null)
+            openFileDialog.InitialDirectory = initialDir;
+         else
          {
-            return;
+            var items = fileHistory.Items;
+            if (items.Length>0)
+            {
+               String top = items[0];
+               if (!String.IsNullOrEmpty(top))
+                  openFileDialog.InitialDirectory = Path.GetDirectoryName(top);
+            }
          }
 
-         LoadFile(openFileDialog.FileName);
+         if (openFileDialog.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+            LoadFile(openFileDialog.FileName);
       }
 
       private void clearAll()

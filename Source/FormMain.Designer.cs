@@ -93,7 +93,7 @@ namespace Bitmanager.BigFile
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
          this.menuRecentFiles = new System.Windows.Forms.ToolStripMenuItem();
-         this.boeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuRecentFolders = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -122,6 +122,7 @@ namespace Bitmanager.BigFile
          this.menuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuFileOpen,
             this.menuRecentFiles,
+            this.menuRecentFolders,
             this.menuFileSep1,
             this.menuFileClose,
             this.toolStripMenuItem3,
@@ -504,17 +505,15 @@ namespace Bitmanager.BigFile
          // 
          // recentFilesToolStripMenuItem
          // 
-         this.menuRecentFiles.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.boeToolStripMenuItem});
          this.menuRecentFiles.Name = "recentFilesToolStripMenuItem";
          this.menuRecentFiles.Size = new System.Drawing.Size(180, 22);
-         this.menuRecentFiles.Text = "RecentFiles";
+         this.menuRecentFiles.Text = "Recent files";
          // 
-         // boeToolStripMenuItem
+         // recentFoldersToolStripMenuItem
          // 
-         this.boeToolStripMenuItem.Name = "boeToolStripMenuItem";
-         this.boeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-         this.boeToolStripMenuItem.Text = "boe";
+         this.menuRecentFolders.Name = "recentFoldersToolStripMenuItem";
+         this.menuRecentFolders.Size = new System.Drawing.Size(180, 22);
+         this.menuRecentFolders.Text = "Recent folders";
          // 
          // FormMain
          // 
@@ -567,7 +566,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem menuHelpAbout;
       private System.Windows.Forms.ToolStripMenuItem menuFileOpen;
       private System.Windows.Forms.ToolStripMenuItem menuRecentFiles;
-      private System.Windows.Forms.ToolStripMenuItem boeToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem menuRecentFolders;
       private System.Windows.Forms.ToolStripSeparator menuFileSep1;
       private System.Windows.Forms.ToolStripMenuItem menuFileExit;
       private System.Windows.Forms.ToolStripProgressBar statusProgress;

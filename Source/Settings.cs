@@ -213,7 +213,7 @@ namespace Bitmanager.BigFile
          return (w >= 0);
       }
 
-      public static void SaveFileHistory (String[] list)
+      public static void SaveFileHistory (String[] list, String prefix)
       {
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey(_KEY, true))
@@ -221,11 +221,11 @@ namespace Bitmanager.BigFile
             for (int i=0; i<list.Length; i++)
             {
                if (list[i] == null) break;
-               writeVal(key, "h" + i.ToString(), list[i]);
+               writeVal(key, prefix + i.ToString(), list[i]);
             }
          }
       }
-      public static String[] LoadFileHistory()
+      public static String[] LoadFileHistory(String prefix)
       {
          String[] ret = new string[10];
          var rootKey = Registry.CurrentUser;
@@ -233,7 +233,7 @@ namespace Bitmanager.BigFile
          {
             for (int i = 0; i < ret.Length; i++)
             {
-               ret[i] = readVal(key, "h" + i.ToString(), null);
+               ret[i] = readVal(key, prefix + i.ToString(), null);
                if (ret[i] == null) break;
             }
          }
