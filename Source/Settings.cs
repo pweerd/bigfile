@@ -244,7 +244,10 @@ namespace Bitmanager.BigFile
       {
          if (key == null) return def;
          var v = key.GetValue(valName, def);
-         return v == null ? null : v.ToString();
+         if (v == null) return def;
+
+         String ret = v.ToString();
+         return String.IsNullOrEmpty(ret) ? def : ret;
       }
       private static Color readVal(RegistryKey key, String valName, Color def)
       {
@@ -265,6 +268,7 @@ namespace Bitmanager.BigFile
       private static void writeVal(RegistryKey key, String valName, String val)
       {
          if (key == null) return;
+         if (val == null) val = String.Empty;
          key.SetValue(valName, val);
       }
       private static void writeVal(RegistryKey key, String valName, int val)
