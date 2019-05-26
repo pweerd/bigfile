@@ -1,9 +1,9 @@
 # BigFile
 
-BigFile is meant as a viewer for large files. Like 'less' on unix systems.
+BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems.
 The following provides a brief help guide for the core operations of BigFile.
 
-##### History
+#### History
 
 BigFile is inspired by Woanware's LogViewer (https://github.com/woanware/LogViewer)
 Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.
@@ -12,13 +12,15 @@ Unfortunately BigFile diverged way too far from the original logviewer, so I dec
 
 Either use the File->Open menu item or drag and drop a file onto the list
 
-BigFile can open .gz files directly. The content will be loaded into memory and served from there. gz-files will be loaded via a gzip.exe if found, or via SharpZLib (slower!)
+BigFile can open **.zip** and **.gz** files directly. The content will be loaded into memory and served from there. gz-files will be loaded via a gzip.exe if found, or via SharpZLib (slower!)
 
-The load process is done in the background but regularly sends a partial to the application, to make it possible to view the file before it is completely loaded.
+In case of a zip archive, the largest sub-file will be loaded. A dropdown box with the entries from the zip file is shown. In the future is should be possible to select a different zip entry from the dropdown...  
+
+The load process is done in the background but regularly sends a partial loaded file to the application, to make it possible to view the file before it is completely loaded.
 
 All background processing can be cancelled by pressing the escape-key, or by clicking in the progress bar.
 
-##### gzip
+#### gzip
 
 When the application starts, and no settings are found, a search is done for the presence of a gzip.exe. For this, the system path and the appdata folder for the current user are scanned. 
 
@@ -35,14 +37,14 @@ Following types are supported:
 * regex or r: case *in*sensitive search by a regex
 * rcs: case ***in***sensitive search by a regex
 
-##### Example
+#### Example
 * (Paris AND r:on$) NOT cs:Amsterdam   
   This will match 'paris londoN amsterdam', but not 'paris londoN Amsterdam'
 * Paris  
 This will do a case insensitive search with 1 term
 * 'windows app' NOT unix 
 
-##### Caching
+#### Caching
 
 The last used 20 individual terms from a boolean expression are cached in a bitset. This makes subsequent searching for the same terms blazingly fast. 
 
@@ -50,7 +52,7 @@ If you search for paris OR amsterdam, it may take a while. But if you search for
 
 In very large files it might be a good trick to do a search for all terms you might want to search for, combined with OR. Afterwards, searching for any combination of these cched terms is really fast.
 
-##### Result
+#### Result
 
 When the first match is encountered, the view is positioned to the first hit, while the search proceeds in the background.
 
@@ -80,9 +82,9 @@ There are two modes for filtering; hide matched and show matched. Filtering and 
 
 ## Detail view
 
-If you double click on a line, a new form is opened where the current line is viewed in a textbox.
+If you double click on a line, a new form is opened where the current line is viewed in a textbox. The form will be reused whenever a different line is opened, unless you you the alt-key. Using the alt-key makes sure that a new window is opened.
 
-The formatting can be changed between text, json and xml.
+The formatting can be changed between text, json, xml and csv.
 
 Eventual hits (after a search) are highlighted, and one can navigate between the hits via the same navigation keys as in the main window.
 
@@ -90,9 +92,9 @@ Eventual hits (after a search) are highlighted, and one can navigate between the
 
 ## Memory
 
-Non gz files can be served from disk or from memory. gz files are always served from memory.
+Non zip/gz files can be served from disk or from memory. Compressed files are always served from memory.
 
-Because the content is splitted into lines, the content needs to be read completely for non gz files as well. So using a memory buffer makes sense there as well.
+Because the content is splitted into lines, the content needs to be read completely for non compressed files as well. So using a memory buffer makes sense there as well.
 
 For very large files it is difficult to keep them in memory. Bigfile uses LZW compression to compress large chunks of memory. Because LZW is extremely fast, this combination is typically faster when the system would need to swap memory.
 
@@ -108,6 +110,10 @@ The selected line's contents can be copied to the clipboard via the list context
 
 The export functionality exports all lines within the current view or the selected lines. There is a maximum limit of 10000 lines. This functionality is accessed via the list content menu.
 
+## Command line
+
+The 1st parameter is the file or directory to be opened. If the parameter indicates a directory, an open file dialog box is shown with the supplied directory as initial directory.
+
 ## Credits
 
 - Mark Woan (https://www.woanware.co.uk)
@@ -116,3 +122,15 @@ The export functionality exports all lines within the current view or the select
 - LZ4 - Fast LZ compression algorithm (<http://fastcompression.blogspot.com/p/lz4.html>)
 - Icons8 (https://icons8.com)
 
+
+
+### Changes
+
+#### V0.912
+
+- Bugfixes
+- Limited support for loading zip files
+- The detail view for a line is reusing the window. Also csv-view.
+- Recent files/folders are administrated
+- Faster startup
+- Shell extensions
