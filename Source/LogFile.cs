@@ -449,7 +449,7 @@ namespace Bitmanager.BigFile
       /// Load a .zip file.
       /// This is done by taking the largest file and stream that into memory
       /// </summary>
-      private void loadZipFile(String fn, CancellationToken ct)
+      private void loadZipFile(String fn, CancellationToken ct, String zipEntryName)
       {
          using (var fs = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read))
          using (ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Read, false, Encoding.UTF8))
@@ -461,8 +461,14 @@ namespace Bitmanager.BigFile
 
             if (zipEntries.Count > 0)
             {
-               zipEntries.SelectedEntry = 0;
-               using (var entryStrm = getZipArchiveEntry(entries, zipEntries[0]).Open())
+               if (zipEntryName == null)
+                  zipEntries.SelectedEntry = 0;
+               else
+               {
+                  zipEntries.SelectedEntry = zipEntries.FindIndex(x => x.FullName == zipEntryName);
+                  if (zipEntries.SelectedEntry < 0) throw new BMException("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
+               }
+               using (var entryStrm = getZipArchiveEntry(entries, zipEntries[zipEntries.SelectedEntry]).Open())
                   loadStreamIntoMemory(entryStrm, new LoadProgress(this, -1, ct), false);
             }
          }
@@ -690,7 +696,7 @@ namespace Bitmanager.BigFile
       /// <summary>
       /// Load a (zip) file
       /// </summary>
-      public Task Load(string fn, CancellationToken ct)
+      public Task Load(string fn, CancellationToken ct, String zipEntry=null)
       {
          zipEntries = null;
          return Task.Run(() =>
@@ -705,8 +711,8 @@ namespace Bitmanager.BigFile
                AddLine(0);
                if (String.Equals(".gz", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase))
                   loadGZipFile(fileName, ct);
-               else if (String.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase))
-                  loadZipFile(fileName, ct);
+               else if (zipEntry != null || String.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase))
+                  loadZipFile(fileName, ct, zipEntry);
                else
                   loadNormalFile(fileName, ct);
                logger.Log("-- Loaded. Size={0}, #Lines={1}", Pretty.PrintSize(GetPartialLineOffset(partialLines.Count - 1)), partialLines.Count - 1);

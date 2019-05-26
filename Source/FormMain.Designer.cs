@@ -136,43 +136,43 @@ namespace Bitmanager.BigFile
          // menuFileOpen
          // 
          this.menuFileOpen.Name = "menuFileOpen";
-         this.menuFileOpen.Size = new System.Drawing.Size(180, 22);
+         this.menuFileOpen.Size = new System.Drawing.Size(149, 22);
          this.menuFileOpen.Text = "&Open";
          this.menuFileOpen.Click += new System.EventHandler(this.menuFileOpen_Click);
          // 
          // menuRecentFiles
          // 
          this.menuRecentFiles.Name = "menuRecentFiles";
-         this.menuRecentFiles.Size = new System.Drawing.Size(180, 22);
+         this.menuRecentFiles.Size = new System.Drawing.Size(149, 22);
          this.menuRecentFiles.Text = "Recent files";
          // 
          // menuRecentFolders
          // 
          this.menuRecentFolders.Name = "menuRecentFolders";
-         this.menuRecentFolders.Size = new System.Drawing.Size(180, 22);
+         this.menuRecentFolders.Size = new System.Drawing.Size(149, 22);
          this.menuRecentFolders.Text = "Recent folders";
          // 
          // menuFileSep1
          // 
          this.menuFileSep1.Name = "menuFileSep1";
-         this.menuFileSep1.Size = new System.Drawing.Size(177, 6);
+         this.menuFileSep1.Size = new System.Drawing.Size(146, 6);
          // 
          // menuFileClose
          // 
          this.menuFileClose.Name = "menuFileClose";
-         this.menuFileClose.Size = new System.Drawing.Size(180, 22);
+         this.menuFileClose.Size = new System.Drawing.Size(149, 22);
          this.menuFileClose.Text = "Close";
          this.menuFileClose.Click += new System.EventHandler(this.menuFileClose_Click);
          // 
          // toolStripMenuItem3
          // 
          this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-         this.toolStripMenuItem3.Size = new System.Drawing.Size(177, 6);
+         this.toolStripMenuItem3.Size = new System.Drawing.Size(146, 6);
          // 
          // menuFileExit
          // 
          this.menuFileExit.Name = "menuFileExit";
-         this.menuFileExit.Size = new System.Drawing.Size(180, 22);
+         this.menuFileExit.Size = new System.Drawing.Size(149, 22);
          this.menuFileExit.Text = "&Exit";
          this.menuFileExit.Click += new System.EventHandler(this.menuFileExit_Click);
          // 
@@ -443,6 +443,7 @@ namespace Bitmanager.BigFile
          this.cbZipEntries.DropDownWidth = 300;
          this.cbZipEntries.Name = "cbZipEntries";
          this.cbZipEntries.Size = new System.Drawing.Size(158, 31);
+         this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
          // 
          // panelMain
          // 

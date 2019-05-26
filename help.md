@@ -14,7 +14,7 @@ Either use the File->Open menu item or drag and drop a file onto the list
 
 BigFile can open **.zip** and **.gz** files directly. The content will be loaded into memory and served from there. gz-files will be loaded via a gzip.exe if found, or via SharpZLib (slower!)
 
-In case of a zip archive, the largest sub-file will be loaded. A dropdown box with the entries from the zip file is shown. In the future is should be possible to select a different zip entry from the dropdown...  
+In case of a zip archive, the largest sub-file will be loaded. Also, a dropdown box with all entries from the zip file is shown. Selecting a different entry from that dropdown will load the associated zip entry from the archive.  
 
 The load process is done in the background but regularly sends a partial loaded file to the application, to make it possible to view the file before it is completely loaded.
 

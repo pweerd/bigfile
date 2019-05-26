@@ -312,9 +312,24 @@ namespace Bitmanager.BigFile
       }
 
       /// <summary>
+      /// Handles the loading of a different entry in a zip file
+      /// </summary>
+      private void cbZipEntries_SelectedIndexChanged(object sender, EventArgs e)
+      {
+         var cb = (ToolStripComboBox)sender;
+         int idx = cb.SelectedIndex;
+         if (idx < 0) return;
+         if (lf != null && lf.ZipEntries != null && lf.ZipEntries.SelectedEntry == idx) return;
+
+         var entry = (ZipEntry)cb.Items[idx];
+         LoadFile(entry.ArchiveName, entry.FullName);
+      }
+
+
+      /// <summary>
       /// Creates a LogFile object and let it asynchronously load the file
       /// </summary>
-      private void LoadFile(string filePath)
+      private void LoadFile(string filePath, String zipEntry=null)
       {
          prevGoto = -1;
          fileHistory.Add(filePath);
@@ -329,7 +344,7 @@ namespace Bitmanager.BigFile
 
          statusLabelMain.Text = "Loading...";
          statusLabelSearch.Text = String.Empty;
-         new LogFile(this, settings, getCurrentEncoding()).Load(filePath, cancellationTokenSource.Token);
+         new LogFile(this, settings, getCurrentEncoding()).Load(filePath, cancellationTokenSource.Token, zipEntry);
       }
 
       private void SearchFile()
