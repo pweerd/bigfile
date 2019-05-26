@@ -90,6 +90,7 @@ namespace Bitmanager.BigFile
 
          olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
          olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
+         cbZipEntries.Visible = false;
 
          prevGoto = -1;
       }
@@ -697,7 +698,11 @@ namespace Bitmanager.BigFile
 
          if (lf != null && lf != newLF) lf.Dispose();
          lf = newLF;
-         if (newLF == null) return;
+         if (newLF == null)
+         {
+            cbZipEntries.Visible = false;
+            return;
+         }
 
          if (newLF.PartialLineCount > 0)
          {
@@ -720,6 +725,20 @@ namespace Bitmanager.BigFile
             logger.Log("-- Max width is {0} pixels, pixels in screen is {1}", w, listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width);
          }
          listDatasource.SetContent(newLF.PartialLineCount);
+
+         if (lf.ZipEntries==null || lf.ZipEntries.Count==0)
+         {
+            cbZipEntries.Visible = false;
+            cbZipEntries.Items.Clear();
+         }
+         else
+         {
+            cbZipEntries.Items.Clear();
+            foreach (var e in lf.ZipEntries) cbZipEntries.Items.Add(e);
+
+            cbZipEntries.SelectedIndex = lf.ZipEntries.SelectedEntry;
+            cbZipEntries.Visible = true;
+         }
       }
 
       void ILogFileCallback.OnLoadComplete(Result result)

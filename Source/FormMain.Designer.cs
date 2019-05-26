@@ -88,6 +88,8 @@ namespace Bitmanager.BigFile
          this.dropdownEncoding = new System.Windows.Forms.ToolStripComboBox();
          this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+         this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+         this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
          this.listLines = new BrightIdeasSoftware.VirtualObjectListView();
          this.olvcLineNumber = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -134,43 +136,43 @@ namespace Bitmanager.BigFile
          // menuFileOpen
          // 
          this.menuFileOpen.Name = "menuFileOpen";
-         this.menuFileOpen.Size = new System.Drawing.Size(149, 22);
+         this.menuFileOpen.Size = new System.Drawing.Size(180, 22);
          this.menuFileOpen.Text = "&Open";
          this.menuFileOpen.Click += new System.EventHandler(this.menuFileOpen_Click);
          // 
          // menuRecentFiles
          // 
          this.menuRecentFiles.Name = "menuRecentFiles";
-         this.menuRecentFiles.Size = new System.Drawing.Size(149, 22);
+         this.menuRecentFiles.Size = new System.Drawing.Size(180, 22);
          this.menuRecentFiles.Text = "Recent files";
          // 
          // menuRecentFolders
          // 
          this.menuRecentFolders.Name = "menuRecentFolders";
-         this.menuRecentFolders.Size = new System.Drawing.Size(149, 22);
+         this.menuRecentFolders.Size = new System.Drawing.Size(180, 22);
          this.menuRecentFolders.Text = "Recent folders";
          // 
          // menuFileSep1
          // 
          this.menuFileSep1.Name = "menuFileSep1";
-         this.menuFileSep1.Size = new System.Drawing.Size(146, 6);
+         this.menuFileSep1.Size = new System.Drawing.Size(177, 6);
          // 
          // menuFileClose
          // 
          this.menuFileClose.Name = "menuFileClose";
-         this.menuFileClose.Size = new System.Drawing.Size(149, 22);
+         this.menuFileClose.Size = new System.Drawing.Size(180, 22);
          this.menuFileClose.Text = "Close";
          this.menuFileClose.Click += new System.EventHandler(this.menuFileClose_Click);
          // 
          // toolStripMenuItem3
          // 
          this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-         this.toolStripMenuItem3.Size = new System.Drawing.Size(146, 6);
+         this.toolStripMenuItem3.Size = new System.Drawing.Size(177, 6);
          // 
          // menuFileExit
          // 
          this.menuFileExit.Name = "menuFileExit";
-         this.menuFileExit.Size = new System.Drawing.Size(149, 22);
+         this.menuFileExit.Size = new System.Drawing.Size(180, 22);
          this.menuFileExit.Text = "&Exit";
          this.menuFileExit.Click += new System.EventHandler(this.menuFileExit_Click);
          // 
@@ -343,7 +345,9 @@ namespace Bitmanager.BigFile
             this.btnResetSearch,
             this.dropdownEncoding,
             this.toolStripSeparator1,
-            this.toolStripButton2});
+            this.toolStripButton2,
+            this.toolStripSeparator2,
+            this.cbZipEntries});
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
          this.toolStrip.Name = "toolStrip";
          this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -428,6 +432,17 @@ namespace Bitmanager.BigFile
          this.toolStripButton2.Size = new System.Drawing.Size(28, 28);
          this.toolStripButton2.Text = "toolStripButton2";
          this.toolStripButton2.Click += new System.EventHandler(this.toolStripButton2_Click);
+         // 
+         // toolStripSeparator2
+         // 
+         this.toolStripSeparator2.Name = "toolStripSeparator2";
+         this.toolStripSeparator2.Size = new System.Drawing.Size(6, 31);
+         // 
+         // cbZipEntries
+         // 
+         this.cbZipEntries.DropDownWidth = 300;
+         this.cbZipEntries.Name = "cbZipEntries";
+         this.cbZipEntries.Size = new System.Drawing.Size(158, 31);
          // 
          // panelMain
          // 
@@ -597,6 +612,8 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripButton toolStripButton2;
       private System.Windows.Forms.ToolStripButton btnWarning;
       private System.Windows.Forms.ToolStripButton btnResetSearch;
+      private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+      private System.Windows.Forms.ToolStripComboBox cbZipEntries;
    }
 }
 

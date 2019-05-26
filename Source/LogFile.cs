@@ -29,6 +29,9 @@ using Bitmanager.IO;
 using Bitmanager.Query;
 using Bitmanager.BigFile.Query;
 using System.Runtime;
+using System.IO.Compression;
+using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace Bitmanager.BigFile
 {
@@ -64,6 +67,8 @@ namespace Bitmanager.BigFile
       private ThreadContext threadCtx;
       private readonly List<long> partialLines;
       private List<int> lines;
+      private ZipEntries zipEntries;
+      public ZipEntries ZipEntries { get { return zipEntries; } }
       public int LongestPartialIndex { get; private set; }
       public int LongestLineIndex { get; private set; }
       public int PartialLineCount { get { return partialLines.Count - 1; } }
@@ -130,6 +135,7 @@ namespace Bitmanager.BigFile
          this.partialLines = new List<long>(other.partialLines);
          this.MaxPartialSize = other.MaxPartialSize;
          this.encoding = other.encoding;
+         this.zipEntries = other.zipEntries;
          int maxBufferSize = finalizeAdministration();
 
          threadCtx = other.threadCtx.NewInstanceForThread(maxBufferSize);
@@ -425,12 +431,49 @@ namespace Bitmanager.BigFile
          return ret;
       }
 
+      static int cbCmpEntryLen(ZipEntry a, ZipEntry b)
+      {
+         if (a.Length > b.Length) return -1;
+         if (a.Length < b.Length) return 1;
+         return String.CompareOrdinal(a.Name, b.Name);
+      }
+      static ZipArchiveEntry getZipArchiveEntry (ReadOnlyCollection<ZipArchiveEntry> entries, ZipEntry e)
+      {
+         foreach (var zae in entries)
+         {
+            if (zae.FullName == e.FullName) return zae;
+         }
+         throw new BMException("Cannot find '{0}' in archive '{1}'.", e.FullName, e.ArchiveName);
+      }
       /// <summary>
-      /// Load a zip file.
+      /// Load a .zip file.
+      /// This is done by taking the largest file and stream that into memory
+      /// </summary>
+      private void loadZipFile(String fn, CancellationToken ct)
+      {
+         using (var fs = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read))
+         using (ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Read, false, Encoding.UTF8))
+         {
+            var entries = archive.Entries;
+            zipEntries = new ZipEntries();
+            foreach (var e in entries) zipEntries.Add(new ZipEntry(fn, e));
+            zipEntries.Sort(cbCmpEntryLen);
+
+            if (zipEntries.Count > 0)
+            {
+               zipEntries.SelectedEntry = 0;
+               using (var entryStrm = getZipArchiveEntry(entries, zipEntries[0]).Open())
+                  loadStreamIntoMemory(entryStrm, new LoadProgress(this, -1, ct), false);
+            }
+         }
+      }
+
+      /// <summary>
+      /// Load a gz file.
       /// This is done by unzipping it into memory and serving the UI from the memorystream
       /// Unzip is preferrable done by starting gzip, and otherwise by using sharpzlib
       /// </summary>
-      private void loadZipFile(String fn, CancellationToken ct)
+      private void loadGZipFile(String fn, CancellationToken ct)
       {
          Stream strm = null;
          try
@@ -649,6 +692,7 @@ namespace Bitmanager.BigFile
       /// </summary>
       public Task Load(string fn, CancellationToken ct)
       {
+         zipEntries = null;
          return Task.Run(() =>
          {
             DateTime start = DateTime.Now;
@@ -658,9 +702,10 @@ namespace Bitmanager.BigFile
             try
             {
                LongestPartialIndex = -1;
-               bool dozip = String.Equals(".gz", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
                AddLine(0);
-               if (dozip)
+               if (String.Equals(".gz", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase))
+                  loadGZipFile(fileName, ct);
+               else if (String.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase))
                   loadZipFile(fileName, ct);
                else
                   loadNormalFile(fileName, ct);
@@ -1195,4 +1240,30 @@ namespace Bitmanager.BigFile
       }
    }
 
+   public class ZipEntry
+   {
+      public readonly String Name;
+      public readonly String FullName;
+      public readonly long Length;
+      public readonly String ArchiveName;
+      private readonly String _tos;
+
+      public ZipEntry(String archiveName, ZipArchiveEntry e)
+      {
+         Name = e.Name;
+         FullName = e.FullName;
+         Length = e.Length;
+         ArchiveName = archiveName;
+         _tos = Invariant.Format("{0} ({1})", e.FullName, Pretty.PrintSize(e.Length));
+      }
+
+      public override String ToString()
+      {
+         return _tos;
+      }
+   }
+   public class ZipEntries: List<ZipEntry>
+   {
+      public int SelectedEntry=-1;
+   }
 }
