@@ -39,29 +39,37 @@ namespace Bitmanager.BigFile
    {
       private static int lastViewAsIndex;
       private static Logger logger = Globals.MainLogger.Clone("line");
-      private readonly Settings settings;
-      private readonly List<SearchNode> searchNodes;
-      private readonly LogFile lf;
-      private readonly List<int> filter;
-      private readonly int maxIndex;
-
+      private Settings settings;
+      private List<SearchNode> searchNodes;
+      private LogFile lf;
+      private List<int> filter;
       private String curLine;
+      private int maxIndex;
+      private bool closed;
+      public bool IsClosed { get { return closed; } }
+
       private List<Tuple<int, int>> curMatches;
       //private Task<String> jsonConverter, xmlConverter;
       private int lineIdx;
       private int matchIdx;
 
-      public FormLine(Settings c, LogFile lf, List<int> filter, int lineNo, ParserNode<SearchContext> lastQuery)
+      public FormLine()
       {
          InitializeComponent();
          cbViewAs.SelectedIndex = lastViewAsIndex;
          ShowInTaskbar = true;
 
+         //Prevent font being way too small after non-latin chars 
+         textLine.LanguageOption = RichTextBoxLanguageOptions.DualFont;
+      }
+
+      public void ShowLine (Settings c, LogFile lf, List<int> filter, int lineNo, ParserNode<SearchContext> lastQuery)
+      {
          this.settings = c;
          if (lastQuery == null)
             searchNodes = new List<SearchNode>();
          else
-            searchNodes = lastQuery.CollectValueNodes().ConvertAll<SearchNode>(x=>(SearchNode)x);
+            searchNodes = lastQuery.CollectValueNodes().ConvertAll<SearchNode>(x => (SearchNode)x);
 
          this.lf = lf;
          this.filter = filter;
@@ -75,10 +83,8 @@ namespace Bitmanager.BigFile
          }
          this.maxIndex = this.filter != null ? filter.Count : lf.PartialLineCount;
 
-         //Prevent font being way too small after non-latin chars 
-         textLine.LanguageOption = RichTextBoxLanguageOptions.DualFont;
-
          setLine(lineNo);
+         Show();
       }
 
       private void setLine(int lineNo)
@@ -342,6 +348,11 @@ namespace Bitmanager.BigFile
       private void FormLine_Load(object sender, EventArgs e)
       {
 
+      }
+
+      private void FormLine_FormClosed(object sender, FormClosedEventArgs e)
+      {
+         closed = true;
       }
    }
 

@@ -432,17 +432,23 @@ namespace Bitmanager.BigFile
          //}
       }
 
+      FormLine lineForm;
       private void listLines_ItemActivate(object sender, EventArgs e)
       {
-         if (listLines.SelectedObjects.Count != 1)
-         {
-            return;
-         }
+         if (listLines.SelectedObjects.Count != 1) return;
 
          Object m = listLines.SelectedObjects[0];
          if (m == null) return;
 
-         new FormLine(this.settings, lf, listDatasource.Filter, (int)m, lastQuery).Show();
+         FormLine fl;
+         if ((Control.ModifierKeys & Keys.Alt) != 0)
+            fl = new FormLine();
+         else
+         {
+            fl = lineForm;
+            if (fl == null || fl.IsClosed) fl = lineForm = new FormLine();
+         }
+         fl.ShowLine(this.settings, lf, listDatasource.Filter, (int)m, lastQuery);
       }
 
 

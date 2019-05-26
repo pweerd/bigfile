@@ -52,6 +52,8 @@ namespace Bitmanager.BigFile
          this.menuStrip = new System.Windows.Forms.MenuStrip();
          this.menuFile = new System.Windows.Forms.ToolStripMenuItem();
          this.menuFileOpen = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuRecentFiles = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuRecentFolders = new System.Windows.Forms.ToolStripMenuItem();
          this.menuFileSep1 = new System.Windows.Forms.ToolStripSeparator();
          this.menuFileClose = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
@@ -92,8 +94,6 @@ namespace Bitmanager.BigFile
          this.olvcText = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
-         this.menuRecentFiles = new System.Windows.Forms.ToolStripMenuItem();
-         this.menuRecentFolders = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -134,31 +134,43 @@ namespace Bitmanager.BigFile
          // menuFileOpen
          // 
          this.menuFileOpen.Name = "menuFileOpen";
-         this.menuFileOpen.Size = new System.Drawing.Size(180, 22);
+         this.menuFileOpen.Size = new System.Drawing.Size(149, 22);
          this.menuFileOpen.Text = "&Open";
          this.menuFileOpen.Click += new System.EventHandler(this.menuFileOpen_Click);
+         // 
+         // menuRecentFiles
+         // 
+         this.menuRecentFiles.Name = "menuRecentFiles";
+         this.menuRecentFiles.Size = new System.Drawing.Size(149, 22);
+         this.menuRecentFiles.Text = "Recent files";
+         // 
+         // menuRecentFolders
+         // 
+         this.menuRecentFolders.Name = "menuRecentFolders";
+         this.menuRecentFolders.Size = new System.Drawing.Size(149, 22);
+         this.menuRecentFolders.Text = "Recent folders";
          // 
          // menuFileSep1
          // 
          this.menuFileSep1.Name = "menuFileSep1";
-         this.menuFileSep1.Size = new System.Drawing.Size(177, 6);
+         this.menuFileSep1.Size = new System.Drawing.Size(146, 6);
          // 
          // menuFileClose
          // 
          this.menuFileClose.Name = "menuFileClose";
-         this.menuFileClose.Size = new System.Drawing.Size(180, 22);
+         this.menuFileClose.Size = new System.Drawing.Size(149, 22);
          this.menuFileClose.Text = "Close";
          this.menuFileClose.Click += new System.EventHandler(this.menuFileClose_Click);
          // 
          // toolStripMenuItem3
          // 
          this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-         this.toolStripMenuItem3.Size = new System.Drawing.Size(177, 6);
+         this.toolStripMenuItem3.Size = new System.Drawing.Size(146, 6);
          // 
          // menuFileExit
          // 
          this.menuFileExit.Name = "menuFileExit";
-         this.menuFileExit.Size = new System.Drawing.Size(180, 22);
+         this.menuFileExit.Size = new System.Drawing.Size(149, 22);
          this.menuFileExit.Text = "&Exit";
          this.menuFileExit.Click += new System.EventHandler(this.menuFileExit_Click);
          // 
@@ -502,18 +514,6 @@ namespace Bitmanager.BigFile
          this.contextMenuCopy.Size = new System.Drawing.Size(102, 22);
          this.contextMenuCopy.Text = "Copy";
          this.contextMenuCopy.Click += new System.EventHandler(this.contextMenuCopy_Click);
-         // 
-         // recentFilesToolStripMenuItem
-         // 
-         this.menuRecentFiles.Name = "recentFilesToolStripMenuItem";
-         this.menuRecentFiles.Size = new System.Drawing.Size(180, 22);
-         this.menuRecentFiles.Text = "Recent files";
-         // 
-         // recentFoldersToolStripMenuItem
-         // 
-         this.menuRecentFolders.Name = "recentFoldersToolStripMenuItem";
-         this.menuRecentFolders.Size = new System.Drawing.Size(180, 22);
-         this.menuRecentFolders.Text = "Recent folders";
          // 
          // FormMain
          // 
