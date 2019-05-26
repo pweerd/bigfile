@@ -31,6 +31,7 @@ namespace Bitmanager.BigFile
    public class Settings
    {
       private const String _KEY = @"software\bitmanager\bigfile";
+      public const String AUTO = @"Auto";
       public readonly long TotalPhysicalMemory;
       public readonly long AvailablePhysicalMemory;
 
@@ -44,23 +45,23 @@ namespace Bitmanager.BigFile
       {
          get
          {
-            return _searchThreads == 0 ? "auto" : _searchThreads.ToString();
+            return _searchThreads == 0 ? AUTO : _searchThreads.ToString();
          }
          set
          {
-            _searchThreads = (value == "auto") ? 0 : Invariant.ToInt32(value);
+            _searchThreads = AUTO.Equals(value, StringComparison.InvariantCultureIgnoreCase) ? 0 : Invariant.ToInt32(value);
          }
       }
       public int SearchThreads { get { return GetActualNumSearchThreads(); } }
       public string GzipExe;
 
-      private String _LoadMemoryIfBigger = "Auto";
+      private String _LoadMemoryIfBigger = AUTO;
       public String LoadMemoryIfBigger
       {
          get { return _LoadMemoryIfBigger; }
          set { _LoadMemoryIfBigger = CheckAndRepairSize(value, true); }
       }
-      private String _CompressMemoryIfBigger = "Auto";
+      private String _CompressMemoryIfBigger = AUTO;
       public String CompressMemoryIfBigger
       {
          get { return _CompressMemoryIfBigger; }
@@ -113,7 +114,7 @@ namespace Bitmanager.BigFile
       public static String CheckAndRepairSize(String x, bool mustExcept)
       {
          x = x.TrimToNull();
-         if (x == null) return "Auto";
+         if (x == null) return AUTO;
          switch (x.ToLowerInvariant())
          {
             case "auto":
@@ -128,7 +129,7 @@ namespace Bitmanager.BigFile
                catch (Exception e)
                {
                   if (mustExcept) throw new BMException(e, e.Message);
-                  x = "Auto";
+                  x = AUTO;
                }
                break;
          }
