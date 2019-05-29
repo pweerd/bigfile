@@ -123,6 +123,65 @@ namespace Bitmanager.BigFile
          logFile.Dispose();
       }
 
+
+
+      [TestMethod]
+      public void TestSelectedLines()
+      {
+         var cb = new CB();
+         var settings = new Settings();
+         var fn = this.dataDir + "allcountries.txt";
+
+         var list = new List<int>();
+         for (int i=0; i<18; i++)
+         {
+            if (i==0 || i % 2 == 1) list.Add(i);
+         }
+
+         LogFile logFile;
+
+         //Full lines
+         logFile = new LogFile(cb, settings);
+         logFile.Load(fn, CancellationToken.None).Wait();
+
+         Assert.AreEqual(18, logFile.LineCount);
+         Assert.AreEqual(18, logFile.PartialLineCount);
+         var lineList = logFile.ConvertToLines(list);
+         Assert.AreSame(list, lineList);
+
+         Assert.AreEqual(0, lineList[0]);
+         Assert.AreEqual(1, lineList[1]);
+         Assert.AreEqual(3, lineList[2]);
+         Assert.AreEqual(5, lineList[3]);
+         Assert.AreEqual(7, lineList[4]);
+         Assert.AreEqual(9, lineList[5]);
+         Assert.AreEqual(11, lineList[6]);
+         Assert.AreEqual(13, lineList[7]);
+         Assert.AreEqual(15, lineList[8]);
+         Assert.AreEqual(17, lineList[9]);
+         Assert.AreEqual(10, lineList.Count);
+         logFile.Dispose();
+
+
+
+         //Partial lines
+         settings.MaxPartialSize = 1024;
+         logFile = new LogFile(cb, settings);
+         logFile.Load(fn, CancellationToken.None).Wait();
+
+         Assert.AreEqual(18, logFile.LineCount);
+         Assert.AreEqual(90, logFile.PartialLineCount);
+         list.Add(89);
+         lineList = logFile.ConvertToLines(list);
+
+         Assert.AreEqual(4, lineList.Count);
+         Assert.AreEqual(0, lineList[0]);
+         Assert.AreEqual(1, lineList[1]);
+         Assert.AreEqual(2, lineList[2]);
+         Assert.AreEqual(17, lineList[3]);
+         logFile.Dispose();
+      }
+
       private T checkAndCast<T> (IDirectStream strm) where T: IDirectStream
       {
          Assert.IsNotNull(strm);
@@ -188,7 +247,6 @@ namespace Bitmanager.BigFile
          Assert.AreEqual(7464, logFile.GetPartialLine(logFile.LongestPartialIndex).Length);
          Assert.AreEqual(5, logFile.LongestLineIndex);
          Assert.AreEqual(7464, logFile.GetLine(logFile.LongestLineIndex).Length);
-
 
          //Partials
          settings.MaxPartialSize = 1024;
@@ -308,7 +366,7 @@ namespace Bitmanager.BigFile
    {
       public Result Result;
 
-      public void OnExportComplete(Result result)
+      public void OnExportComplete(ExportResult result)
       {
       }
 

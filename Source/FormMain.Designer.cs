@@ -61,7 +61,7 @@ namespace Bitmanager.BigFile
          this.menuTools = new System.Windows.Forms.ToolStripMenuItem();
          this.gotoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-         this.exprtAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.exportAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
@@ -190,47 +190,50 @@ namespace Bitmanager.BigFile
          // gotoToolStripMenuItem
          // 
          this.gotoToolStripMenuItem.Name = "gotoToolStripMenuItem";
-         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.gotoToolStripMenuItem.Text = "Goto";
          this.gotoToolStripMenuItem.Click += new System.EventHandler(this.gotoToolStripMenuItem_Click);
          // 
          // exportToolStripMenuItem
          // 
          this.exportToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.exprtAllToolStripMenuItem,
+            this.exportAllToolStripMenuItem,
             this.exportSelectedToolStripMenuItem,
             this.exportMatchedToolStripMenuItem});
          this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-         this.exportToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+         this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.exportToolStripMenuItem.Text = "Export";
          // 
          // exprtAllToolStripMenuItem
          // 
-         this.exprtAllToolStripMenuItem.Name = "exprtAllToolStripMenuItem";
-         this.exprtAllToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
-         this.exprtAllToolStripMenuItem.Text = "All";
+         this.exportAllToolStripMenuItem.Name = "exportAllToolStripMenuItem";
+         this.exportAllToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.exportAllToolStripMenuItem.Text = "All";
+         this.exportAllToolStripMenuItem.Click += new System.EventHandler(this.exportAllToolStripMenuItem_Click);
          // 
          // exportSelectedToolStripMenuItem
          // 
          this.exportSelectedToolStripMenuItem.Name = "exportSelectedToolStripMenuItem";
-         this.exportSelectedToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+         this.exportSelectedToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.exportSelectedToolStripMenuItem.Text = "Selected";
+         this.exportSelectedToolStripMenuItem.Click += new System.EventHandler(this.exportSelectedToolStripMenuItem_Click);
          // 
          // exportMatchedToolStripMenuItem
          // 
          this.exportMatchedToolStripMenuItem.Name = "exportMatchedToolStripMenuItem";
-         this.exportMatchedToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+         this.exportMatchedToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.exportMatchedToolStripMenuItem.Text = "Matched";
+         this.exportMatchedToolStripMenuItem.Click += new System.EventHandler(this.exportMatchedToolStripMenuItem_Click);
          // 
          // toolStripMenuItem2
          // 
          this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-         this.toolStripMenuItem2.Size = new System.Drawing.Size(113, 6);
+         this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
          // 
          // menuToolsConfiguration
          // 
          this.menuToolsConfiguration.Name = "menuToolsConfiguration";
-         this.menuToolsConfiguration.Size = new System.Drawing.Size(116, 22);
+         this.menuToolsConfiguration.Size = new System.Drawing.Size(180, 22);
          this.menuToolsConfiguration.Text = "Settings";
          this.menuToolsConfiguration.Click += new System.EventHandler(this.menuToolsConfiguration_Click);
          // 
@@ -607,7 +610,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem menuViewUnmatched;
       private System.Windows.Forms.ToolStripMenuItem gotoToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
-      private System.Windows.Forms.ToolStripMenuItem exprtAllToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem exportAllToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem exportSelectedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem exportMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripButton toolStripButton2;

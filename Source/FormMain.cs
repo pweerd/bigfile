@@ -361,27 +361,22 @@ namespace Bitmanager.BigFile
          lf.Search(lastQuery, cancellationTokenSource.Token);
       }
 
-      private void Export(string filePath)
+      private List<int> getSelectedLineIndexes()
       {
-         indicateProcessing();
+         var selected = listLines.SelectedIndices;
+         if (lf==null || selected.Count == 0) return null;
+         var list = new List<int>(selected.Count);
 
-         statusLabelSearch.Text = "Exporting...";
-         if (listLines.ModelFilter == null)
+         var filter = listDatasource.Filter;
+         if (filter == null)
          {
-            lf.Export(filePath, cancellationTokenSource.Token);
+            foreach (int x in selected) list.Add(x);
          }
          else
          {
-            lf.Export(listLines.FilteredObjects, filePath, cancellationTokenSource.Token);
+            foreach (int x in selected) list.Add(filter[x]);
          }
-      }
-
-      private void ExportSelected(string filePath)
-      {
-         indicateProcessing();
-
-         statusLabelSearch.Text = "Exporting...";
-         lf.Export(listLines.SelectedObjects, filePath, cancellationTokenSource.Token);
+         return lf.ConvertToLines(list);
       }
 
 
@@ -467,43 +462,73 @@ namespace Bitmanager.BigFile
          fl.ShowLine(this.settings, lf, listDatasource.Filter, (int)m, lastQuery);
       }
 
-
-      private void contextMenuExportAll_Click(object sender, EventArgs e)
+      private enum WhatToExport { All, Selected, Matched};
+      private void export(WhatToExport what)
       {
+         if (lf == null) return;
+
          SaveFileDialog sfd = new SaveFileDialog();
          sfd.Filter = "All Files|*.*";
-         sfd.FileName = "*.*";
+         sfd.FileName = Path.GetFileName(lf.FileName) + ".exported.txt";
+         sfd.InitialDirectory = Path.GetDirectoryName(lf.FileName);
          sfd.Title = "Select export file";
+         if (sfd.ShowDialog(this) != DialogResult.OK) return;
 
-         if (sfd.ShowDialog(this) == DialogResult.Cancel)
+         String fn = sfd.FileName;
+         List<int> toExport = null;
+         switch (what)
          {
-            return;
+            default: what.ThrowUnexpected(); break;
+            case WhatToExport.All: break;
+            case WhatToExport.Selected:
+               toExport = getSelectedLineIndexes();
+               if (toExport == null) return; //Nothing to export
+               break;
+            case WhatToExport.Matched:
+               toExport = lf.GetMatchedList(0);
+               toExport = lf.ConvertToLines(toExport);
+               break;
          }
 
-         Export(sfd.FileName);
+         indicateProcessing();
+         statusLabelSearch.Text = Invariant.Format("Exporting {0} lines...", what.ToString().ToLowerInvariant());
+         lf.Export(toExport, sfd.FileName, cancellationTokenSource.Token);
       }
-
-      private void contextMenuExportSelected_Click(object sender, EventArgs e)
+      private void exportMatchedToolStripMenuItem_Click(object sender, EventArgs e)
       {
-         SaveFileDialog sfd = new SaveFileDialog();
-         sfd.Filter = "All Files|*.*";
-         sfd.FileName = "*.*";
-         sfd.Title = "Select export file";
-
-         if (sfd.ShowDialog(this) == DialogResult.Cancel)
-         {
-            return;
-         }
-
-         ExportSelected(sfd.FileName);
+         export(WhatToExport.Matched);
       }
 
+      private void exportSelectedToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         export(WhatToExport.Selected);
+      }
+
+      private void exportAllToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         export(WhatToExport.All);
+      }
+
+
+      //Copy the selection to the clipboard
       private void contextMenuCopy_Click(object sender, EventArgs e)
       {
-         StringBuilder sb = new StringBuilder();
-         foreach (var item in listLines.SelectedObjects)
+         if (lf == null) return;
+         var toExport = getSelectedLineIndexes();
+         if (toExport==null)
          {
-            sb.AppendLine(getLine(item));
+            Clipboard.SetText(String.Empty);
+            return;
+         }
+
+         if (toExport.Count > settings.MultiSelectLimit)
+         {
+            toExport.RemoveRange(settings.MultiSelectLimit, toExport.Count - settings.MultiSelectLimit);
+         }
+         StringBuilder sb = new StringBuilder(128 * (1+toExport.Count));
+         foreach (int lineIdx in toExport)
+         {
+            sb.AppendLine(lf.GetLine (lineIdx));
          }
          Clipboard.SetText(sb.ToString());
       }
@@ -792,9 +817,19 @@ namespace Bitmanager.BigFile
          }), null);
       }
 
-      void ILogFileCallback.OnExportComplete(Result result)
+      void ILogFileCallback.OnExportComplete(ExportResult result)
       {
-         throw new NotImplementedException();
+         synchronizationContext.Post(new SendOrPostCallback(o =>
+         {
+            indicateFinished();
+
+            result.ThrowIfError();
+            var msg = String.Format("Exported {0} lines,  # Duration: {1}",
+                   result.NumExported,
+                   Pretty.PrintElapsedMs((int)result.Duration.TotalMilliseconds)
+            );
+            statusLabelSearch.Text = msg;
+         }), null);
       }
 
       public void OnProgress(LogFile lf, int percent)
@@ -1047,6 +1082,7 @@ namespace Bitmanager.BigFile
       {
          if (lf != null) lf.SetEncoding (getCurrentEncoding());
       }
+
 
       private void btnResetSearch_Click(object sender, EventArgs e)
       {

@@ -45,15 +45,6 @@ namespace Bitmanager.BigFile
       Mask0 = 1 << 3,
    };
 
-   public interface ILogFileCallback
-   {
-      void OnSearchComplete(SearchResult result);
-      void OnSearchPartial(LogFile lf, int firstMatch);
-      void OnLoadComplete(Result result);
-      void OnLoadCompletePartial(LogFile cloned);
-      void OnExportComplete(Result result);
-      void OnProgress(LogFile lf, int percent);
-   }
    /// <summary>
    /// LogFile is responsible for loading the data and splitting it into lines.
    /// </summary>
@@ -924,66 +915,116 @@ namespace Bitmanager.BigFile
       }
 
       /// <summary>
-      /// 
+      /// Convert a list of indexes to partial lines into a list of lines-indexes
       /// </summary>
-      /// <param name="filePath"></param>
-      /// <param name="ct"></param>
-      public void Export(string filePath, CancellationToken ct)
+      public List<int> ConvertToLines(List<int> partialIndexes)
       {
-         this.ExportToFile(this.partialLines, filePath, ct);
-      }
+         if (lines == null)
+            return partialIndexes;
 
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <param name="lines"></param>
-      /// <param name="filePath"></param>
-      /// <param name="ct"></param>
-      public void Export(IEnumerable lines, string filePath, CancellationToken ct)
-      {
-         this.ExportToFile(lines, filePath, ct);
-      }
+         var ret = new List<int>(1024);
 
-
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <param name="filePath"></param>
-      /// <param name="ct"></param>
-      private void ExportToFile(IEnumerable lines, string filePath, CancellationToken ct)
-      {
-         Task.Run(() =>
+         int n = 0; int m = 0;
+         int N = partialIndexes.Count;
+         int M = lines.Count-1;
+         while (n<N && m<M)
          {
+            if (partialIndexes[n] < lines[m])
+            {
+               n++;
+               continue;
+            }
+            if (partialIndexes[n] < lines[m + 1])
+            {
+               ret.Add(m);
+               ++m;
+               continue;
+            }
+            ++m;
+         }
+         return ret;
+      }
+
+      /// <summary>
+      /// Export all lines to the supplied filePath
+      /// This will be one by just copying the bytes. So, no encoding is involved
+      /// </summary>
+      public Task Export(string filePath, CancellationToken ct)
+      {
+         return Export(null, filePath, ct);
+      }
+
+      /// <summary>
+      /// Export the selected lines to the supplied filePath
+      /// If selectedLines==null, all lines will be copied
+      /// This will be one by just copying the bytes. So, no encoding is involved
+      /// 
+      /// SelectedLines should contain line-indexes, not partial line indexes
+      /// </summary>
+      [Flags]
+      private enum _ExportFlags { Lines=1, Filter=2 };
+      public Task Export(List<int> _selectedlines, string filePath, CancellationToken _ct)
+      {
+         return Task.Run(() =>
+         {
+            var ct = _ct;
+            var selectedlines = _selectedlines;
+            _ExportFlags flags = 0;
+            if (selectedlines != null) flags |= _ExportFlags.Filter;
+            if (lines != null) flags |= _ExportFlags.Lines;
             Exception err = null;
-            DateTime start = DateTime.Now;
-            bool cancelled = false;
+            DateTime startTime = DateTime.Now;
             var ctx = threadCtx.NewInstanceForThread();
+
+            int N = 0;
+            switch (flags)
+            {
+               default: flags.ThrowUnexpected(); break; //To check that we only have 4 possibilities
+               case 0:
+                  N = PartialLineCount; break;
+               case _ExportFlags.Lines:
+                  N = LineCount; break;
+               case _ExportFlags.Filter:
+               case _ExportFlags.Filter | _ExportFlags.Lines:
+                  N = selectedlines.Count; break;
+            }
+
             try
             {
-               using (FileStream fs = new FileStream(filePath, FileMode.Create))
+               using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read, 16*1024))
                {
                   byte[] endLine = new byte[2] { 13, 10 };
-                  long counter = 0;
-                  foreach (var ll in lines)
+                  int perc=0;
+                  int nextPercAt = 0;
+
+                  for (int i=0; i<N; i++)
                   {
-                     int ix = (int)ll;
-                     int len = ctx.ReadPartialLineBytesInBuffer(ix, ix + 1);
+                     int ix, start, end;
+                     switch (flags)
+                     {
+                        default:
+                           start = i; end = i + 1; break;
+                        case _ExportFlags.Lines:
+                           start = lines[i]; end = lines[i + 1]; break;
+                        case _ExportFlags.Filter:
+                           ix = selectedlines[i];
+                           start = ix; end = ix+1; break;
+                        case _ExportFlags.Filter | _ExportFlags.Lines:
+                           ix = selectedlines[i];
+                           start = lines[ix]; end = lines[ix+1]; break;
+                     }
+                     int len = ctx.ReadPartialLineBytesInBuffer(start, end);
                      fs.Write(ctx.ByteBuffer, 0, len);
                      // Add \r\n
                      fs.Write(endLine, 0, 2);
 
-                     if (counter++ % 50 == 0)
-                     {
-                        if (!onProgress(counter / this.partialLines.Count * 100.0)) break;
+                     if (i < nextPercAt) continue;
 
-                        if (ct.IsCancellationRequested)
-                        {
-                           cancelled = true;
-                           return;
-                        }
-                     }
+                     if (ct.IsCancellationRequested || disposed) break;
+                     cb.OnProgress(this, perc);
+                     perc++;
+                     nextPercAt = (int)(perc * N / 100.0);
                   }
-
                }
             }
             catch (Exception e)
@@ -993,10 +1034,104 @@ namespace Bitmanager.BigFile
             finally
             {
                ctx.CloseInstance();
-               if (onProgress(100))
-                  cb.OnExportComplete(new Result(this, start, err, cancelled));
+               if (!disposed) cb.OnExportComplete(new ExportResult(this, startTime, err, ct.IsCancellationRequested, N));
             }
          });
+      }
+
+      private void _exportNoLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
+      {
+         byte[] endLine = new byte[2] { 13, 10 };
+
+         int N = PartialLineCount;
+         int perc = 0;
+         int nextPercAt = 0;
+
+         for (int i = 0; i < N; i++)
+         {
+            int len = ctx.ReadPartialLineBytesInBuffer(i, i+1);
+            fs.Write(ctx.ByteBuffer, 0, len);
+            // Add \r\n
+            fs.Write(endLine, 0, 2);
+
+            if (i < nextPercAt) continue;
+
+            if (ct.IsCancellationRequested || disposed) break;
+            cb.OnProgress(this, perc);
+            perc++;
+            nextPercAt = (int)(perc * N / 100.0);
+         }
+      }
+      private void _exportNoLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
+      {
+         byte[] endLine = new byte[2] { 13, 10 };
+
+         int N = filter.Count;
+         int perc = 0;
+         int nextPercAt = 0;
+
+         for (int i = 0; i < N; i++)
+         {
+            int ix = filter[i];
+            int len = ctx.ReadPartialLineBytesInBuffer(ix, ix + 1);
+            fs.Write(ctx.ByteBuffer, 0, len);
+            // Add \r\n
+            fs.Write(endLine, 0, 2);
+
+            if (i < nextPercAt) continue;
+
+            if (ct.IsCancellationRequested || disposed) break;
+            cb.OnProgress(this, perc);
+            perc++;
+            nextPercAt = (int)(perc * N / 100.0);
+         }
+      }
+      private void _exportLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
+      {
+         byte[] endLine = new byte[2] { 13, 10 };
+
+         int N = LineCount;
+         int perc = 0;
+         int nextPercAt = 0;
+
+         for (int i = 0; i < N; i++)
+         {
+            int len = ctx.ReadPartialLineBytesInBuffer(lines[i], lines[i + 1]);
+            fs.Write(ctx.ByteBuffer, 0, len);
+            // Add \r\n
+            fs.Write(endLine, 0, 2);
+
+            if (i < nextPercAt) continue;
+
+            if (ct.IsCancellationRequested || disposed) break;
+            cb.OnProgress(this, perc);
+            perc++;
+            nextPercAt = (int)(perc * N / 100.0);
+         }
+      }
+      private void _exportLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
+      {
+         byte[] endLine = new byte[2] { 13, 10 };
+
+         int N = filter.Count;
+         int perc = 0;
+         int nextPercAt = 0;
+
+         for (int i = 0; i < N; i++)
+         {
+            int ix = filter[i];
+            int len = ctx.ReadPartialLineBytesInBuffer(lines[ix], lines[ix + 1]);
+            fs.Write(ctx.ByteBuffer, 0, len);
+            // Add \r\n
+            fs.Write(endLine, 0, 2);
+
+            if (i < nextPercAt) continue;
+
+            if (ct.IsCancellationRequested || disposed) break;
+            cb.OnProgress(this, perc);
+            perc++;
+            nextPercAt = (int)(perc * N / 100.0);
+         }
       }
 
       private void AddLine(long offset)
@@ -1024,13 +1159,18 @@ namespace Bitmanager.BigFile
          return (int)(partialLines[line] >> FLAGS_SHIFT);
       }
 
+      /// <summary>
+      /// Get a partial line
+      /// </summary>
       public string GetPartialLine(int index, int maxChars = -1, Action<char[], int> replacer=null)
       {
          if (index < 0 || index >= partialLines.Count - 1) return String.Empty;
          return threadCtx.GetPartialLine(index, index + 1, maxChars, replacer);
       }
 
-
+      /// <summary>
+      /// Get a complete line
+      /// </summary>
       public String GetLine(int index)
       {
          if (index < 0) return String.Empty;
@@ -1054,15 +1194,15 @@ namespace Bitmanager.BigFile
          return lines[line];
       }
 
-      public int LineNumberFromPartial(int line)
+      public int LineNumberFromPartial(int partial)
       {
-         if (lines == null) return line;
+         if (lines == null) return partial;
          int i = -1;
          int j = lines.Count;
          while (j - i > 1)
          {
             int m = (i + j) / 2;
-            if (lines[m] > line) j = m; else i = m;
+            if (lines[m] > partial) j = m; else i = m;
          }
          return i;
       }
@@ -1204,72 +1344,4 @@ namespace Bitmanager.BigFile
       }
    }
 
-
-
-
-   /// <summary>
-   /// Result to be returned when a Load() is completed
-   /// </summary>
-   public class Result
-   {
-      public readonly LogFile LogFile;
-      public Result(LogFile logfile, DateTime started, Exception err, bool cancelled)
-      {
-         this.LogFile = logfile;
-         this.Duration = DateTime.Now - started;
-         this.Error = err;
-         this.Cancelled = cancelled;
-         Logs.ErrorLog.Log("Result created with {0}", err);
-      }
-      public readonly TimeSpan Duration;
-      public readonly Exception Error;
-      public readonly bool Cancelled;
-
-      public void ThrowIfError()
-      {
-         if (Error != null) throw new Exception(Error.Message, Error);
-      }
-   }
-
-   /// <summary>
-   /// Result to be returned when a Search() is completed
-   /// </summary>
-   public class SearchResult : Result
-   {
-      public readonly int NumMatches;
-      public readonly int NumSearchTerms;
-      public SearchResult(LogFile logfile, DateTime started, Exception err, bool cancelled, int matches, int numSearchTerms)
-          : base(logfile, started, err, cancelled)
-      {
-         this.NumMatches = matches;
-         this.NumSearchTerms = numSearchTerms;
-      }
-   }
-
-   public class ZipEntry
-   {
-      public readonly String Name;
-      public readonly String FullName;
-      public readonly long Length;
-      public readonly String ArchiveName;
-      private readonly String _tos;
-
-      public ZipEntry(String archiveName, ZipArchiveEntry e)
-      {
-         Name = e.Name;
-         FullName = e.FullName;
-         Length = e.Length;
-         ArchiveName = archiveName;
-         _tos = Invariant.Format("{0} ({1})", e.FullName, Pretty.PrintSize(e.Length));
-      }
-
-      public override String ToString()
-      {
-         return _tos;
-      }
-   }
-   public class ZipEntries: List<ZipEntry>
-   {
-      public int SelectedEntry=-1;
-   }
 }
