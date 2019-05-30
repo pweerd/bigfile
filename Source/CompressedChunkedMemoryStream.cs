@@ -91,7 +91,7 @@ namespace Bitmanager.IO
       {
          if (chunckSize < 4096)
             throw new ArgumentOutOfRangeException(String.Format("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
-         this._buffers = new List<byte[]>(100);
+         this._buffers = new List<byte[]>(buffers);
          this._recycledBuffers = new Stack<byte[]>(50);
          this._chunckSize = chunckSize;
          this._isOpen = true;
@@ -104,6 +104,10 @@ namespace Bitmanager.IO
          this._position = position;
          this._length = length;
          this._logger = logger;
+
+         //Start compressing if possible
+         int completeBuffers = (int)(position / chunckSize);
+         if (completeBuffers > 0) compressUntil(completeBuffers);
       }
 
       /// <summary>
