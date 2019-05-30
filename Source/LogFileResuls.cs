@@ -32,13 +32,17 @@ namespace Bitmanager.BigFile
    public class Result
    {
       public readonly LogFile LogFile;
-      public Result(LogFile logfile, DateTime started, Exception err, bool cancelled)
+      public Result(LogFile logfile, DateTime started, Exception err)
       {
          this.LogFile = logfile;
          this.Duration = DateTime.Now - started;
-         this.Error = err;
-         this.Cancelled = cancelled;
-         //Logs.ErrorLog.Log("Result created with {0}", err);
+         if (err is TaskCanceledException)
+            this.Cancelled = true;
+         else
+         {
+            this.Error = err;
+            if (err != null) Logs.ErrorLog.Log(err);
+         }
       }
       public readonly TimeSpan Duration;
       public readonly Exception Error;
@@ -57,8 +61,8 @@ namespace Bitmanager.BigFile
    {
       public readonly int NumMatches;
       public readonly int NumSearchTerms;
-      public SearchResult(LogFile logfile, DateTime started, Exception err, bool cancelled, int matches, int numSearchTerms)
-          : base(logfile, started, err, cancelled)
+      public SearchResult(LogFile logfile, DateTime started, Exception err, int matches, int numSearchTerms)
+          : base(logfile, started, err)
       {
          this.NumMatches = matches;
          this.NumSearchTerms = numSearchTerms;
@@ -71,8 +75,8 @@ namespace Bitmanager.BigFile
    public class ExportResult : Result
    {
       public readonly int NumExported;
-      public ExportResult(LogFile logfile, DateTime started, Exception err, bool cancelled, int exported)
-          : base(logfile, started, err, cancelled)
+      public ExportResult(LogFile logfile, DateTime started, Exception err, int exported)
+          : base(logfile, started, err)
       {
          this.NumExported = exported;
       }

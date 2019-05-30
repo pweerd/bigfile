@@ -100,8 +100,14 @@ namespace Bitmanager.BigFile
       private long availableMemory;
       #endregion
 
+      private CancellationToken ct;
       private bool disposed;
       private bool partialsEncountered;
+      private void checkCancelled ()
+      {
+         if (disposed || ct.IsCancellationRequested)
+            throw new TaskCanceledException();
+      }
 
       public LogFile(ILogFileCallback cb, Settings settings, Encoding enc = null)
       {
@@ -460,7 +466,7 @@ namespace Bitmanager.BigFile
                   if (zipEntries.SelectedEntry < 0) throw new BMException("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
                }
                using (var entryStrm = getZipArchiveEntry(entries, zipEntries[zipEntries.SelectedEntry]).Open())
-                  loadStreamIntoMemory(entryStrm, new LoadProgress(this, -1, ct), false);
+                  loadStreamIntoMemory(entryStrm, new LoadProgress(this, -1), false);
             }
          }
       }
@@ -498,7 +504,7 @@ namespace Bitmanager.BigFile
                strm = gz;
             }
 
-            loadStreamIntoMemory(strm, new LoadProgress(this, -1, ct), false);
+            loadStreamIntoMemory(strm, new LoadProgress(this, -1), false);
          }
          finally
          {
@@ -589,7 +595,7 @@ namespace Bitmanager.BigFile
          var fileStream = directStream.BaseStream;
 
          long totalLength = fileStream.Length;
-         var loadProgress = new LoadProgress(this, fileStream.Length, ct);
+         var loadProgress = new LoadProgress(this, fileStream.Length);
 
          logger.Log("Loading '{0}' via FileStream.", fn);
          if (totalLength >= this.loadInMemoryIfBigger)
@@ -692,10 +698,11 @@ namespace Bitmanager.BigFile
          zipEntries = null;
          return Task.Run(() =>
          {
-            DateTime start = DateTime.Now;
+            DateTime startTime = DateTime.Now;
             Exception err = null;
             partialsEncountered = false;
             this.fileName = Path.GetFullPath(fn);
+            this.ct = ct;
             try
             {
                LongestPartialIndex = -1;
@@ -710,14 +717,11 @@ namespace Bitmanager.BigFile
             }
             catch (Exception ex)
             {
-               if (!(ex is TaskCanceledException))
-               {
-                  err = ex;
-                  Logs.ErrorLog.Log(ex);
-               }
+               err = ex;
             }
             finally
             {
+               this.ct = CancellationToken.None;
                if (threadCtx != null)
                {
                   var c = threadCtx.DirectStream as CompressedChunkedMemoryStream;
@@ -731,10 +735,7 @@ namespace Bitmanager.BigFile
                int maxBufferSize = finalizeAdministration();
                if (threadCtx != null) threadCtx.SetMaxBufferSize(maxBufferSize);
                if (!disposed)
-               {
-                  cb.OnProgress(this, 100);
-                  cb.OnLoadComplete(new Result(this, start, err, ct.IsCancellationRequested));
-               }
+                  cb.OnLoadComplete(new Result(this, startTime, err));
             }
          });
       }
@@ -751,15 +752,6 @@ namespace Bitmanager.BigFile
          }
       }
 
-
-      private void MarkMatch(int line, int numContextLines)
-      {
-         partialLines[line] = partialLines[line] | (int)LineFlags.Match;
-      }
-      private void ResetMatch(int line, int numContextLines)
-      {
-         partialLines[line] = partialLines[line] & ~(int)LineFlags.Match;
-      }
 
       public void ResetMatches()
       {
@@ -785,6 +777,7 @@ namespace Bitmanager.BigFile
          threadCtx.DirectStream.PrepareForNewInstance();
          return Task.Run(() =>
          {
+            this.ct = ct;
             logger.Log("Search: phase1 starting with {0} threads", searchThreads);
             logger.Log("Search: encoding: {0}", encoding);
             var ctx = new SearchContext(query);
@@ -804,9 +797,9 @@ namespace Bitmanager.BigFile
                {
                   int end = N;
                   N -= M;
-                  tasks[i] = Task.Run(() => _search(ctx.NewInstanceForThread(), end - M, end, ct));
+                  tasks[i] = Task.Run(() => _search(ctx.NewInstanceForThread(), end - M, end));
                }
-               int matches0 = matches = _search(ctx, 0, N, ct);
+               int matches0 = matches = _search(ctx, 0, N);
                for (int i = 0; i < tasks.Length; i++)
                {
                   matches += tasks[i].Result;
@@ -822,8 +815,6 @@ namespace Bitmanager.BigFile
 
                ctx.MarkComputed();
                logger.Log("Search: phase1 ended. Total #matches={0}", matches);
-
-               DONE:;
             }
             catch (Exception e)
             {
@@ -831,16 +822,14 @@ namespace Bitmanager.BigFile
             }
             finally
             {
+               this.ct = CancellationToken.None;
                if (!disposed)
-               {
-                  cb.OnProgress(this, 100);
-                  cb.OnSearchComplete(new SearchResult(this, start, err, ct.IsCancellationRequested, matches, ctx.LeafNodes.Count));
-               }
+                  cb.OnSearchComplete(new SearchResult(this, start, err, matches, ctx.LeafNodes.Count));
             }
          });
       }
 
-      private int _search(SearchContext ctx, int start, int end, CancellationToken ct)
+      private int _search(SearchContext ctx, int start, int end)
       {
          const int MOD = 5000;
          int matches = 0;
@@ -852,7 +841,7 @@ namespace Bitmanager.BigFile
          {
             if (ctx.Index % MOD == 0)
             {
-               if (ct.IsCancellationRequested) break;
+               checkCancelled();
                if (start == 0 && !onProgress((100.0 * ctx.Index) / end)) break;
             }
 
@@ -997,6 +986,7 @@ namespace Bitmanager.BigFile
                   int perc=0;
                   int nextPercAt = 0;
 
+                  this.ct = ct;
                   for (int i=0; i<N; i++)
                   {
                      int ix, start, end;
@@ -1020,7 +1010,7 @@ namespace Bitmanager.BigFile
 
                      if (i < nextPercAt) continue;
 
-                     if (ct.IsCancellationRequested || disposed) break;
+                     checkCancelled();
                      cb.OnProgress(this, perc);
                      perc++;
                      nextPercAt = (int)(perc * N / 100.0);
@@ -1033,8 +1023,9 @@ namespace Bitmanager.BigFile
             }
             finally
             {
+               this.ct = CancellationToken.None;
                ctx.CloseInstance();
-               if (!disposed) cb.OnExportComplete(new ExportResult(this, startTime, err, ct.IsCancellationRequested, N));
+               if (!disposed) cb.OnExportComplete(new ExportResult(this, startTime, err, N));
             }
          });
       }
@@ -1164,6 +1155,7 @@ namespace Bitmanager.BigFile
       /// </summary>
       public string GetPartialLine(int index, int maxChars = -1, Action<char[], int> replacer=null)
       {
+         //logger.Log("GetPartialLine: index={0}, count={1}", index, partialLines.Count - 1);
          if (index < 0 || index >= partialLines.Count - 1) return String.Empty;
          return threadCtx.GetPartialLine(index, index + 1, maxChars, replacer);
       }
@@ -1229,18 +1221,16 @@ namespace Bitmanager.BigFile
          protected readonly LogFile parent;
          public readonly long FileSize;
          protected readonly long startTime;
-         protected readonly CancellationToken ct;
          protected long reloadAt;
          protected long deltaReloadAt;
 
          private int prevPerc;
          //private Logger logger = Globals.MainLogger.Clone("progress");
 
-         public LoadProgress(LogFile parent, long fileSize, CancellationToken ct)
+         public LoadProgress(LogFile parent, long fileSize)
          {
             this.parent = parent;
             this.FileSize = fileSize;
-            this.ct = ct;
             prevPerc = -1;
             startTime = DateTime.UtcNow.Ticks;
             deltaReloadAt = 2 * ticksPerSeconds;
@@ -1265,9 +1255,7 @@ namespace Bitmanager.BigFile
             }
             if (cur != prevPerc)
             {
-               if (parent.disposed || ct.IsCancellationRequested)
-                  throw new TaskCanceledException();
-
+               parent.checkCancelled();
                parent.cb.OnProgress(parent, cur);
                prevPerc = cur;
             }
@@ -1275,8 +1263,7 @@ namespace Bitmanager.BigFile
             if (ticks > reloadAt)
             {
                //logger.Log("Load partial");
-               if (parent.disposed || ct.IsCancellationRequested)
-                  throw new TaskCanceledException();
+               parent.checkCancelled();
                reloadAt += deltaReloadAt;
                deltaReloadAt = (long)(1.5 * deltaReloadAt);
                parent.threadCtx.DirectStream.PrepareForNewInstance();
@@ -1304,8 +1291,8 @@ namespace Bitmanager.BigFile
          private long nextCheckAtPos;
          private MemoryFailPoint failpoint;
 
-         public MemCheckingLoadProgress(LogFile parent, long fileSize, CancellationToken ct) :
-            base(parent, fileSize, ct)
+         public MemCheckingLoadProgress(LogFile parent, long fileSize) :
+            base(parent, fileSize)
          {
             this.logger = LogFile.logger;
             nextCheckAtPos = CHUNCK_MB * MB;

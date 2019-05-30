@@ -17,12 +17,13 @@
  * under the License.
  */
 
-using Bitmanager.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bitmanager.Core;
+using Bitmanager.IO;
 
 namespace Bitmanager.BigFile
 {
@@ -109,6 +110,7 @@ namespace Bitmanager.BigFile
          }
          catch (Exception err)
          {
+            Logs.ErrorLog.Log(err);
             String msg = err.ToString();
             return Encoding.GetBytes(msg, 0, msg.Length, byteBuffer, 0);
          }
@@ -132,6 +134,7 @@ namespace Bitmanager.BigFile
       double chars = 1;
       public int ReadPartialLineBytesInBuffer(int from, int until, int maxChars)
       {
+         //Logs.DebugLog.Log("ReadPartialLineBytesInBuffer({0}, {1}, {2})", from, until, maxChars);
          if (until >= this.partialLines.Count || from < 0)
             return 0;
 

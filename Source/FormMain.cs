@@ -395,7 +395,7 @@ namespace Bitmanager.BigFile
       private String getLimitedLine(Object model)
       {
          String x = model == null ? String.Empty : lf.GetPartialLine((int)model, neededTextLength, replaceTabs);
-         //logger.Log("Needed={0}, returned={1}", neededTextLength, x.Length);
+         //logger.Log("{2}: Needed={0}, returned={1}, {3}", neededTextLength, x.Length, model, x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x);
          return x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x;
       }
       private static void replaceTabs(char[] arr, int len)
@@ -692,6 +692,15 @@ namespace Bitmanager.BigFile
       }
 
 
+      void ILogFileCallback.OnProgress(LogFile lf, int percent)
+      {
+         synchronizationContext.Post(new SendOrPostCallback(o =>
+         {
+            statusProgress.Value = percent;
+         }), null);
+      }
+
+
       void ILogFileCallback.OnSearchComplete(SearchResult result)
       {
          synchronizationContext.Post(new SendOrPostCallback(o =>
@@ -710,7 +719,17 @@ namespace Bitmanager.BigFile
                    result.NumSearchTerms,
                    Pretty.PrintElapsedMs((int)result.Duration.TotalMilliseconds)
             );
-            statusLabelSearch.Text = msg;
+            if (result.Error != null)
+            {
+               statusLabelSearch.Text = msg + " [ERROR]"; 
+               handleViewSelection();
+               result.ThrowIfError();
+            }
+            else if (result.Cancelled)
+               statusLabelSearch.Text = msg + " [CANCELLED]";
+            else
+               statusLabelSearch.Text = msg;
+
             handleViewSelection();
          }), null);
       }
@@ -798,6 +817,10 @@ namespace Bitmanager.BigFile
                statusLabelMain.Text = part1 + " [ERROR]";
                result.ThrowIfError();
             }
+            else if (result.Cancelled)
+            {
+               statusLabelMain.Text = part1 + " [CANCELLED]";
+            }
             else
             {
                String duration = Pretty.PrintElapsedMs((int)result.Duration.TotalMilliseconds);
@@ -828,15 +851,15 @@ namespace Bitmanager.BigFile
                    result.NumExported,
                    Pretty.PrintElapsedMs((int)result.Duration.TotalMilliseconds)
             );
-            statusLabelSearch.Text = msg;
-         }), null);
-      }
-
-      public void OnProgress(LogFile lf, int percent)
-      {
-         synchronizationContext.Post(new SendOrPostCallback(o =>
-         {
-            statusProgress.Value = percent;
+            if (result.Error != null)
+            {
+               statusLabelSearch.Text = msg + " [ERROR]";
+               result.ThrowIfError();
+            }
+            else if (result.Cancelled)
+               statusLabelSearch.Text = msg + " [CANCELLED]";
+            else
+               statusLabelSearch.Text = msg;
          }), null);
       }
 
@@ -935,7 +958,7 @@ namespace Bitmanager.BigFile
          {
             default: return;
             case Keys.Enter:
-               logger.Log("enter from {0}", sender);
+               logger.Log("enter-key from {0}", sender);
                return;
             case Keys.F3:
                gotoNextHit(); break;
