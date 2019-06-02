@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("BigFile")]
-[assembly: AssemblyDescription("Views (very) large files, like logs")]
+[assembly: AssemblyDescription("Viewer for (very) large text files")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("De Bitmanager")]
 [assembly: AssemblyProduct("BigFile")]
@@ -38,5 +38,5 @@ using System.Runtime.InteropServices;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("0.9.1.2")]
-[assembly: AssemblyFileVersion("0.9.1.2")]
+[assembly: AssemblyVersion("0.9.1.3")]
+[assembly: AssemblyFileVersion("0.9.1.3")]

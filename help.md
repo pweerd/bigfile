@@ -106,9 +106,19 @@ The exact behavior can be configured via tools->settings.
 
 The selected line's contents can be copied to the clipboard via the list context menu. There is a maximum limit of 10000 lines
 
-## Export (currently not working)
+## Export
 
-The export functionality exports all lines within the current view or the selected lines. There is a maximum limit of 10000 lines. This functionality is accessed via the list content menu.
+The export function can export 
+
+- all lines
+- selected lines
+- matched lines
+
+The export is always line based. Meaning that if splitting of large lines is active, and one selects only a part of the line, the complete line will be exported.
+
+This functionality is accessed via the 'tools' menu.
+
+Currently, exported lines are terminated by a windows crlf. 
 
 ## Command line
 
@@ -125,6 +135,12 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 
 
 ### Changes
+
+#### V0.913
+
+- Loading of zip entries is implemented
+- Export functionality implemented
+- Bugfixes
 
 #### V0.912
 

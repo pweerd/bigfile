@@ -1280,55 +1280,55 @@ namespace Bitmanager.BigFile
          }
 
       }
-      private class MemCheckingLoadProgress : LoadProgress
-      {
-         const int CHUNCK_MB = 100;
-         const int MB = 1024*1024;
-         private int cnt;
-         private bool shouldDegrade;
-         private readonly Logger logger;
+      //   private class MemCheckingLoadProgress : LoadProgress
+      //   {
+      //      const int CHUNCK_MB = 100;
+      //      const int MB = 1024*1024;
+      //      private int cnt;
+      //      private bool shouldDegrade;
+      //      private readonly Logger logger;
 
-         private long nextCheckAtPos;
-         private MemoryFailPoint failpoint;
+      //      private long nextCheckAtPos;
+      //      private MemoryFailPoint failpoint;
 
-         public MemCheckingLoadProgress(LogFile parent, long fileSize) :
-            base(parent, fileSize)
-         {
-            this.logger = LogFile.logger;
-            nextCheckAtPos = CHUNCK_MB * MB;
-         }
+      //      public MemCheckingLoadProgress(LogFile parent, long fileSize) :
+      //         base(parent, fileSize)
+      //      {
+      //         this.logger = LogFile.logger;
+      //         nextCheckAtPos = CHUNCK_MB * MB;
+      //      }
 
-         public override bool ShouldDegrade()
-         {
-            return shouldDegrade;
-         }
+      //      public override bool ShouldDegrade()
+      //      {
+      //         return shouldDegrade;
+      //      }
 
-         public override bool HandleProgress(long pos)
-         {
-            if (pos> nextCheckAtPos)
-            {
-               nextCheckAtPos += CHUNCK_MB * MB;
-               logger.Log(_LogType.ltTimerStart, "failpoint start, pos={0}mb, tot={1}mb", pos/MB, GC.GetTotalMemory(false)/MB);
+      //      public override bool HandleProgress(long pos)
+      //      {
+      //         if (pos> nextCheckAtPos)
+      //         {
+      //            nextCheckAtPos += CHUNCK_MB * MB;
+      //            logger.Log(_LogType.ltTimerStart, "failpoint start, pos={0}mb, tot={1}mb", pos/MB, GC.GetTotalMemory(false)/MB);
 
-               if (failpoint != null) failpoint.Dispose();
-               failpoint = null;
-               try
-               {
-                  // Check for available memory.
-                  failpoint = new MemoryFailPoint(500);
-               }
-               catch (InsufficientMemoryException e)
-               {
-                  logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since there was not enough memory available.");
-                  shouldDegrade = true;
-                  return true;
-               }
-               logger.Log(_LogType.ltTimerStop, "failpoint done");
-               return base.HandleProgress(pos);
-            }
-            return false;
-         }
-      }
+      //            if (failpoint != null) failpoint.Dispose();
+      //            failpoint = null;
+      //            try
+      //            {
+      //               // Check for available memory.
+      //               failpoint = new MemoryFailPoint(500);
+      //            }
+      //            catch (InsufficientMemoryException e)
+      //            {
+      //               logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since there was not enough memory available.");
+      //               shouldDegrade = true;
+      //               return true;
+      //            }
+      //            logger.Log(_LogType.ltTimerStop, "failpoint done");
+      //            return base.HandleProgress(pos);
+      //         }
+      //         return false;
+      //      }
+      //   }
+
    }
-
 }
