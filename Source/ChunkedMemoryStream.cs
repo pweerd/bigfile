@@ -75,8 +75,12 @@ namespace Bitmanager.IO
       {
          return this;
       }
+
       public virtual void CloseInstance()
       {
+         _buffers.Clear();
+         _length = 0;
+         _position = 0;
       }
 
       /// <summary>

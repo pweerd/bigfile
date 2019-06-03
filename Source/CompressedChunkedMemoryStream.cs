@@ -142,6 +142,10 @@ namespace Bitmanager.IO
 
       public virtual void CloseInstance()
       {
+         _buffers.Clear();
+         _recycledBuffers.Clear();
+         _length = 0;
+         _position = 0;
       }
 
 
