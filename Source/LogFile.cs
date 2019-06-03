@@ -479,6 +479,9 @@ namespace Bitmanager.BigFile
       private void loadGZipFile(String fn, CancellationToken ct)
       {
          Stream strm = null;
+         Thread cur = Thread.CurrentThread;
+         bool isBackground = cur.IsBackground;
+         cur.IsBackground = false;  //Make sure that the process is kept alive as long as this thread is alive
          try
          {
             try
@@ -509,6 +512,7 @@ namespace Bitmanager.BigFile
          finally
          {
             Utils.FreeAndNil(ref strm);
+            cur.IsBackground = isBackground; //Restore the background state
          }
       }
 
@@ -718,22 +722,33 @@ namespace Bitmanager.BigFile
             catch (Exception ex)
             {
                err = ex;
+               Logs.ErrorLog.Log(ex, "Exception during load: {0}", ex.Message); 
             }
             finally
             {
                this.ct = CancellationToken.None;
-               if (threadCtx != null)
+               try
                {
-                  var c = threadCtx.DirectStream as CompressedChunkedMemoryStream;
-                  if (c != null)
+                  if (threadCtx != null)
                   {
-                     c.FinalizeCompressor(true);
-                     logger.Log("File len={0}, compressed={1}, ratio={2:F1}%", c.Length, c.GetCompressedSize(), 100.0 * c.GetCompressedSize() / c.Length);
+                     var c = threadCtx.DirectStream as CompressedChunkedMemoryStream;
+                     if (c != null)
+                     {
+                        c.FinalizeCompressor(true);
+                        logger.Log("File len={0}, compressed={1}, ratio={2:F1}%", c.Length, c.GetCompressedSize(), 100.0 * c.GetCompressedSize() / c.Length);
+                     }
                   }
-               }
 
-               int maxBufferSize = finalizeAdministration();
-               if (threadCtx != null) threadCtx.SetMaxBufferSize(maxBufferSize);
+                  int maxBufferSize = finalizeAdministration();
+                  logger.Log("SetMaxBufferSize ({0}, {1})", Pretty.PrintSize(maxBufferSize), maxBufferSize);
+                  if (threadCtx != null) threadCtx.SetMaxBufferSize(maxBufferSize);
+               }
+               catch (Exception e2)
+               {
+                  Logs.ErrorLog.Log(e2, "Exception after load: {0}", e2.Message);
+                  if (err == null) err = e2;
+                  if (threadCtx != null) threadCtx.CloseInstance();
+               }
                if (!disposed)
                   cb.OnLoadComplete(new Result(this, startTime, err));
             }
@@ -1243,7 +1258,7 @@ namespace Bitmanager.BigFile
          }
          public virtual bool HandleProgress(long pos)
          {
-            //return true;
+            parent.checkCancelled();
             long ticks = DateTime.UtcNow.Ticks;
             int cur;
             if (FileSize > 0)
@@ -1255,15 +1270,12 @@ namespace Bitmanager.BigFile
             }
             if (cur != prevPerc)
             {
-               parent.checkCancelled();
                parent.cb.OnProgress(parent, cur);
                prevPerc = cur;
             }
 
             if (ticks > reloadAt)
             {
-               //logger.Log("Load partial");
-               parent.checkCancelled();
                reloadAt += deltaReloadAt;
                deltaReloadAt = (long)(1.5 * deltaReloadAt);
                parent.threadCtx.DirectStream.PrepareForNewInstance();
