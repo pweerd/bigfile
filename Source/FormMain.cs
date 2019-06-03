@@ -215,13 +215,14 @@ namespace Bitmanager.BigFile
       }
 
 
-      private bool saveError;
+      private bool closeError;
       private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
       {
          logger.Log("Initiating close");
-         if (!saveError)
+         if (!closeError)
          {
-            saveError = true;
+            closeError = true;
+            cancel();
             settings.Save();
             Settings.SaveFormPosition(Left, Top, Width, Height);
             fileHistory.Save();
@@ -804,8 +805,6 @@ namespace Bitmanager.BigFile
       {
          synchronizationContext.Post(new SendOrPostCallback(o =>
          {
-            setLogFile (result.LogFile);
-
             indicateFinished();
             statusLabelSearch.Text = "";
             menuFileClose.Enabled = true;
@@ -827,6 +826,8 @@ namespace Bitmanager.BigFile
                statusLabelMain.Text = part1 + ", # Duration: " + duration;
             }
 
+            //The logfile will not be set if we had errors. The state of the logfile is unpredictable then...
+            if (result.Error == null) setLogFile(result.LogFile);
          }), null);
       }
 
