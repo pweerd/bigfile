@@ -55,23 +55,29 @@ namespace Bitmanager.BigFile
          this.buttonPrev = new System.Windows.Forms.Button();
          this.buttonNext = new System.Windows.Forms.Button();
          this.buttonClose = new System.Windows.Forms.Button();
+         this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+         this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
          this.splitContainer1.Panel1.SuspendLayout();
          this.splitContainer1.Panel2.SuspendLayout();
          this.splitContainer1.SuspendLayout();
+         this.statusStrip1.SuspendLayout();
          this.SuspendLayout();
          // 
          // splitContainer1
          // 
          this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
          this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-         this.splitContainer1.Location = new System.Drawing.Point(10, 10);
+         this.splitContainer1.IsSplitterFixed = true;
+         this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+         this.splitContainer1.Margin = new System.Windows.Forms.Padding(10);
          this.splitContainer1.Name = "splitContainer1";
          this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
          // 
          // splitContainer1.Panel1
          // 
          this.splitContainer1.Panel1.Controls.Add(this.textLine);
+         this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(5);
          // 
          // splitContainer1.Panel2
          // 
@@ -80,22 +86,23 @@ namespace Bitmanager.BigFile
          this.splitContainer1.Panel2.Controls.Add(this.buttonPrev);
          this.splitContainer1.Panel2.Controls.Add(this.buttonNext);
          this.splitContainer1.Panel2.Controls.Add(this.buttonClose);
-         this.splitContainer1.Size = new System.Drawing.Size(994, 511);
-         this.splitContainer1.SplitterDistance = 459;
+         this.splitContainer1.Size = new System.Drawing.Size(1014, 509);
+         this.splitContainer1.SplitterDistance = 457;
          this.splitContainer1.TabIndex = 4;
          // 
          // textLine
          // 
+         this.textLine.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
          this.textLine.Dock = System.Windows.Forms.DockStyle.Fill;
          this.textLine.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
          this.textLine.HideSelection = false;
-         this.textLine.Location = new System.Drawing.Point(0, 0);
-         this.textLine.Margin = new System.Windows.Forms.Padding(2);
+         this.textLine.Location = new System.Drawing.Point(5, 5);
+         this.textLine.Margin = new System.Windows.Forms.Padding(20);
          this.textLine.Name = "textLine";
          this.textLine.ReadOnly = true;
-         this.textLine.Size = new System.Drawing.Size(994, 459);
+         this.textLine.Size = new System.Drawing.Size(1004, 447);
          this.textLine.TabIndex = 1;
-         this.textLine.Text = "";
+         this.textLine.Text = "boe";
          this.textLine.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textLine_KeyPress);
          this.textLine.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textLine_KeyUp);
          // 
@@ -126,7 +133,7 @@ namespace Bitmanager.BigFile
          // 
          this.buttonPrev.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.buttonPrev.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.buttonPrev.Location = new System.Drawing.Point(705, 9);
+         this.buttonPrev.Location = new System.Drawing.Point(725, 9);
          this.buttonPrev.Margin = new System.Windows.Forms.Padding(2);
          this.buttonPrev.Name = "buttonPrev";
          this.buttonPrev.Size = new System.Drawing.Size(80, 26);
@@ -139,7 +146,7 @@ namespace Bitmanager.BigFile
          // 
          this.buttonNext.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.buttonNext.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.buttonNext.Location = new System.Drawing.Point(800, 9);
+         this.buttonNext.Location = new System.Drawing.Point(820, 9);
          this.buttonNext.Margin = new System.Windows.Forms.Padding(2);
          this.buttonNext.Name = "buttonNext";
          this.buttonNext.Size = new System.Drawing.Size(80, 26);
@@ -152,7 +159,7 @@ namespace Bitmanager.BigFile
          // 
          this.buttonClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.buttonClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.buttonClose.Location = new System.Drawing.Point(898, 9);
+         this.buttonClose.Location = new System.Drawing.Point(918, 9);
          this.buttonClose.Margin = new System.Windows.Forms.Padding(2);
          this.buttonClose.Name = "buttonClose";
          this.buttonClose.Size = new System.Drawing.Size(80, 26);
@@ -161,17 +168,33 @@ namespace Bitmanager.BigFile
          this.buttonClose.UseVisualStyleBackColor = true;
          this.buttonClose.Click += new System.EventHandler(this.buttonClose_Click);
          // 
+         // statusStrip1
+         // 
+         this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel1});
+         this.statusStrip1.Location = new System.Drawing.Point(0, 509);
+         this.statusStrip1.Name = "statusStrip1";
+         this.statusStrip1.Size = new System.Drawing.Size(1014, 22);
+         this.statusStrip1.TabIndex = 2;
+         this.statusStrip1.Text = "statusStrip1";
+         // 
+         // toolStripStatusLabel1
+         // 
+         this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+         this.toolStripStatusLabel1.Size = new System.Drawing.Size(118, 17);
+         this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+         // 
          // FormLine
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.ClientSize = new System.Drawing.Size(1014, 531);
          this.Controls.Add(this.splitContainer1);
+         this.Controls.Add(this.statusStrip1);
          this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
          this.Margin = new System.Windows.Forms.Padding(2);
          this.MinimumSize = new System.Drawing.Size(405, 306);
          this.Name = "FormLine";
-         this.Padding = new System.Windows.Forms.Padding(10);
          this.ShowInTaskbar = false;
          this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
          this.Text = "Line";
@@ -184,7 +207,10 @@ namespace Bitmanager.BigFile
          this.splitContainer1.Panel2.PerformLayout();
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
          this.splitContainer1.ResumeLayout(false);
+         this.statusStrip1.ResumeLayout(false);
+         this.statusStrip1.PerformLayout();
          this.ResumeLayout(false);
+         this.PerformLayout();
 
       }
 
@@ -197,5 +223,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.Button buttonClose;
       private System.Windows.Forms.Label label1;
       private System.Windows.Forms.ComboBox cbViewAs;
+      private System.Windows.Forms.StatusStrip statusStrip1;
+      private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
    }
 }

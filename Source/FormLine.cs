@@ -109,7 +109,7 @@ namespace Bitmanager.BigFile
          lineIdx = lineNo;
          Text = String.Format("{0} - Line {1}", lf.FileName, lineNo);
          logger.Log("SetLine ({0}): loading...", lineNo);
-         String line = lf.GetLine(lineNo);
+         String line = lf.GetPartialLine(lineNo);
          logger.Log("SetLine ({0}): loaded...", lineNo);
 
          curLine = line;
@@ -253,8 +253,7 @@ namespace Bitmanager.BigFile
             }
          }
 
-         if (error != null)
-            throw new Exception(error.Message, error);
+         toolStripStatusLabel1.Text = error == null ? String.Empty : error.Message.Replace('\n', ' ');
       }
 
       private void buttonClose_Click(object sender, EventArgs e)
@@ -354,6 +353,7 @@ namespace Bitmanager.BigFile
       {
          closed = true;
       }
+
    }
 
    static class ControlExtensions
