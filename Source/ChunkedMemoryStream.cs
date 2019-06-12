@@ -73,7 +73,7 @@ namespace Bitmanager.IO
 
       public virtual IDirectStream NewInstanceForThread()
       {
-         return this;
+         return new ChunkedMemoryStream(this);
       }
 
       public virtual void CloseInstance()
