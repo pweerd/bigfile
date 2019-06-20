@@ -28,13 +28,18 @@ namespace Bitmanager.BigFile
    /// </summary>
    public partial class FormGoToLine : Form
    {
-      public int LineNumber { get { return Invariant.ToInt32(textLineNum.Text); } }
+      static bool prevPartial = true;
+      static String prevGoto = String.Empty;
 
-      public FormGoToLine(int prevGoto)
+      public int LineNumber { get { return Invariant.ToInt32(prevGoto); } }
+      public bool IsPartial { get { return prevPartial; } }
+
+      public FormGoToLine()
       {
          InitializeComponent();
          Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
-         if (prevGoto >= 0) textLineNum.Text = prevGoto.ToString();
+         textLineNum.Text = prevGoto;
+         chkPartial.Checked = prevPartial;
       }
 
       private void buttonOK_Click(object sender, EventArgs e)
@@ -43,6 +48,8 @@ namespace Bitmanager.BigFile
             throw new Exception("The line number must be entered");
 
          Invariant.ToInt32(textLineNum.Text);
+         prevGoto = textLineNum.Text;
+         prevPartial = chkPartial.Checked;
          this.DialogResult = DialogResult.OK;
       }
 
@@ -50,5 +57,6 @@ namespace Bitmanager.BigFile
       {
          this.DialogResult = DialogResult.Cancel;
       }
+
    }
 }

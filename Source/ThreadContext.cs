@@ -83,7 +83,7 @@ namespace Bitmanager.BigFile
          return byteBuffer==null ? 0 : byteBuffer.Length;
       }
 
-      public int ReadPartialLineBytesInBuffer(int from, int until)
+      public int ReadPartialLineBytesInBuffer (int from, int until)
       {
          if (until >= this.partialLines.Count || from < 0)
             return 0;
@@ -189,6 +189,55 @@ namespace Bitmanager.BigFile
          return end + 1;
       }
 
+      public int ReadPartialLineBytes (int from, int until, byte[] buf, int offset, int count)
+      {
+         //Logs.DebugLog.Log("ReadPartialLineBytesInBuffer({0}, {1}, {2})", from, until, maxChars);
+         if (until >= this.partialLines.Count || from < 0)
+            return 0;
+
+         long o1 = partialLines[from] >> LogFile.FLAGS_SHIFT;
+         long o2 = partialLines[until] >> LogFile.FLAGS_SHIFT;
+         int lineLen = (int)(o2 - o1);
+         if (lineLen == 0) return 0;
+
+         if (count > lineLen) count = lineLen;
+         int bytesRead = 0;
+         try
+         {
+            long position = o1;
+            while (true)
+            {
+               int freeSpace = count - bytesRead;
+               if (freeSpace <= 0) break;
+
+               var len = DirectStream.Read(position, buf, offset+bytesRead, freeSpace);
+               if (len == 0) break;
+               position += len;
+               bytesRead += len;
+            }
+         }
+         catch (Exception err)
+         {
+            Logs.ErrorLog.Log(err);
+            String msg = err.ToString();
+            return Encoding.GetBytes(msg, 0, msg.Length, buf, offset);
+         }
+         int end = offset+bytesRead - 1;
+         while (end >= 0)
+         {
+            switch (buf[end])
+            {
+               case 10:
+               case 13:
+                  --end;
+                  continue;
+            }
+            break;
+         }
+
+         return end + 1 - offset;
+      }
+
       public int ReadPartialLineCharsInBuffer(int from, int until)
       {
          int bytes = ReadPartialLineBytesInBuffer(from, until);
@@ -201,10 +250,60 @@ namespace Bitmanager.BigFile
          return Encoding.GetChars(byteBuffer, 0, bytes, charBuffer, 0);
       }
 
-      public String GetPartialLine(int from, int until)
+      public unsafe String GetLine(int from, int until, int maxLineLength, out bool truncated)
       {
-         int len = ReadPartialLineCharsInBuffer(from, until);
-         return new string(charBuffer, 0, len);
+         long o1 = partialLines[from] >> LogFile.FLAGS_SHIFT;
+         long o2 = partialLines[until] >> LogFile.FLAGS_SHIFT;
+         long diff = o2 - o1;
+         int len;
+         if (diff > maxLineLength)
+         {
+            len = maxLineLength;
+            truncated = true;
+         }
+         else
+         {
+            len = (int)diff;
+            truncated = false;
+         }
+
+         if (byteBuffer.Length >= len) //Simple case: the line fits in the pre-allocated buffer
+         {
+            len = ReadPartialLineCharsInBuffer(from, until);
+            return new string(charBuffer, 0, len);
+         }
+
+         //Didn't fit. We allocate a 2 times larger byte buffer, to be able to contains the chars as well.
+         //We will do an in-place conversion and then convert to a string
+         byte[] tmp = new byte[2 * len];
+         int bytesRead = ReadPartialLineBytes(from, until, tmp, len, len);
+         bytesRead -= getEolSuffixSize(tmp, len + bytesRead);
+
+         fixed (byte* pBuf = &tmp[0])
+         {
+            byte* pSrc = pBuf + len;
+            char* pDst = (char*)pBuf;
+            int chars = Encoding.GetChars(pSrc, bytesRead, pDst, tmp.Length / 2);
+            return new String(pDst, 0, chars);
+         }
+      }
+
+      private static int getEolSuffixSize (byte[] tmp, int offset)
+      {
+         int end = offset - 2;
+         int i;
+         for (i= offset - 1; i>=end; )
+         {
+            switch (tmp[end])
+            {
+               case 10:
+               case 13:
+                  --i;
+                  continue;
+            }
+            break;
+         }
+         return offset - i - 1;
       }
 
       public String GetPartialLine(int from, int until, int maxChars, Action<char[], int> replacer)

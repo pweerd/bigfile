@@ -90,9 +90,16 @@ namespace Bitmanager.BigFile
 
          olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
          olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
-         cbZipEntries.Visible = false;
+         showZipEntries(false);
 
          prevGoto = -1;
+      }
+
+      private void showZipEntries (bool visible)
+      {
+         cbZipEntries.Visible = visible;
+         toolStripSeparator3.Visible = visible;
+         if (!visible) cbZipEntries.Items.Clear();
       }
 
       private Encoding getCurrentEncoding()
@@ -332,6 +339,9 @@ namespace Bitmanager.BigFile
       /// </summary>
       private void LoadFile(string filePath, String zipEntry=null)
       {
+         int maxPartial = Invariant.ToInt32(cbSplit.Text);
+         if (maxPartial < 0) maxPartial = 10 * 1024 * 1024;
+         settings.MaxPartialSize = maxPartial;
          prevGoto = -1;
          fileHistory.Add(filePath);
          directoryHistory.Add(Path.GetDirectoryName(filePath));
@@ -449,8 +459,7 @@ namespace Bitmanager.BigFile
       {
          if (listLines.SelectedObjects.Count != 1) return;
 
-         Object m = listLines.SelectedObjects[0];
-         if (m == null) return;
+         int m = listLines.SelectedIndex;
 
          FormLine fl;
          if ((Control.ModifierKeys & Keys.Alt) != 0)
@@ -460,7 +469,7 @@ namespace Bitmanager.BigFile
             fl = lineForm;
             if (fl == null || fl.IsClosed) fl = lineForm = new FormLine();
          }
-         fl.ShowLine(this.settings, lf, listDatasource.Filter, (int)m, lastQuery);
+         fl.ShowLine(this.settings, lf, listDatasource.Filter, m, lastQuery);
       }
 
       private enum WhatToExport { All, Selected, Matched};
@@ -530,6 +539,7 @@ namespace Bitmanager.BigFile
          foreach (int lineIdx in toExport)
          {
             sb.AppendLine(lf.GetLine (lineIdx));
+            if (sb.Length > 2 * settings.MaxLineLength) break;
          }
          Clipboard.SetText(sb.ToString());
       }
@@ -760,7 +770,7 @@ namespace Bitmanager.BigFile
          lf = newLF;
          if (newLF == null)
          {
-            cbZipEntries.Visible = false;
+            showZipEntries(false);
             return;
          }
 
@@ -788,8 +798,7 @@ namespace Bitmanager.BigFile
 
          if (lf.ZipEntries==null || lf.ZipEntries.Count==0)
          {
-            cbZipEntries.Visible = false;
-            cbZipEntries.Items.Clear();
+            showZipEntries(false);
          }
          else
          {
@@ -797,7 +806,7 @@ namespace Bitmanager.BigFile
             foreach (var e in lf.ZipEntries) cbZipEntries.Items.Add(e);
 
             cbZipEntries.SelectedIndex = lf.ZipEntries.SelectedEntry;
-            cbZipEntries.Visible = true;
+            showZipEntries(true);
          }
       }
 
@@ -809,6 +818,7 @@ namespace Bitmanager.BigFile
             statusLabelSearch.Text = "";
             menuFileClose.Enabled = true;
 
+            var lf = result.LogFile;
             String part1 = String.Format("{0} lines / {1}", lf.PartialLineCount, Pretty.PrintSize(lf.Size));
 
             if (result.Error != null)
@@ -898,27 +908,20 @@ namespace Bitmanager.BigFile
 
       private void gotoDialog()
       {
-         using (FormGoToLine f = new FormGoToLine(prevGoto))
+         using (FormGoToLine f = new FormGoToLine())
          {
             if (f.ShowDialog(this) == DialogResult.OK)
-               gotoLine(prevGoto = f.LineNumber);
+               gotoLine(f.LineNumber, f.IsPartial);
          }
       }
-      private void gotoLine(int line)
+      private void gotoLine(int line, bool isPartial) //PW nakijken
       {
          listLines.TopItemIndex = 0;
          if (lf == null) return;
-         if (line < 0) line = 0;
+         int index = (line < 0) ? 0 : line;
+         if (!isPartial) index = lf.PartialFromLineNumber(index);
 
-         int index;
-         var filter = listDatasource.Filter;
-         var nextLine = lf.NextLineNumber(line - 1, listDatasource.Filter, out index);
-         logger.Log("Goto line={0}, filter={1}, index={2}, found line={3}, linefrompart={4}",
-             line,
-             filter == null ? 0 : 1,
-             index,
-             nextLine,
-             lf.LineNumberFromPartial(index));
+         index = lf.PartialToLogicalIndex (index, listDatasource.Filter);
          gotoAndSelectLogicalLineIndex(index);
       }
 
@@ -944,9 +947,9 @@ namespace Bitmanager.BigFile
                case Keys.G:
                   gotoToolStripMenuItem_Click(this, null); break;
                case Keys.Home:
-                  gotoLine(0); break;
+                  gotoLine(0, true); break;
                case Keys.End:
-                  gotoLine(int.MaxValue); break;
+                  gotoLine(int.MaxValue, true); break;
                case Keys.F3:
                   gotoPrevHit(); break;
             }
@@ -1039,9 +1042,9 @@ namespace Bitmanager.BigFile
             case '?':
                gotoPrevHit(); break;
             case '<':
-               gotoLine(0); break;
+               gotoLine(0, true); break;
             case '>':
-               gotoLine(int.MaxValue); break;
+               gotoLine(int.MaxValue, true); break;
          }
          e.Handled = true;
       }
@@ -1107,6 +1110,10 @@ namespace Bitmanager.BigFile
          if (lf != null) lf.SetEncoding (getCurrentEncoding());
       }
 
+      private void btnResplit_Click(object sender, EventArgs e)
+      {
+
+      }
 
       private void btnResetSearch_Click(object sender, EventArgs e)
       {

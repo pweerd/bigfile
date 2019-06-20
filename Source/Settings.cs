@@ -40,6 +40,7 @@ namespace Bitmanager.BigFile
       public int MaxPartialSize = -1; //Currently not used...
       public int MultiSelectLimit = 1000;
       public int NumContextLines = 0;
+      public readonly int MaxLineLength = 10 * 1024 * 1024;
       private int _searchThreads = 0;
       public String SearchThreadsAsText
       {

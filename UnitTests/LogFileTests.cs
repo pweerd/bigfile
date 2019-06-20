@@ -290,13 +290,13 @@ namespace Bitmanager.BigFile
 
          //Test the next/prev by using a line filter
          var matches = new List<int>();
-         matches.Add(logFile.LineNumberToPartial(3));
-         matches.Add(logFile.LineNumberToPartial(5));
+         matches.Add(logFile.PartialFromLineNumber(3));
+         matches.Add(logFile.PartialFromLineNumber(5));
          logger.Log("Matching lines: {0} for line 3 and {1} for line 5", matches[0], matches[1]);
          //dumpOffsets(logFile, "test");
          Assert.AreEqual(3, logFile.NextLineNumber(-123, matches));
          Assert.AreEqual(5, logFile.NextLineNumber(3, matches));
-         Assert.AreEqual(int.MaxValue, logFile.NextLineNumber(5, matches));
+         Assert.AreEqual(18, logFile.NextLineNumber(5, matches));
 
          Assert.AreEqual(5, logFile.PrevLineNumber(99999, matches));
          Assert.AreEqual(3, logFile.PrevLineNumber(5, matches));
@@ -311,7 +311,7 @@ namespace Bitmanager.BigFile
          {
             int next = lf.NextLineNumber(line, null);
             logger.Log("Line={0}, next={1}", line, next);
-            if (next == int.MaxValue) break;
+            if (next >= lf.LineCount) break;
 
             Assert.AreEqual(line + 1, next);
             line = next;
@@ -340,7 +340,7 @@ namespace Bitmanager.BigFile
          {
             int next = lf.NextLineNumber(line, null);
             logger.Log("Line={0}, next={1}", line, next);
-            if (next == int.MaxValue) break;
+            if (next >= lf.LineCount) break;
 
             Assert.AreEqual(line + 1, next);
             line = next;

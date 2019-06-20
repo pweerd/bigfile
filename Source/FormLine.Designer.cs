@@ -50,6 +50,7 @@ namespace Bitmanager.BigFile
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormLine));
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
          this.textLine = new System.Windows.Forms.RichTextBox();
+         this.cbPartial = new System.Windows.Forms.CheckBox();
          this.label1 = new System.Windows.Forms.Label();
          this.cbViewAs = new System.Windows.Forms.ComboBox();
          this.buttonPrev = new System.Windows.Forms.Button();
@@ -81,6 +82,7 @@ namespace Bitmanager.BigFile
          // 
          // splitContainer1.Panel2
          // 
+         this.splitContainer1.Panel2.Controls.Add(this.cbPartial);
          this.splitContainer1.Panel2.Controls.Add(this.label1);
          this.splitContainer1.Panel2.Controls.Add(this.cbViewAs);
          this.splitContainer1.Panel2.Controls.Add(this.buttonPrev);
@@ -105,6 +107,17 @@ namespace Bitmanager.BigFile
          this.textLine.Text = "boe";
          this.textLine.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textLine_KeyPress);
          this.textLine.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textLine_KeyUp);
+         // 
+         // cbPartial
+         // 
+         this.cbPartial.AutoSize = true;
+         this.cbPartial.Location = new System.Drawing.Point(232, 16);
+         this.cbPartial.Name = "cbPartial";
+         this.cbPartial.Size = new System.Drawing.Size(74, 17);
+         this.cbPartial.TabIndex = 9;
+         this.cbPartial.Text = "Partial line";
+         this.cbPartial.UseVisualStyleBackColor = true;
+         this.cbPartial.CheckedChanged += new System.EventHandler(this.cbPartial_CheckedChanged);
          // 
          // label1
          // 
@@ -225,5 +238,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ComboBox cbViewAs;
       private System.Windows.Forms.StatusStrip statusStrip1;
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+      private System.Windows.Forms.CheckBox cbPartial;
    }
 }

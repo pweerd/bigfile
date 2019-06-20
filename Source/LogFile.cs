@@ -93,7 +93,8 @@ namespace Bitmanager.BigFile
 
       #region reflected_settings
       private readonly String gzipExe;
-      private readonly int MaxPartialSize;
+      private readonly int maxPartialSize;
+      private readonly int maxLineLength;
       private int searchThreads;
       private long loadInMemoryIfBigger;
       private long compressIfBigger;
@@ -112,12 +113,15 @@ namespace Bitmanager.BigFile
       public LogFile(ILogFileCallback cb, Settings settings, Encoding enc = null)
       {
          gzipExe = settings.GzipExe;
-         MaxPartialSize = settings.MaxPartialSize <= 0 ? int.MaxValue : settings.MaxPartialSize;
+         maxPartialSize = settings.MaxPartialSize <= 0 ? int.MaxValue : settings.MaxPartialSize;
+         maxLineLength = settings.MaxLineLength;
+
          SyncSettings(settings);
          this.cb = cb;
          partialLines = new List<long>();
          SetEncoding(enc);
       }
+
       private LogFile(LogFile other)
       {
          this.cb = other.cb;
@@ -130,7 +134,7 @@ namespace Bitmanager.BigFile
          this.fileName = other.fileName;
          this.partialsEncountered = other.partialsEncountered;
          this.partialLines = new List<long>(other.partialLines);
-         this.MaxPartialSize = other.MaxPartialSize;
+         this.maxPartialSize = other.maxPartialSize;
          this.encoding = other.encoding;
          this.zipEntries = other.zipEntries;
          int maxBufferSize = finalizeAdministration();
@@ -138,24 +142,22 @@ namespace Bitmanager.BigFile
          threadCtx = other.threadCtx.NewInstanceForThread(maxBufferSize);
       }
 
-
+      
       /// <summary>
-      /// Given a line number, get the next line number. 
-      /// If the line is beyond the end, LineCount is returned.
+      /// Given a partial line number, get the next partial line number. 
+      /// If the line is beyond the end, PartialLineCount is returned.
       /// If a partialFilter is supplied, only lines within that filter are used.
       /// </summary>
-      public int NextLineNumber(int line, List<int> partialFilter)
+      public int NextPartialLineNumber(int partialIndex, List<int> partialFilter)
       {
-         if (line < -1) line = -1;
-         int lineCount = LineCount;
-         logger.Log("nextLineNumber ({0})", line, lineCount);
-         ++line;
-         if (line >= lineCount) return int.MaxValue;
-         if (partialFilter == null) return line;
+         if (partialIndex < -1) partialIndex = -1;
+         int lineCount = PartialLineCount;
+         logger.Log("nextPartialLineNumber ({0})", partialIndex, lineCount);
+         ++partialIndex;
+         if (partialIndex >= lineCount) return int.MaxValue;
+         if (partialFilter == null) return partialIndex;
 
 
-         int partialIndex = LineNumberToPartial(line);
-         logger.Log("-- filter was set line {0}->{1}", line, partialIndex);
          int i = -1;
          int j = partialFilter.Count;
          while (j - i > 1)
@@ -167,54 +169,10 @@ namespace Bitmanager.BigFile
          if (j >= partialFilter.Count)
             logger.Log("-- at end");
          else
-            logger.Log("-- next partial: {0} line: {1}", partialFilter[j], LineNumberFromPartial(partialFilter[j]));
+            logger.Log("-- next partial: {0}", partialFilter[j]);
 
          dumpFilter(partialFilter, i);
-         return j >= partialFilter.Count ? int.MaxValue : LineNumberFromPartial(partialFilter[j]);
-      }
-
-      /// <summary>
-      /// Given a line number, get the next line number. 
-      /// If the line is beyond the end, LineCount is returned.
-      /// If a partialFilter is supplied, only lines within that filter are used.
-      /// Also return the logical index of that line.
-      /// </summary>
-      public int NextLineNumber(int line, List<int> partialFilter, out int logicalIndex)
-      {
-         int lineCount = LineCount;
-         logger.Log("nextLineNumber ({0})", line, lineCount);
-         ++line;
-
-         if (line >= lineCount)
-         {
-            logicalIndex = PartialLineCount - 1;
-            return lineCount - 1;
-         }
-         if (partialFilter == null)
-         {
-            logicalIndex = LineNumberToPartial(line);
-            return line;
-         }
-
-
-         int partialIndex = LineNumberToPartial(line);
-         logger.Log("-- filter was set line {0}->{1}", line, partialIndex);
-         int i = -1;
-         int j = partialFilter.Count;
-         while (j - i > 1)
-         {
-            int m = (i + j) / 2;
-            if (partialFilter[m] >= partialIndex) j = m; else i = m;
-         }
-         logger.Log("-- finding in filter: i={0}, j={1}, cnt={2}", i, j, partialFilter.Count);
-         logicalIndex = j;
-         if (j >= partialFilter.Count)
-            logger.Log("-- at end");
-         else
-            logger.Log("-- next partial: {0} line: {1}", partialFilter[j], LineNumberFromPartial(partialFilter[j]));
-
-         dumpFilter(partialFilter, i);
-         return j >= partialFilter.Count ? lineCount : LineNumberFromPartial(partialFilter[j]);
+         return j >= partialFilter.Count ? int.MaxValue : partialFilter[j];
       }
 
       /// <summary>
@@ -222,16 +180,14 @@ namespace Bitmanager.BigFile
       /// If the line is before the start, -1 is returned.
       /// If a partialFilter is supplied, only lines within that filter are used.
       /// </summary>
-      public int PrevLineNumber(int line, List<int> partialFilter)
+      public int PrevPartialLineNumber(int partialIndex, List<int> partialFilter)
       {
-         int lineCount = LineCount;
-         if (line > lineCount) line = lineCount;
-         logger.Log("prevLineNumber ({0})", line, lineCount);
-         if (line <= 0) return -1;
-         if (partialFilter == null) return line - 1;
+         int lineCount = PartialLineCount;
+         if (partialIndex > lineCount) partialIndex = lineCount;
+         logger.Log("prevPartialLineNumber ({0})", partialIndex, lineCount);
+         if (partialIndex <= 0) return -1;
+         if (partialFilter == null) return partialIndex - 1;
 
-         int partialIndex = LineNumberToPartial(line);
-         logger.Log("-- filter was set line {0}->{1}", line, partialIndex);
          int i = -1;
          int j = partialFilter.Count;
          while (j - i > 1)
@@ -243,9 +199,46 @@ namespace Bitmanager.BigFile
          if (i < 0)
             logger.Log("-- at top");
          else
-            logger.Log("-- next partial: {0} line: {1}", partialFilter[i], LineNumberFromPartial(partialFilter[i]));
-         dumpFilter(partialFilter, i);
-         return i < 0 ? -1 : LineNumberFromPartial(partialFilter[i]);
+            logger.Log("-- prev partial: {0}", partialFilter[i]);
+         //dumpFilter(partialFilter, i);
+         return i < 0 ? -1 : partialFilter[i];
+      }
+
+
+      /// <summary>
+      /// Given a line number, get the next line number. 
+      /// If the line is beyond the end, LineCount is returned.
+      /// If a partialFilter is supplied, only lines within that filter are used.
+      /// </summary>
+      public int NextLineNumber(int line, List<int> partialFilter)
+      {
+         int lineCount = LineCount;
+         logger.Log("nextLineNumber ({0})", line, lineCount);
+
+         if (line < 0) line = 0; else line++;
+         if (line >= lineCount) return int.MaxValue;
+         if (partialFilter == null) return line;
+
+         int nextPartial = NextPartialLineNumber(PartialFromLineNumber(line) - 1, partialFilter);
+         return PartialToLineNumber(nextPartial); 
+      }
+
+      /// <summary>
+      /// Given a line number, get the previous line number. 
+      /// If the line is before the start, -1 is returned.
+      /// If a partialFilter is supplied, only lines within that filter are used.
+      /// </summary>
+      public int PrevLineNumber(int line, List<int> partialFilter)
+      {
+         int lineCount = LineCount;
+         logger.Log("prevLineNumber ({0})", line, lineCount);
+
+         if (line > lineCount) line = lineCount - 1; else line--;
+         if (line < 0) return -1;
+         if (partialFilter == null) return line;
+
+         int prevPartial = PrevPartialLineNumber(PartialFromLineNumber(line) + 1, partialFilter);
+         return PartialToLineNumber(prevPartial);
       }
 
       private void dumpFilter(List<int> partialFilter, int i)
@@ -258,7 +251,7 @@ namespace Bitmanager.BigFile
 
          for (int j = from; j < until; j++)
          {
-            logger.Log("-- Filter [{0}] = {1}, {2} (real) ", j, partialFilter[j], LineNumberFromPartial(partialFilter[j]));
+            logger.Log("-- Filter [{0}] = {1}, {2} (real) ", j, partialFilter[j], PartialToLineNumber(partialFilter[j]));
          }
       }
 
@@ -314,7 +307,7 @@ namespace Bitmanager.BigFile
          }
          LongestPartialIndex = maxPartialIdx;
          LongestLineIndex = lines != null ? maxLineIdx : maxPartialIdx;
-         return Math.Max(maxPartialLen, maxLineLen);
+         return maxPartialLen; //PW Math.Max(maxPartialLen, maxLineLen);
       }
 
       public int NextPartialHit(int idxPartial)
@@ -676,7 +669,7 @@ namespace Bitmanager.BigFile
                   lenCorrection = -(i + 1);
                   continue;
             }
-            if (i + lenCorrection < MaxPartialSize) continue;
+            if (i + lenCorrection < maxPartialSize) continue;
 
             int end = i;
             if (i - lastComma < 32) end = lastComma + 1;
@@ -1018,8 +1011,12 @@ namespace Bitmanager.BigFile
                            ix = selectedlines[i];
                            start = lines[ix]; end = lines[ix+1]; break;
                      }
-                     int len = ctx.ReadPartialLineBytesInBuffer(start, end);
-                     fs.Write(ctx.ByteBuffer, 0, len);
+                     //Write partial lines one by one (to prevent huge buffer usage)
+                     for (int j = start; j < end; j++)
+                     {
+                        int len = ctx.ReadPartialLineBytesInBuffer(j, j+1);
+                        fs.Write(ctx.ByteBuffer, 0, len);
+                     }
                      // Add \r\n
                      fs.Write(endLine, 0, 2);
 
@@ -1159,11 +1156,17 @@ namespace Bitmanager.BigFile
       {
          return partialLines[line];
       }
-      public int GetLineOffset(int line)
+      public long GetLineOffset(int line)
       {
          if (lines != null) line = lines[line];
          return (int)(partialLines[line] >> FLAGS_SHIFT);
       }
+      public int LineToPartialLineIndex (int line)
+      {
+         return lines == null ? line : lines[line];
+      }
+
+
 
       /// <summary>
       /// Get a partial line
@@ -1175,19 +1178,34 @@ namespace Bitmanager.BigFile
          return threadCtx.GetPartialLine(index, index + 1, maxChars, replacer);
       }
 
+      public int ReadPartialLineBytes(int from, int until, byte[] buf, int offset, int count)
+      {
+         return threadCtx.ReadPartialLineBytes(from, until, buf, offset, count);
+      }
+
+      /// <summary>
+      /// Get a complete line
+      /// </summary>
+      public String GetLine(int index, out bool truncated)
+      {
+         truncated = false;
+         if (index < 0) return String.Empty;
+         if (lines != null)
+         {
+            if (index >= lines.Count - 1) return String.Empty;
+            return threadCtx.GetLine(lines[index], lines[index + 1], maxLineLength, out truncated);
+         }
+         if (index >= partialLines.Count - 1) return String.Empty;
+         return threadCtx.GetLine(index, index + 1, maxLineLength, out truncated);
+      }
+
       /// <summary>
       /// Get a complete line
       /// </summary>
       public String GetLine(int index)
       {
-         if (index < 0) return String.Empty;
-         if (lines != null)
-         {
-            if (index >= lines.Count - 1) return String.Empty;
-            return threadCtx.GetPartialLine(lines[index], lines[index + 1]);
-         }
-         if (index >= partialLines.Count - 1) return String.Empty;
-         return threadCtx.GetPartialLine(index, index + 1);
+         bool truncated;
+         return GetLine(index, out truncated);
       }
 
       public LineFlags GetLineFlags(int line)
@@ -1195,13 +1213,38 @@ namespace Bitmanager.BigFile
          return (LineFlags)(FLAGS_MASK & (int)partialLines[line]);
       }
 
-      public int LineNumberToPartial(int line)
+
+      /// <summary>
+      /// Returns the index of the partialline in the filter
+      /// </summary>
+      public int PartialToLogicalIndex (int partialIndex, List<int> partialFilter)
       {
-         if (lines == null) return line;
-         return lines[line];
+         if (partialFilter == null) return partialIndex;
+         int i = -1;
+         int j = partialFilter.Count;
+         while (j - i > 1)
+         {
+            int m = (i + j) / 2;
+            if (partialFilter[m] >= partialIndex) j = m; else i = m;
+         }
+         return j;
       }
 
-      public int LineNumberFromPartial(int partial)
+      /// <summary>
+      /// For a given line, return the partial line index where it start
+      /// </summary>
+      public int PartialFromLineNumber (int line)
+      {
+         if (lines == null) return line;
+         if (line >= 0)
+            line = (line >= LineCount) ? PartialLineCount : lines[line];
+         return line;
+      }
+
+      /// <summary>
+      /// For a given partial line number, return the line that contains the partial
+      /// </summary>
+      public int PartialToLineNumber (int partial)
       {
          if (lines == null) return partial;
          int i = -1;
@@ -1216,7 +1259,7 @@ namespace Bitmanager.BigFile
       public int GetOptRealLineNumber(int line)
       {
          if (lines == null) return line;
-         return ((int)partialLines[line] & (int)LineFlags.Continuation) == 0 ? LineNumberFromPartial(line) : -1;
+         return ((int)partialLines[line] & (int)LineFlags.Continuation) == 0 ? PartialToLineNumber(line) : -1;
       }
 
       public String GetLineAndFlags(int line, out LineFlags flags)

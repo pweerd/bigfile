@@ -38,32 +38,40 @@ namespace Bitmanager.BigFile
    public partial class FormLine : Form
    {
       private static int lastViewAsIndex;
+      private static bool LastViewAsPartial=true;
       private static Logger logger = Globals.MainLogger.Clone("line");
       private Settings settings;
       private List<SearchNode> searchNodes;
       private LogFile lf;
       private List<int> filter;
       private String curLine;
-      private int maxIndex;
       private bool closed;
       public bool IsClosed { get { return closed; } }
 
       private List<Tuple<int, int>> curMatches;
       //private Task<String> jsonConverter, xmlConverter;
-      private int lineIdx;
+      private int lineIndex;
+      private int partialIndex;
+      private void setIndexes(int partial, int line)
+      {
+         partialIndex = partial;
+         lineIndex = line;
+      }
+
       private int matchIdx;
 
       public FormLine()
       {
          InitializeComponent();
          cbViewAs.SelectedIndex = lastViewAsIndex;
+         cbPartial.Checked = LastViewAsPartial;
          ShowInTaskbar = true;
 
          //Prevent font being way too small after non-latin chars 
          textLine.LanguageOption = RichTextBoxLanguageOptions.DualFont;
       }
 
-      public void ShowLine (Settings c, LogFile lf, List<int> filter, int lineNo, ParserNode<SearchContext> lastQuery)
+      public void ShowLine (Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)
       {
          this.settings = c;
          if (lastQuery == null)
@@ -73,47 +81,65 @@ namespace Bitmanager.BigFile
 
          this.lf = lf;
          this.filter = filter;
-         logger.Log("Starting with partial {0}", lineNo);
-         lineNo = lf.LineNumberFromPartial(lineNo);
-         logger.Log("Starting with line {0}", lineNo);
+         logger.Log("Starting with partial {0}", partialLineNo);
          if (this.searchNodes.Count != 0 && filter == null)
          {
             logger.Log("Building filter");
             filter = lf.GetMatchedList(settings.NumContextLines);
          }
-         this.maxIndex = this.filter != null ? filter.Count : lf.PartialLineCount;
 
-         setLine(lineNo);
+         //Translate logical record into partial record index if we have a filter
+         if (filter != null)
+         {
+            if (partialLineNo < 0) partialIndex = -1;
+            else if (partialLineNo >= filter.Count) partialLineNo = lf.PartialLineCount;
+            else partialLineNo = filter[partialLineNo];
+         }
+
+         setLine(partialLineNo);
          Show();
       }
 
-      private void setLine(int lineNo)
+      private void setLine(int partialLineNo)
       {
          textLine.Focus();
-         logger.Log("SetLine ({0})", lineNo);
-         if (lineNo < 0)
+         logger.Log("SetLine ({0})", partialLineNo);
+         if (partialLineNo < 0)
          {
-            lineIdx = -1;
+            setIndexes(-1, -1);
             Text = String.Format("{0} - Before top", lf.FileName);
             clear();
             return;
          }
-         if (lineNo >= lf.LineCount)
+         if (partialLineNo >= lf.PartialLineCount)
          {
-            lineIdx = lf.LineCount;
+            setIndexes (lf.PartialLineCount, lf.LineCount);
             Text = String.Format("{0} - After bottom", lf.FileName);
             clear();
             return;
          }
 
-         lineIdx = lineNo;
-         Text = String.Format("{0} - Line {1}", lf.FileName, lineNo);
-         logger.Log("SetLine ({0}): loading...", lineNo);
-         String line = lf.GetPartialLine(lineNo);
-         logger.Log("SetLine ({0}): loaded...", lineNo);
+         setIndexes(partialLineNo, lf.PartialToLineNumber(partialLineNo));
 
-         curLine = line;
+         if (cbPartial.Checked)
+         {
+            curLine = lf.GetPartialLine(partialLineNo);
+            if (lf.LineCount == lf.PartialLineCount)
+               Text = String.Format("{0} - Line {1}", lf.FileName, partialLineNo);
+            else
+               Text = String.Format("{0} - Partial Line {1}, part of {2}", lf.FileName, partialLineNo, lineIndex);
+            logger.Log("SetLine ({0}): loading partial line. Part of line {1}...", partialLineNo, lineIndex);
+         }
+         else
+         {
+            bool truncated;
+            curLine = lf.GetLine(lineIndex, out truncated);
+            Text = String.Format(truncated ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, lineIndex);
+            logger.Log("SetLine ({0}): loading full line {1}...", partialLineNo, lineIndex);
+         }
+
          loadLineInControl();
+         logger.Log("SetLine (): loaded {0} chars in control", curLine.Length);
       }
 
       private static String convertToJson(String s)
@@ -243,7 +269,7 @@ namespace Bitmanager.BigFile
                   textLine.Select(m.Item1, m.Item2);
                   textLine.SelectionBackColor = backColor;
                }
-               logger.Log("SetLine ({0}): all done...", lineIdx);
+               logger.Log("SetLine ({0}): all done...", partialIndex);
                textLine.Select(curMatches[0].Item1, 0);
                textLine.ScrollToCaret();
             }
@@ -264,17 +290,36 @@ namespace Bitmanager.BigFile
 
       private void buttonNext_Click(object sender, EventArgs e)
       {
-         setLine(lf.NextLineNumber(lineIdx, filter));
+         int nextPartial;
+         if (cbPartial.Checked)
+            nextPartial = lf.NextPartialLineNumber(partialIndex, filter);
+         else
+            nextPartial = lf.PartialFromLineNumber(lf.NextLineNumber(lineIndex, filter));
+         setLine(nextPartial);
       }
 
       private void buttonPrev_Click(object sender, EventArgs e)
       {
-         setLine(lf.PrevLineNumber(lineIdx, filter));
+         int prevPartial;
+         if (cbPartial.Checked)
+            prevPartial = lf.PrevPartialLineNumber(partialIndex, filter);
+         else
+            prevPartial = lf.PartialFromLineNumber(lf.PrevLineNumber(lineIndex, filter));
+         setLine(prevPartial);
       }
 
       private void cbViewAs_SelectedIndexChanged(object sender, EventArgs e)
       {
          lastViewAsIndex = cbViewAs.SelectedIndex;
+         loadLineInControl();
+         textLine.Focus();
+      }
+
+      private void cbPartial_CheckedChanged(object sender, EventArgs e)
+      {
+         if (lf == null) return;
+         LastViewAsPartial = cbPartial.Checked;
+         setLine(partialIndex);
          loadLineInControl();
          textLine.Focus();
       }
@@ -353,7 +398,6 @@ namespace Bitmanager.BigFile
       {
          closed = true;
       }
-
    }
 
    static class ControlExtensions

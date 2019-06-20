@@ -52,31 +52,35 @@ namespace Bitmanager.BigFile
          this.textLineNum = new System.Windows.Forms.TextBox();
          this.buttonCancel = new System.Windows.Forms.Button();
          this.buttonOK = new System.Windows.Forms.Button();
+         this.chkPartial = new System.Windows.Forms.CheckBox();
          this.SuspendLayout();
          // 
          // label1
          // 
          this.label1.AutoSize = true;
-         this.label1.Location = new System.Drawing.Point(12, 9);
+         this.label1.Location = new System.Drawing.Point(8, 6);
+         this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label1.Name = "label1";
-         this.label1.Size = new System.Drawing.Size(67, 20);
+         this.label1.Size = new System.Drawing.Size(47, 13);
          this.label1.TabIndex = 0;
          this.label1.Text = "Line No.";
          // 
          // textLineNum
          // 
-         this.textLineNum.Location = new System.Drawing.Point(85, 6);
+         this.textLineNum.Location = new System.Drawing.Point(57, 4);
+         this.textLineNum.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
          this.textLineNum.Name = "textLineNum";
-         this.textLineNum.Size = new System.Drawing.Size(181, 26);
+         this.textLineNum.Size = new System.Drawing.Size(122, 20);
          this.textLineNum.TabIndex = 1;
          // 
          // buttonCancel
          // 
          this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.buttonCancel.Location = new System.Drawing.Point(146, 47);
+         this.buttonCancel.Location = new System.Drawing.Point(121, 64);
+         this.buttonCancel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
          this.buttonCancel.Name = "buttonCancel";
-         this.buttonCancel.Size = new System.Drawing.Size(120, 40);
+         this.buttonCancel.Size = new System.Drawing.Size(80, 26);
          this.buttonCancel.TabIndex = 3;
          this.buttonCancel.Text = "Cancel";
          this.buttonCancel.UseVisualStyleBackColor = true;
@@ -85,27 +89,40 @@ namespace Bitmanager.BigFile
          // buttonOK
          // 
          this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-         this.buttonOK.Location = new System.Drawing.Point(20, 47);
+         this.buttonOK.Location = new System.Drawing.Point(37, 64);
+         this.buttonOK.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
          this.buttonOK.Name = "buttonOK";
-         this.buttonOK.Size = new System.Drawing.Size(120, 40);
+         this.buttonOK.Size = new System.Drawing.Size(80, 26);
          this.buttonOK.TabIndex = 2;
          this.buttonOK.Text = "OK";
          this.buttonOK.UseVisualStyleBackColor = true;
          this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
          // 
+         // chkPartial
+         // 
+         this.chkPartial.AutoSize = true;
+         this.chkPartial.Location = new System.Drawing.Point(57, 29);
+         this.chkPartial.Name = "chkPartial";
+         this.chkPartial.Size = new System.Drawing.Size(55, 17);
+         this.chkPartial.TabIndex = 4;
+         this.chkPartial.Text = "Partial";
+         this.chkPartial.UseVisualStyleBackColor = true;
+         // 
          // FormGoToLine
          // 
          this.AcceptButton = this.buttonOK;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.buttonCancel;
-         this.ClientSize = new System.Drawing.Size(278, 99);
+         this.ClientSize = new System.Drawing.Size(209, 97);
+         this.Controls.Add(this.chkPartial);
          this.Controls.Add(this.buttonCancel);
          this.Controls.Add(this.buttonOK);
          this.Controls.Add(this.textLineNum);
          this.Controls.Add(this.label1);
          this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
          this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+         this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
          this.MaximizeBox = false;
          this.MinimizeBox = false;
          this.Name = "FormGoToLine";
@@ -123,5 +140,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.TextBox textLineNum;
       private System.Windows.Forms.Button buttonCancel;
       private System.Windows.Forms.Button buttonOK;
+      private System.Windows.Forms.CheckBox chkPartial;
    }
 }
