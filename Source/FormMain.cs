@@ -63,17 +63,17 @@ namespace Bitmanager.BigFile
          synchronizationContext = SynchronizationContext.Current;
          encodings = new Encoding[6];
          encodings[0] = Encoding.UTF8;
-         encodings[1] = Encoding.Unicode;
-         encodings[2] = Encoding.BigEndianUnicode;
-         encodings[3] = Encoding.Default;
+         encodings[1] = Encoding.Default;
+         encodings[2] = Encoding.Unicode;
+         encodings[3] = Encoding.BigEndianUnicode;
          encodings[4] = new Utf81();
          encodings[5] = new Utf82(); 
 
          dropdownEncoding.Items.Clear();
          dropdownEncoding.Items.Add("Utf8");
+         dropdownEncoding.Items.Add("Windows");
          dropdownEncoding.Items.Add("Utf16");
          dropdownEncoding.Items.Add("Utf16BE");
-         dropdownEncoding.Items.Add("Windows");
 
          if (Globals.IsDebug)
          {
@@ -86,6 +86,7 @@ namespace Bitmanager.BigFile
          searchboxDriver = new SearchHistory(cbSearch);
          btnResetSearch.Visible = Globals.IsDebug;
          btnWarning.Visible = false;
+         btnResplit.Visible = false;
 
          olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
          olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
