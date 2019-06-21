@@ -31,10 +31,10 @@ namespace Bitmanager.BigFile
    [TestClass]
    public class LogFileTests: TestBase
    {
-      private readonly Settings settings;
+      private readonly SettingsSource settings;
       public LogFileTests()
       {
-         settings = new Settings();
+         settings = new SettingsSource();
          if (settings.GzipExe == null) throw new Exception("Cannot find Gzip.exe in path or app folders.");
       }
 
@@ -111,7 +111,7 @@ namespace Bitmanager.BigFile
       [TestMethod]
       public void TestCompressErrors()
       {
-         var settings = new Settings();
+         var settings = new SettingsSource();
          settings.CompressMemoryIfBigger = "0";
          settings.LoadMemoryIfBigger = "0";
          var cb = new CB();
@@ -129,7 +129,7 @@ namespace Bitmanager.BigFile
       public void TestSelectedLines()
       {
          var cb = new CB();
-         var settings = new Settings();
+         var settings = new SettingsSource();
          var fn = this.dataDir + "allcountries.txt";
 
          var list = new List<int>();

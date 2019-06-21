@@ -78,11 +78,11 @@ namespace Bitmanager.BigFile
          return old;
       }
 
-      public void SyncSettings(Settings settings)
+      public void SyncSettings(SettingsSource settings)
       {
-         loadInMemoryIfBigger = Settings.GetActualSize(settings.LoadMemoryIfBigger, "0");
+         loadInMemoryIfBigger = SettingsSource.GetActualSize(settings.LoadMemoryIfBigger, "0");
          compressIfBigger = Globals.CanCompress
-            ? Settings.GetActualSize(settings.CompressMemoryIfBigger, "1GB")
+            ? SettingsSource.GetActualSize(settings.CompressMemoryIfBigger, "1GB")
             : long.MaxValue;
          availableMemory = settings.AvailablePhysicalMemory;
          searchThreads = settings.GetActualNumSearchThreads();
@@ -110,7 +110,7 @@ namespace Bitmanager.BigFile
             throw new TaskCanceledException();
       }
 
-      public LogFile(ILogFileCallback cb, Settings settings, Encoding enc = null)
+      public LogFile(ILogFileCallback cb, SettingsSource settings, Encoding enc = null)
       {
          gzipExe = settings.GzipExe;
          maxPartialSize = settings.MaxPartialSize <= 0 ? int.MaxValue : settings.MaxPartialSize;
@@ -1042,100 +1042,114 @@ namespace Bitmanager.BigFile
          });
       }
 
-      private void _exportNoLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
-      {
-         byte[] endLine = new byte[2] { 13, 10 };
+      //private int exportCompleteLine (ThreadContext ctx, Stream fs, int partialLine, CancellationToken ct)
+      //{
+      //   int lineNo = this.PartialToLineNumber(partialLine);
+      //   int start = this.PartialFromLineNumber(lineNo);
+      //   int end = this.PartialFromLineNumber(lineNo+1);
 
-         int N = PartialLineCount;
-         int perc = 0;
-         int nextPercAt = 0;
+      //   for (int i=start; i<end; i++)
+      //   {
+      //      int len = ctx.ReadPartialLineBytesInBuffer(i, i + 1);
+      //      fs.Write(ctx.ByteBuffer, 0, len);
+      //      if (ct.IsCancellationRequested || disposed) break;
+      //   }
+      //   fs.Write(endLine, 0, 2);
+      //   return end;
+      //}
 
-         for (int i = 0; i < N; i++)
-         {
-            int len = ctx.ReadPartialLineBytesInBuffer(i, i+1);
-            fs.Write(ctx.ByteBuffer, 0, len);
-            // Add \r\n
-            fs.Write(endLine, 0, 2);
+      //private void _exportNoLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
+      //{
+      //   int N = PartialLineCount;
+      //   int perc = 0;
+      //   int nextPercAt = 0;
 
-            if (i < nextPercAt) continue;
+      //   for (int i = 0; i < N; i++)
+      //   {
+      //      int len = ctx.ReadPartialLineBytesInBuffer(i, i+1);
+      //      fs.Write(ctx.ByteBuffer, 0, len);
+      //      // Add \r\n
+      //      fs.Write(endLine, 0, 2);
 
-            if (ct.IsCancellationRequested || disposed) break;
-            cb.OnProgress(this, perc);
-            perc++;
-            nextPercAt = (int)(perc * N / 100.0);
-         }
-      }
-      private void _exportNoLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
-      {
-         byte[] endLine = new byte[2] { 13, 10 };
+      //      if (i < nextPercAt) continue;
 
-         int N = filter.Count;
-         int perc = 0;
-         int nextPercAt = 0;
+      //      if (ct.IsCancellationRequested || disposed) break;
+      //      cb.OnProgress(this, perc);
+      //      perc++;
+      //      nextPercAt = (int)(perc * N / 100.0);
+      //   }
+      //}
+      //private void _exportNoLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
+      //{
+      //   byte[] endLine = new byte[2] { 13, 10 };
 
-         for (int i = 0; i < N; i++)
-         {
-            int ix = filter[i];
-            int len = ctx.ReadPartialLineBytesInBuffer(ix, ix + 1);
-            fs.Write(ctx.ByteBuffer, 0, len);
-            // Add \r\n
-            fs.Write(endLine, 0, 2);
+      //   int N = filter.Count;
+      //   int perc = 0;
+      //   int nextPercAt = 0;
 
-            if (i < nextPercAt) continue;
+      //   for (int i = 0; i < N; i++)
+      //   {
+      //      int ix = filter[i];
+      //      int len = ctx.ReadPartialLineBytesInBuffer(ix, ix + 1);
+      //      fs.Write(ctx.ByteBuffer, 0, len);
+      //      // Add \r\n
+      //      fs.Write(endLine, 0, 2);
 
-            if (ct.IsCancellationRequested || disposed) break;
-            cb.OnProgress(this, perc);
-            perc++;
-            nextPercAt = (int)(perc * N / 100.0);
-         }
-      }
-      private void _exportLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
-      {
-         byte[] endLine = new byte[2] { 13, 10 };
+      //      if (i < nextPercAt) continue;
 
-         int N = LineCount;
-         int perc = 0;
-         int nextPercAt = 0;
+      //      if (ct.IsCancellationRequested || disposed) break;
+      //      cb.OnProgress(this, perc);
+      //      perc++;
+      //      nextPercAt = (int)(perc * N / 100.0);
+      //   }
+      //}
+      //private void _exportLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
+      //{
+      //   byte[] endLine = new byte[2] { 13, 10 };
 
-         for (int i = 0; i < N; i++)
-         {
-            int len = ctx.ReadPartialLineBytesInBuffer(lines[i], lines[i + 1]);
-            fs.Write(ctx.ByteBuffer, 0, len);
-            // Add \r\n
-            fs.Write(endLine, 0, 2);
+      //   int N = LineCount;
+      //   int perc = 0;
+      //   int nextPercAt = 0;
 
-            if (i < nextPercAt) continue;
+      //   for (int i = 0; i < N; i++)
+      //   {
+      //      int len = ctx.ReadPartialLineBytesInBuffer(lines[i], lines[i + 1]);
+      //      fs.Write(ctx.ByteBuffer, 0, len);
+      //      // Add \r\n
+      //      fs.Write(endLine, 0, 2);
 
-            if (ct.IsCancellationRequested || disposed) break;
-            cb.OnProgress(this, perc);
-            perc++;
-            nextPercAt = (int)(perc * N / 100.0);
-         }
-      }
-      private void _exportLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
-      {
-         byte[] endLine = new byte[2] { 13, 10 };
+      //      if (i < nextPercAt) continue;
 
-         int N = filter.Count;
-         int perc = 0;
-         int nextPercAt = 0;
+      //      if (ct.IsCancellationRequested || disposed) break;
+      //      cb.OnProgress(this, perc);
+      //      perc++;
+      //      nextPercAt = (int)(perc * N / 100.0);
+      //   }
+      //}
+      //private void _exportLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
+      //{
+      //   byte[] endLine = new byte[2] { 13, 10 };
 
-         for (int i = 0; i < N; i++)
-         {
-            int ix = filter[i];
-            int len = ctx.ReadPartialLineBytesInBuffer(lines[ix], lines[ix + 1]);
-            fs.Write(ctx.ByteBuffer, 0, len);
-            // Add \r\n
-            fs.Write(endLine, 0, 2);
+      //   int N = filter.Count;
+      //   int perc = 0;
+      //   int nextPercAt = 0;
 
-            if (i < nextPercAt) continue;
+      //   for (int i = 0; i < N; i++)
+      //   {
+      //      int ix = filter[i];
+      //      int len = ctx.ReadPartialLineBytesInBuffer(lines[ix], lines[ix + 1]);
+      //      fs.Write(ctx.ByteBuffer, 0, len);
+      //      // Add \r\n
+      //      fs.Write(endLine, 0, 2);
 
-            if (ct.IsCancellationRequested || disposed) break;
-            cb.OnProgress(this, perc);
-            perc++;
-            nextPercAt = (int)(perc * N / 100.0);
-         }
-      }
+      //      if (i < nextPercAt) continue;
+
+      //      if (ct.IsCancellationRequested || disposed) break;
+      //      cb.OnProgress(this, perc);
+      //      perc++;
+      //      nextPercAt = (int)(perc * N / 100.0);
+      //   }
+      //}
 
       private void AddLine(long offset)
       {

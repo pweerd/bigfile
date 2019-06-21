@@ -42,6 +42,11 @@ namespace Bitmanager.BigFile
          chkPartial.Checked = prevPartial;
       }
 
+      public static void ResetGoto()
+      {
+         prevGoto = String.Empty;
+      }
+
       private void buttonOK_Click(object sender, EventArgs e)
       {
          if (textLineNum.Text.Trim().Length == 0)

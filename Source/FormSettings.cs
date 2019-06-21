@@ -25,17 +25,17 @@ using System.Windows.Forms;
 namespace Bitmanager.BigFile
 {
    /// <summary>
-   /// 
+   /// Displays the settings (stored in the registry)
    /// </summary>
    public partial class FormSettings : Form
    {
-      private readonly Settings settings;
+      private readonly SettingsSource settingsSource;
 
-      public FormSettings(Settings settings)
+      public FormSettings(SettingsSource settings)
       {
          InitializeComponent();
-         this.settings = settings;
-         comboNumLines.SelectedIndex = this.settings.NumContextLines;
+         this.settingsSource = settings;
+         comboNumLines.SelectedIndex = this.settingsSource.NumContextLines;
          txtHilight.Text = ColorTranslator.ToHtml(settings.HighlightColor);
          txtContext.Text = ColorTranslator.ToHtml(settings.ContextColor);
          txtGZip.Text = settings.GzipExe;
@@ -47,14 +47,16 @@ namespace Bitmanager.BigFile
 
       private void buttonOK_Click(object sender, EventArgs e)
       {
-         settings.HighlightColor = ColorTranslator.FromHtml(txtHilight.Text);
-         settings.ContextColor = ColorTranslator.FromHtml(txtContext.Text);
-         settings.NumContextLines = comboNumLines.SelectedIndex;
-         settings.GzipExe = txtGZip.Text;
-         settings.SearchThreadsAsText = cbSearchThreads.Text;
-         settings.CompressMemoryIfBigger = Settings.CheckAndRepairSize(cbCompress.Text, true);
-         settings.LoadMemoryIfBigger = cbInMemory.Text;
-         settings.Save();
+         settingsSource.HighlightColor = ColorTranslator.FromHtml(txtHilight.Text);
+         settingsSource.ContextColor = ColorTranslator.FromHtml(txtContext.Text);
+         settingsSource.NumContextLines = comboNumLines.SelectedIndex;
+         settingsSource.GzipExe = txtGZip.Text;
+         settingsSource.SearchThreadsAsText = cbSearchThreads.Text;
+         settingsSource.CompressMemoryIfBigger = cbCompress.Text;
+         settingsSource.LoadMemoryIfBigger = cbInMemory.Text;
+         settingsSource.MaxLineLengthSetting = cbLineLength.Text;
+         settingsSource.Save();
+         settingsSource.ActualizeDefaults();
 
          this.DialogResult = DialogResult.OK;
       }
@@ -82,6 +84,11 @@ namespace Bitmanager.BigFile
             label9.Text = "No or old bmucore102_64.dll";
             cbCompress.Enabled = false;
          }
+      }
+
+      private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+      {
+
       }
    }
 }

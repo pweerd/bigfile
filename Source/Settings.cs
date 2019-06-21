@@ -26,10 +26,53 @@ using Microsoft.Win32;
 namespace Bitmanager.BigFile
 {
    /// <summary>
-   /// Save/load settings in registry
+   /// Readonly object with all current settings replaced with their defaults
+   /// Created from a SettingsSource
    /// </summary>
    public class Settings
    {
+      public readonly SettingsSource Source;
+      public readonly string GzipExe;
+      public readonly long TotalPhysicalMemory;
+      public readonly long AvailablePhysicalMemory;
+
+      public readonly long CompressMemoryIfBigger;
+      public readonly long LoadMemoryIfBigger;
+
+      public readonly Color HighlightColor;
+      public readonly Color ContextColor;
+      public readonly int MultiSelectLimit;
+      public readonly int NumContextLines;
+      public readonly int SearchThreads;
+      public readonly int MaxLineLength;
+
+      public Settings(SettingsSource src)
+      {
+         Source = src;
+         TotalPhysicalMemory = src.TotalPhysicalMemory;
+         AvailablePhysicalMemory = src.AvailablePhysicalMemory;
+         HighlightColor = src.HighlightColor;
+         ContextColor = src.ContextColor;
+         NumContextLines = src.NumContextLines;
+         MultiSelectLimit = src.MultiSelectLimit;
+         GzipExe = src.GzipExe;
+         MaxLineLength = (int)SettingsSource.GetActualSize(src.MaxLineLengthSetting, "10MB");
+         SearchThreads = src.GetActualNumSearchThreads();
+
+         CompressMemoryIfBigger = SettingsSource.GetActualSize(src.CompressMemoryIfBigger, "1GB");
+         LoadMemoryIfBigger = SettingsSource.GetActualSize(src.LoadMemoryIfBigger, "32GB");
+      }
+   }
+
+
+
+   /// <summary>
+   /// Save/load settings in registry
+   /// </summary>
+   public class SettingsSource
+   {
+      public Settings Settings { get; private set; }
+      public const String DefaultMaxLineLength = "10MB";
       private const String _KEY = @"software\bitmanager\bigfile";
       public const String AUTO = @"Auto";
       public readonly long TotalPhysicalMemory;
@@ -40,7 +83,6 @@ namespace Bitmanager.BigFile
       public int MaxPartialSize = -1; //Currently not used...
       public int MultiSelectLimit = 1000;
       public int NumContextLines = 0;
-      public readonly int MaxLineLength = 10 * 1024 * 1024;
       private int _searchThreads = 0;
       public String SearchThreadsAsText
       {
@@ -56,20 +98,30 @@ namespace Bitmanager.BigFile
       public int SearchThreads { get { return GetActualNumSearchThreads(); } }
       public string GzipExe;
 
+      private String _MaxLineLengthSetting = AUTO;
+      public String MaxLineLengthSetting
+      {
+         get { return _MaxLineLengthSetting; }
+         set { _MaxLineLengthSetting = CheckAndRepairSizeWithOnOff(value, true); }
+      }
+      public int MaxLineLength
+      {
+         get { return (int) GetActualSize(_MaxLineLengthSetting, DefaultMaxLineLength); }
+      }
       private String _LoadMemoryIfBigger = AUTO;
       public String LoadMemoryIfBigger
       {
          get { return _LoadMemoryIfBigger; }
-         set { _LoadMemoryIfBigger = CheckAndRepairSize(value, true); }
+         set { _LoadMemoryIfBigger = CheckAndRepairSizeWithOnOff(value, true); }
       }
       private String _CompressMemoryIfBigger = AUTO;
       public String CompressMemoryIfBigger
       {
          get { return _CompressMemoryIfBigger; }
-         set { _CompressMemoryIfBigger = CheckAndRepairSize(value, true); }
+         set { _CompressMemoryIfBigger = CheckAndRepairSizeWithOnOff(value, true); }
       }
 
-      public Settings(bool autoLoad=false)
+      public SettingsSource(bool autoLoad=false)
       {
          if (!autoLoad)
             GzipExe = gzipExe;
@@ -80,6 +132,8 @@ namespace Bitmanager.BigFile
          this.TotalPhysicalMemory = (long)ci.TotalPhysicalMemory;
          this.AvailablePhysicalMemory = (long)Math.Min (ci.AvailablePhysicalMemory, ci.AvailableVirtualMemory);
          Globals.MainLogger.Log("Total memory={0}, available={1}.", Pretty.PrintSize(TotalPhysicalMemory), Pretty.PrintSize(AvailablePhysicalMemory));
+
+         ActualizeDefaults();
       }
 
       public int GetActualNumSearchThreads()
@@ -95,6 +149,11 @@ namespace Bitmanager.BigFile
          return ret;
       }
 
+      public void ActualizeDefaults()
+      {
+         Settings = new Settings(this); //actualize settings
+      }
+
       public void Load()
       {
          var rootKey = Registry.CurrentUser;
@@ -106,21 +165,45 @@ namespace Bitmanager.BigFile
             MultiSelectLimit = readVal(key, "select_limit", MultiSelectLimit);
             NumContextLines = readVal(key, "context_lines", NumContextLines);
             SearchThreadsAsText = readVal(key, "search_threads", SearchThreadsAsText);
-            LoadMemoryIfBigger = CheckAndRepairSize (readVal(key, "load_memory", LoadMemoryIfBigger), false);
-            CompressMemoryIfBigger = CheckAndRepairSize (readVal(key, "compress_memory", CompressMemoryIfBigger), false);
+            LoadMemoryIfBigger = CheckAndRepairSizeWithOnOff(readVal(key, "load_memory", LoadMemoryIfBigger), false);
+            CompressMemoryIfBigger = CheckAndRepairSizeWithOnOff(readVal(key, "compress_memory", CompressMemoryIfBigger), false);
             if (GzipExe == null) GzipExe = gzipExe;
          }
       }
 
-      public static String CheckAndRepairSize(String x, bool mustExcept)
+      public void Save()
+      {
+         var rootKey = Registry.CurrentUser;
+         using (var key = rootKey.CreateSubKey(_KEY, true))
+         {
+            writeVal(key, "gzip", GzipExe);
+            writeVal(key, "context_color", ContextColor);
+            writeVal(key, "highlight_color", HighlightColor);
+            writeVal(key, "select_limit", MultiSelectLimit);
+            writeVal(key, "context_lines", NumContextLines);
+            writeVal(key, "search_threads", SearchThreadsAsText);
+            writeVal(key, "load_memory", LoadMemoryIfBigger);
+            writeVal(key, "compress_memory", CompressMemoryIfBigger);
+         }
+         Load();
+      }
+
+      public static String CheckAndRepairSizeWithOnOff(String x, bool mustExcept)
+      {
+         return _CheckAndRepairSize(x, mustExcept, true);
+      }
+      public static String _CheckAndRepairSize(String x, bool mustExcept, bool supportOnOff=false)
       {
          x = x.TrimToNull();
          if (x == null) return AUTO;
          switch (x.ToLowerInvariant())
          {
-            case "auto":
+            case "auto": x = AUTO; break;
             case "off":
-            case "on":
+            case "on": 
+               if (supportOnOff) return x;
+               if (mustExcept) throw new BMException("Unsupported value: '{0}'.", x);
+               x = AUTO;
                break;
             default:
                try
@@ -154,23 +237,6 @@ namespace Bitmanager.BigFile
          }
       }
 
-
-      public void Save()
-      {
-         var rootKey = Registry.CurrentUser;
-         using (var key = rootKey.CreateSubKey(_KEY, true))
-         {
-            writeVal(key, "gzip", GzipExe);
-            writeVal(key, "context_color", ContextColor);
-            writeVal(key, "highlight_color", HighlightColor);
-            writeVal(key, "select_limit", MultiSelectLimit);
-            writeVal(key, "context_lines", NumContextLines);
-            writeVal(key, "search_threads", SearchThreadsAsText);
-            writeVal(key, "load_memory", LoadMemoryIfBigger);
-            writeVal(key, "compress_memory", CompressMemoryIfBigger);
-         }
-         Load();
-      }
       public static void SaveFormPosition(int left, int top, int w, int h)
       {
          String sizeStr = Invariant.Format("{0};{1};{2};{3}", w, h, left, top);
@@ -180,6 +246,7 @@ namespace Bitmanager.BigFile
             writeVal(key, "position", sizeStr);
          }
       }
+
       public static bool LoadFormPosition(out int left, out int top, out int w, out int h)
       {
          String sizeStr;

@@ -40,7 +40,7 @@ namespace Bitmanager.BigFile
       private static int lastViewAsIndex;
       private static bool LastViewAsPartial=true;
       private static Logger logger = Globals.MainLogger.Clone("line");
-      private Settings settings;
+      private SettingsSource settings;
       private List<SearchNode> searchNodes;
       private LogFile lf;
       private List<int> filter;
@@ -71,7 +71,7 @@ namespace Bitmanager.BigFile
          textLine.LanguageOption = RichTextBoxLanguageOptions.DualFont;
       }
 
-      public void ShowLine (Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)
+      public void ShowLine (SettingsSource c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)
       {
          this.settings = c;
          if (lastQuery == null)

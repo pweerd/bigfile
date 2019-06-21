@@ -68,6 +68,9 @@ namespace Bitmanager.BigFile
          this.label8 = new System.Windows.Forms.Label();
          this.cbCompress = new System.Windows.Forms.ComboBox();
          this.label9 = new System.Windows.Forms.Label();
+         this.cbLineLength = new System.Windows.Forms.ComboBox();
+         this.label10 = new System.Windows.Forms.Label();
+         this.label11 = new System.Windows.Forms.Label();
          this.SuspendLayout();
          // 
          // comboNumLines
@@ -274,6 +277,41 @@ namespace Bitmanager.BigFile
          this.label9.TabIndex = 22;
          this.label9.Text = "label9";
          // 
+         // cbLineLength
+         // 
+         this.cbLineLength.FormattingEnabled = true;
+         this.cbLineLength.Items.AddRange(new object[] {
+            "auto",
+            "1MB",
+            "2MB",
+            "10MB",
+            "20MB",
+            "32MB",
+            "off"});
+         this.cbLineLength.Location = new System.Drawing.Point(116, 303);
+         this.cbLineLength.Name = "cbLineLength";
+         this.cbLineLength.Size = new System.Drawing.Size(100, 21);
+         this.cbLineLength.TabIndex = 23;
+         this.cbLineLength.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+         // 
+         // label10
+         // 
+         this.label10.AutoSize = true;
+         this.label10.Location = new System.Drawing.Point(21, 306);
+         this.label10.Name = "label10";
+         this.label10.Size = new System.Drawing.Size(67, 13);
+         this.label10.TabIndex = 24;
+         this.label10.Text = "Max line size";
+         // 
+         // label11
+         // 
+         this.label11.AutoSize = true;
+         this.label11.Location = new System.Drawing.Point(226, 306);
+         this.label11.Name = "label11";
+         this.label11.Size = new System.Drawing.Size(161, 13);
+         this.label11.TabIndex = 25;
+         this.label11.Text = "(when the line details are shown)";
+         // 
          // FormSettings
          // 
          this.AcceptButton = this.buttonOK;
@@ -281,6 +319,9 @@ namespace Bitmanager.BigFile
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.buttonCancel;
          this.ClientSize = new System.Drawing.Size(401, 385);
+         this.Controls.Add(this.label11);
+         this.Controls.Add(this.label10);
+         this.Controls.Add(this.cbLineLength);
          this.Controls.Add(this.label9);
          this.Controls.Add(this.cbCompress);
          this.Controls.Add(this.label8);
@@ -336,5 +377,8 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.Label label8;
       private System.Windows.Forms.ComboBox cbCompress;
       private System.Windows.Forms.Label label9;
+      private System.Windows.Forms.ComboBox cbLineLength;
+      private System.Windows.Forms.Label label10;
+      private System.Windows.Forms.Label label11;
    }
 }

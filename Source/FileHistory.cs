@@ -38,12 +38,12 @@ namespace Bitmanager.BigFile
       public FileHistory (String prefix="fh_")
       {
          this.regPrefix = prefix;
-         history = Settings.LoadFileHistory(prefix);
+         history = SettingsSource.LoadFileHistory(prefix);
       }
 
       public void Save()
       {
-         Settings.SaveFileHistory(history, regPrefix);
+         SettingsSource.SaveFileHistory(history, regPrefix);
       }
 
       public void Add (String fn)

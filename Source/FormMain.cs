@@ -49,8 +49,7 @@ namespace Bitmanager.BigFile
       private readonly SearchHistory searchboxDriver;
       private CancellationTokenSource cancellationTokenSource;
       private bool processing;
-      private int prevGoto;
-      private Settings settings;
+      private SettingsSource settingsSource;
       private FixedFontMeasures fontMeasures;
       private readonly VirtualDataSource listDatasource;
       private readonly Encoding[] encodings;
@@ -91,8 +90,6 @@ namespace Bitmanager.BigFile
          olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
          olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
          showZipEntries(false);
-
-         prevGoto = -1;
       }
 
       private void showZipEntries (bool visible)
@@ -117,7 +114,7 @@ namespace Bitmanager.BigFile
       {
          Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
          GCSettings.LatencyMode = GCLatencyMode.Batch;
-         this.settings = new Settings(true);
+         this.settingsSource = new SettingsSource(true);
          this.fileHistory = new FileHistory("fh_");
          this.directoryHistory = new FileHistory("dh_");
          createRecentItems();
@@ -160,7 +157,7 @@ namespace Bitmanager.BigFile
          checkWarnings();
 
          int left, top, width, height;
-         Settings.LoadFormPosition(out left, out top, out width, out height);
+         SettingsSource.LoadFormPosition(out left, out top, out width, out height);
          if (left > 0) Left = left;
          if (top > 0) Top = top;
          if (width > 300) Width = width;
@@ -185,14 +182,14 @@ namespace Bitmanager.BigFile
       private void checkWarnings()
       {
          var sb = new StringBuilder();
-         if (String.IsNullOrEmpty(settings.GzipExe))
+         if (String.IsNullOrEmpty(settingsSource.Settings.GzipExe))
          {
             sb.Append("\n\nLoading .gz files via gzip is disabled since it is not specified in the settings");
             sb.Append("\n.gz files will be loaded via the slower SharpZLib.");
          }
          else
          {
-            if (!File.Exists (settings.GzipExe))
+            if (!File.Exists (settingsSource.Settings.GzipExe))
             {
                sb.Append("\n\nLoading .gz files via gzip is disabled since gzip.exe is not found.");
                sb.Append("\n.gz files will be loaded via the slower SharpZLib.");
@@ -230,8 +227,8 @@ namespace Bitmanager.BigFile
          {
             closeError = true;
             cancel();
-            settings.Save();
-            Settings.SaveFormPosition(Left, Top, Width, Height);
+            settingsSource.Save();
+            SettingsSource.SaveFormPosition(Left, Top, Width, Height);
             fileHistory.Save();
             directoryHistory.Save();
          }
@@ -341,8 +338,9 @@ namespace Bitmanager.BigFile
       {
          int maxPartial = Invariant.ToInt32(cbSplit.Text);
          if (maxPartial < 0) maxPartial = 10 * 1024 * 1024;
-         settings.MaxPartialSize = maxPartial;
-         prevGoto = -1;
+         settingsSource.MaxPartialSize = maxPartial;
+
+         FormGoToLine.ResetGoto();
          fileHistory.Add(filePath);
          directoryHistory.Add(Path.GetDirectoryName(filePath));
          createRecentItems();
@@ -355,7 +353,7 @@ namespace Bitmanager.BigFile
 
          statusLabelMain.Text = "Loading...";
          statusLabelSearch.Text = String.Empty;
-         new LogFile(this, settings, getCurrentEncoding()).Load(filePath, cancellationTokenSource.Token, zipEntry);
+         new LogFile(this, settingsSource, getCurrentEncoding()).Load(filePath, cancellationTokenSource.Token, zipEntry);
       }
 
       private void SearchFile()
@@ -368,7 +366,7 @@ namespace Bitmanager.BigFile
          statusLabelSearch.Text = "Searching...";
 
          indicateProcessing();
-         lf.SyncSettings(settings);
+         lf.SyncSettings(settingsSource);
          lf.Search(lastQuery, cancellationTokenSource.Token);
       }
 
@@ -445,7 +443,7 @@ namespace Bitmanager.BigFile
          LineFlags flags = lf.GetLineFlags((int)e.Model);
          if ((flags & LineFlags.Match) != 0)
          {
-            e.Item.BackColor = settings.HighlightColor;
+            e.Item.BackColor = settingsSource.HighlightColor;
          }
          //PW
          //else if ((flags & LineFlags.Context) != 0)
@@ -469,7 +467,7 @@ namespace Bitmanager.BigFile
             fl = lineForm;
             if (fl == null || fl.IsClosed) fl = lineForm = new FormLine();
          }
-         fl.ShowLine(this.settings, lf, listDatasource.Filter, m, lastQuery);
+         fl.ShowLine(this.settingsSource, lf, listDatasource.Filter, m, lastQuery);
       }
 
       private enum WhatToExport { All, Selected, Matched};
@@ -531,15 +529,18 @@ namespace Bitmanager.BigFile
             return;
          }
 
-         if (toExport.Count > settings.MultiSelectLimit)
+         int memLimit = Math.Min(settingsSource.MaxLineLength, 1024*1024);
+         memLimit = 2*Math.Max(memLimit, int.MaxValue / 2);
+
+         if (toExport.Count > settingsSource.MultiSelectLimit)
          {
-            toExport.RemoveRange(settings.MultiSelectLimit, toExport.Count - settings.MultiSelectLimit);
+            toExport.RemoveRange(settingsSource.MultiSelectLimit, toExport.Count - settingsSource.MultiSelectLimit);
          }
          StringBuilder sb = new StringBuilder(128 * (1+toExport.Count));
          foreach (int lineIdx in toExport)
          {
             sb.AppendLine(lf.GetLine (lineIdx));
-            if (sb.Length > 2 * settings.MaxLineLength) break;
+            if (sb.Length > memLimit) break;
          }
          Clipboard.SetText(sb.ToString());
       }
@@ -547,7 +548,7 @@ namespace Bitmanager.BigFile
 
       private void contextMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
       {
-         if (listLines.SelectedObjects.Count > this.settings.MultiSelectLimit)
+         if (listLines.SelectedObjects.Count > this.settingsSource.MultiSelectLimit)
          {
             contextMenuCopy.Enabled = false;
             exportSelectedToolStripMenuItem.Enabled = false;
@@ -649,7 +650,7 @@ namespace Bitmanager.BigFile
 
       private void menuToolsConfiguration_Click(object sender, EventArgs e)
       {
-         using (FormSettings f = new FormSettings(this.settings))
+         using (FormSettings f = new FormSettings(this.settingsSource))
          {
             f.ShowDialog(this);
             checkWarnings();
@@ -885,10 +886,10 @@ namespace Bitmanager.BigFile
          }
          if (menuViewMatched.Checked)
          {
-            listDatasource.SetContent(lf.GetMatchedList(settings.NumContextLines));
+            listDatasource.SetContent(lf.GetMatchedList(settingsSource.NumContextLines));
             return;
          }
-         listDatasource.SetContent(lf.GetUnmatchedList(settings.NumContextLines));
+         listDatasource.SetContent(lf.GetUnmatchedList(settingsSource.NumContextLines));
          return;
       }
       private void menuView_Click(object sender, EventArgs e)
