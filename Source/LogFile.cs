@@ -78,27 +78,24 @@ namespace Bitmanager.BigFile
          return old;
       }
 
-      public void SyncSettings(SettingsSource settings)
+      public void SyncSettings(Settings settings, Encoding enc)
       {
-         loadInMemoryIfBigger = SettingsSource.GetActualSize(settings.LoadMemoryIfBigger, "0");
-         compressIfBigger = Globals.CanCompress
-            ? SettingsSource.GetActualSize(settings.CompressMemoryIfBigger, "1GB")
-            : long.MaxValue;
-         availableMemory = settings.AvailablePhysicalMemory;
-         searchThreads = settings.GetActualNumSearchThreads();
+         this.settings = settings;
+         SetEncoding(enc);
       }
 
       private String fileName;
       private readonly ILogFileCallback cb;
 
       #region reflected_settings
-      private readonly String gzipExe;
+      private Settings settings;
+      //private readonly String gzipExe;
       private readonly int maxPartialSize;
-      private readonly int maxLineLength;
-      private int searchThreads;
-      private long loadInMemoryIfBigger;
-      private long compressIfBigger;
-      private long availableMemory;
+      //private readonly int maxLineLength;
+      //private int searchThreads;
+      //private long loadInMemoryIfBigger;
+      //private long compressIfBigger;
+      //private long availableMemory;
       #endregion
 
       private CancellationToken ct;
@@ -110,26 +107,20 @@ namespace Bitmanager.BigFile
             throw new TaskCanceledException();
       }
 
-      public LogFile(ILogFileCallback cb, SettingsSource settings, Encoding enc = null)
+      public LogFile(ILogFileCallback cb, Settings settings, Encoding enc, int maxPartialSize)
       {
-         gzipExe = settings.GzipExe;
-         maxPartialSize = settings.MaxPartialSize <= 0 ? int.MaxValue : settings.MaxPartialSize;
-         maxLineLength = settings.MaxLineLength;
-
-         SyncSettings(settings);
+         this.maxPartialSize = maxPartialSize <= 0 ? int.MaxValue : maxPartialSize;
          this.cb = cb;
+
+         SyncSettings(settings, enc);
          partialLines = new List<long>();
-         SetEncoding(enc);
       }
 
       private LogFile(LogFile other)
       {
          this.cb = other.cb;
-         this.gzipExe = other.gzipExe;
-         this.loadInMemoryIfBigger = other.loadInMemoryIfBigger;
-         this.compressIfBigger = other.compressIfBigger;
-         this.availableMemory = other.availableMemory;
-         this.searchThreads = other.searchThreads;
+         this.settings = other.settings;
+         this.maxPartialSize = other.maxPartialSize;
 
          this.fileName = other.fileName;
          this.partialsEncountered = other.partialsEncountered;
@@ -479,10 +470,10 @@ namespace Bitmanager.BigFile
          {
             try
             {
-               if (!String.IsNullOrEmpty(gzipExe))
+               if (!String.IsNullOrEmpty(settings.GzipExe))
                {
                   logger.Log("Try loading '{0}' via GZip.", fn);
-                  strm = new GzipProcessInputStream(fn, gzipExe, Globals.MainLogger);
+                  strm = new GzipProcessInputStream(fn, settings.GzipExe, Globals.MainLogger);
                }
             }
             catch (Exception e)
@@ -520,7 +511,7 @@ namespace Bitmanager.BigFile
          const int chunksize = 256 * 1024;
          Logger compressLogger = Globals.MainLogger.Clone("compress");
          Stream mem;
-         if (this.compressIfBigger <= 0)
+         if (settings.CompressMemoryIfBigger <= 0)
             mem = new CompressedChunkedMemoryStream(chunksize, compressLogger);
          else
             mem = new ChunkedMemoryStream(chunksize);
@@ -544,9 +535,9 @@ namespace Bitmanager.BigFile
             logger.Log(_LogType.ltProgress, "Handle progress pos={0}", Pretty.PrintSize(position));
             if (mem is ChunkedMemoryStream)
             {
-               if (checkCompress && position > compressIfBigger)
+               if (checkCompress && position > settings.CompressMemoryIfBigger)
                {
-                  logger.Log(_LogType.ltWarning, "Switching to compressed since size {0} > {1}.", Pretty.PrintSize(position), Pretty.PrintSize(compressIfBigger));
+                  logger.Log(_LogType.ltWarning, "Switching to compressed since size {0} > {1}.", Pretty.PrintSize(position), Pretty.PrintSize(settings.CompressMemoryIfBigger));
                   checkCompress = false;
                   mem = ((ChunkedMemoryStream)mem).CreateCompressedChunkedMemoryStream(compressLogger);
                   threadCtx = new ThreadContext(encoding, mem as IDirectStream, this.partialLines);
@@ -560,7 +551,7 @@ namespace Bitmanager.BigFile
                var compress = mem as CompressedChunkedMemoryStream;
                if (compress.IsCompressionEnabled) continue;
                logger.Log("Checking degrade: compr={0}, fs={1}", compress.IsCompressionEnabled, loadProgress.FileSize);
-               long limit = availableMemory - 800 * 1024 * 1024;
+               long limit = settings.AvailablePhysicalMemory - 800 * 1024 * 1024;
                if (loadProgress.FileSize > limit)
                {
                   logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since the filesize({0}) more than the available memory {1}",
@@ -595,15 +586,15 @@ namespace Bitmanager.BigFile
          var loadProgress = new LoadProgress(this, fileStream.Length);
 
          logger.Log("Loading '{0}' via FileStream.", fn);
-         if (totalLength >= this.loadInMemoryIfBigger)
+         if (totalLength >= settings.LoadMemoryIfBigger)
          {
-            long limit = availableMemory - 800*1024*1024;
-            if (totalLength >= compressIfBigger) limit *= 3;
+            long limit = settings.AvailablePhysicalMemory - 800*1024*1024;
+            if (totalLength >= settings.CompressMemoryIfBigger) limit *= 3;
             if (totalLength < limit)
             {
                logger.Log("-- Loading into memory since '{0}' is between {1} and {2}.",
                   Pretty.PrintSize(totalLength),
-                  Pretty.PrintSize(loadInMemoryIfBigger),
+                  Pretty.PrintSize(settings.LoadMemoryIfBigger),
                   Pretty.PrintSize(limit));
                if (loadStreamIntoMemory(fileStream, loadProgress, true)) return;
                //Fallthrough, since the compression failed. We fallback to filestream loading
@@ -786,7 +777,7 @@ namespace Bitmanager.BigFile
          return Task.Run(() =>
          {
             this.ct = ct;
-            logger.Log("Search: phase1 starting with {0} threads", searchThreads);
+            logger.Log("Search: phase1 starting with {0} threads", settings.SearchThreads);
             logger.Log("Search: encoding: {0}", encoding);
             var ctx = new SearchContext(query);
             foreach (var x in ctx.LeafNodes)
@@ -798,9 +789,9 @@ namespace Bitmanager.BigFile
 
             try
             {
-               Task<int>[] tasks = new Task<int>[searchThreads - 1];
+               Task<int>[] tasks = new Task<int>[settings.SearchThreads - 1];
                int N = partialLines.Count - 1;
-               int M = N / searchThreads;
+               int M = N / settings.SearchThreads;
                for (int i = 0; i < tasks.Length; i++)
                {
                   int end = N;
@@ -1207,10 +1198,10 @@ namespace Bitmanager.BigFile
          if (lines != null)
          {
             if (index >= lines.Count - 1) return String.Empty;
-            return threadCtx.GetLine(lines[index], lines[index + 1], maxLineLength, out truncated);
+            return threadCtx.GetLine(lines[index], lines[index + 1], settings.MaxLineLength, out truncated);
          }
          if (index >= partialLines.Count - 1) return String.Empty;
-         return threadCtx.GetLine(index, index + 1, maxLineLength, out truncated);
+         return threadCtx.GetLine(index, index + 1, settings.MaxLineLength, out truncated);
       }
 
       /// <summary>

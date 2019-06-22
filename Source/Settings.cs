@@ -80,7 +80,6 @@ namespace Bitmanager.BigFile
 
       public Color HighlightColor = Color.Lime;
       public Color ContextColor = Color.LightGray;
-      public int MaxPartialSize = -1; //Currently not used...
       public int MultiSelectLimit = 1000;
       public int NumContextLines = 0;
       private int _searchThreads = 0;
@@ -149,9 +148,9 @@ namespace Bitmanager.BigFile
          return ret;
       }
 
-      public void ActualizeDefaults()
+      public Settings ActualizeDefaults()
       {
-         Settings = new Settings(this); //actualize settings
+         return Settings = new Settings(this); //actualize settings
       }
 
       public void Load()

@@ -339,7 +339,6 @@ namespace Bitmanager.BigFile
       {
          int maxPartial = Invariant.ToInt32(cbSplit.Text);
          if (maxPartial < 0) maxPartial = 10 * 1024 * 1024;
-         settingsSource.MaxPartialSize = maxPartial;
 
          FormGoToLine.ResetGoto();
          fileHistory.Add(filePath);
@@ -354,7 +353,7 @@ namespace Bitmanager.BigFile
 
          statusLabelMain.Text = "Loading...";
          statusLabelSearch.Text = String.Empty;
-         new LogFile(this, settingsSource, getCurrentEncoding()).Load(filePath, cancellationTokenSource.Token, zipEntry);
+         new LogFile(this, settingsSource.Settings, getCurrentEncoding(), maxPartial).Load(filePath, cancellationTokenSource.Token, zipEntry);
       }
 
       private void SearchFile()
@@ -367,7 +366,7 @@ namespace Bitmanager.BigFile
          statusLabelSearch.Text = "Searching...";
 
          indicateProcessing();
-         lf.SyncSettings(settingsSource);
+         lf.SyncSettings(settingsSource.Settings, getCurrentEncoding());
          lf.Search(lastQuery, cancellationTokenSource.Token);
       }
 
@@ -1080,33 +1079,6 @@ namespace Bitmanager.BigFile
       }
 
 
-      private unsafe void toolStripButton2_Click(object sender, EventArgs e)
-      {
-         var corehelper = new Bitmanager.UCore.CoreHelper();
-         var compressor = corehelper.CreateCompressor() as ICompressor2;
-
-         byte[] content = File.ReadAllBytes(@"E:\repos\LogViewer\LogViewerTests\data\logfile.txt");
-         byte[] comp = new byte[content.Length];
-         byte[] uncomp = new byte[content.Length];
-
-         int dstlen = comp.Length;
-         int srclen = dstlen;
-
-         fixed (byte* ps = &content[0])
-         fixed (byte* pd = &comp[0])
-         {
-            DebugOutput.Write(String.Format("pContent={0}", (long)ps));
-            DebugOutput.Write(String.Format("comp={0}", (long)pd));
-            dstlen = compressor.CompressLZ4(ps, pd, srclen, dstlen);
-         }
-
-         //         dstlen = compressor.CompressLZ4(ref content[0], ref comp[0], srclen, dstlen);
-         logger.Log("compress ({0}) => {1}", srclen, dstlen);
-
-         int len = compressor.DecompressLZ4(ref comp[0], ref uncomp[0], dstlen, srclen);
-         logger.Log("decompress ({0}) => {1}", dstlen, len);
-      }
-
       private void dropdownEncoding_SelectedIndexChanged(object sender, EventArgs e)
       {
          if (lf != null) lf.SetEncoding (getCurrentEncoding());
@@ -1122,18 +1094,5 @@ namespace Bitmanager.BigFile
          searchboxDriver.Clear();
       }
    }
-
-   [ComVisible(true)]
-   [Guid("9616113D-27B9-4FF7-84B5-1B8542C8A5C9")]
-   [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-   [SuppressUnmanagedCodeSecurity]
-   [TypeLibType(TypeLibTypeFlags.FNonExtensible)]
-   public interface ICompressor2
-   {
-      unsafe int CompressLZ4(byte* src, byte* dst, int srclen, int dstlen);
-      int CompressLZ4HC(ref byte src, ref byte dst, int srclen, int dstlen);
-      int DecompressLZ4(ref byte src, ref byte dst, int srclen, int dstlen);
-   }
-
 
 }

@@ -31,11 +31,11 @@ namespace Bitmanager.BigFile
    [TestClass]
    public class LogFileTests: TestBase
    {
-      private readonly SettingsSource settings;
+      private readonly SettingsSource settingsSource;
       public LogFileTests()
       {
-         settings = new SettingsSource();
-         if (settings.GzipExe == null) throw new Exception("Cannot find Gzip.exe in path or app folders.");
+         settingsSource = new SettingsSource();
+         if (settingsSource.GzipExe == null) throw new Exception("Cannot find Gzip.exe in path or app folders.");
       }
 
       [TestMethod]
@@ -65,7 +65,7 @@ namespace Bitmanager.BigFile
       public void TestSearch()
       {
          var cb = new CB();
-         var logFile = new LogFile(cb, settings, null);
+         var logFile = new LogFile(cb, settingsSource.ActualizeDefaults(), null, -1);
          logFile.Load(dataDir+"test.txt", CancellationToken.None).Wait();
 
          Assert.AreEqual(5, search(logFile, "aap"));
@@ -111,11 +111,11 @@ namespace Bitmanager.BigFile
       [TestMethod]
       public void TestCompressErrors()
       {
-         var settings = new SettingsSource();
-         settings.CompressMemoryIfBigger = "0";
-         settings.LoadMemoryIfBigger = "0";
+         var settingsSource = new SettingsSource();
+         settingsSource.CompressMemoryIfBigger = "0";
+         settingsSource.LoadMemoryIfBigger = "0";
          var cb = new CB();
-         var logFile = new LogFile(cb, settings, null);
+         var logFile = new LogFile(cb, settingsSource.ActualizeDefaults(), null, -1);
          logFile.Load(dataDir + "compress-errors.txt", CancellationToken.None).Wait();
 
          var mem = checkAndCast<CompressedChunkedMemoryStream>(logFile.DirectStream);
@@ -129,7 +129,7 @@ namespace Bitmanager.BigFile
       public void TestSelectedLines()
       {
          var cb = new CB();
-         var settings = new SettingsSource();
+         var settingsSource = new SettingsSource();
          var fn = this.dataDir + "allcountries.txt";
 
          var list = new List<int>();
@@ -141,7 +141,7 @@ namespace Bitmanager.BigFile
          LogFile logFile;
 
          //Full lines
-         logFile = new LogFile(cb, settings);
+         logFile = new LogFile(cb, settingsSource.ActualizeDefaults(), null, -1);
          logFile.Load(fn, CancellationToken.None).Wait();
 
          Assert.AreEqual(18, logFile.LineCount);
@@ -165,8 +165,7 @@ namespace Bitmanager.BigFile
 
 
          //Partial lines
-         settings.MaxPartialSize = 1024;
-         logFile = new LogFile(cb, settings);
+         logFile = new LogFile(cb, settingsSource.ActualizeDefaults(), null, 1024);
          logFile.Load(fn, CancellationToken.None).Wait();
 
          Assert.AreEqual(18, logFile.LineCount);
@@ -229,7 +228,7 @@ namespace Bitmanager.BigFile
          var cb = new CB();
 
          //Non partial
-         var logFile = new LogFile(cb, settings);
+         var logFile = new LogFile(cb, settingsSource.ActualizeDefaults(), null, -1);
          logFile.Load(fn, CancellationToken.None).Wait();
          cb.Result.ThrowIfError();
 
@@ -249,9 +248,7 @@ namespace Bitmanager.BigFile
          Assert.AreEqual(7464, logFile.GetLine(logFile.LongestLineIndex).Length);
 
          //Partials
-         settings.MaxPartialSize = 1024;
-         logFile = new LogFile(cb, settings);
-         settings.MaxPartialSize = -1;
+         logFile = new LogFile(cb, settingsSource.ActualizeDefaults(), null, 1024);
          logFile.Load(fn, CancellationToken.None).Wait();
          Assert.AreEqual(18, logFile.LineCount);
          Assert.AreEqual(0, logFile.GetLineOffset(0));
