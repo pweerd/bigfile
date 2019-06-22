@@ -237,50 +237,62 @@ namespace Bitmanager.BigFile
          textLine.Focus();
          if (curLine == null) return;
 
-         String content = curLine;
-         Exception error = null;
+         Cursor.Current = Cursors.WaitCursor;
+         UseWaitCursor = true;
          try
          {
-            switch (cbViewAs.SelectedIndex)
-            {
-               default: break;
-               case 1: content = convertToJson(curLine); break;
-               case 2: content = convertToXml(curLine); break;
-               case 3: content = convertToCsv(curLine); break;
-            }
-         }
-         catch (Exception err)
-         {
-            error = err;
-         }
-
-         textLine.Text = content;
-         curMatches = extractMatches(content);
-         matchIdx = 0;
-
-         if (curMatches.Count > 0)
-         {
-            textLine.BeginUpdate();
+            String content = curLine;
+            Exception error = null;
             try
             {
-               Color backColor = settings.HighlightColor;
-               foreach (var m in curMatches)
+               switch (cbViewAs.SelectedIndex)
                {
-                  textLine.Select(m.Item1, m.Item2);
-                  textLine.SelectionBackColor = backColor;
+                  default: break;
+                  case 1: content = convertToJson(curLine); break;
+                  case 2: content = convertToXml(curLine); break;
+                  case 3: content = convertToCsv(curLine); break;
                }
-               logger.Log("SetLine ({0}): all done...", partialIndex);
-               textLine.Select(curMatches[0].Item1, 0);
-               textLine.ScrollToCaret();
             }
-            finally
+            catch (Exception err)
             {
-               textLine.EndUpdate();
+               error = err;
             }
-         }
 
-         toolStripStatusLabel1.Text = error == null ? String.Empty : error.Message.Replace('\n', ' ');
+            textLine.Text = content;
+            curMatches = extractMatches(content);
+            matchIdx = 0;
+
+            if (curMatches.Count > 0)
+            {
+               textLine.BeginUpdate();
+               try
+               {
+                  Color backColor = settings.HighlightColor;
+                  foreach (var m in curMatches)
+                  {
+                     textLine.Select(m.Item1, m.Item2);
+                     textLine.SelectionBackColor = backColor;
+                  }
+                  logger.Log("SetLine ({0}): all done...", partialIndex);
+                  textLine.Select(curMatches[0].Item1, 0);
+                  textLine.ScrollToCaret();
+               }
+               finally
+               {
+                  textLine.EndUpdate();
+               }
+            }
+
+            toolStripStatusLabel1.Text = error == null ? String.Empty : error.Message.Replace('\n', ' ');
+
+         }
+         finally
+         {
+            Cursor.Current = Cursors.Default;
+            UseWaitCursor = false;
+         }
       }
+
 
       private void buttonClose_Click(object sender, EventArgs e)
       {
