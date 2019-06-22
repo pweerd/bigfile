@@ -667,6 +667,7 @@ namespace Bitmanager.BigFile
          statusProgress.Value = 0;
          setHourGlass();
          cancellationTokenSource = new CancellationTokenSource();
+         listLines.Focus();
       }
       private void indicateFinished()
       {
