@@ -109,7 +109,11 @@ namespace Bitmanager.BigFile
 
       public LogFile(ILogFileCallback cb, Settings settings, Encoding enc, int maxPartialSize)
       {
-         this.maxPartialSize = maxPartialSize <= 0 ? int.MaxValue : maxPartialSize;
+         if (maxPartialSize <= 0) this.maxPartialSize = int.MaxValue;
+         else if (maxPartialSize < 256) this.maxPartialSize = 256;
+         else if (maxPartialSize > 4096) this.maxPartialSize = 4096;
+         else this.maxPartialSize = maxPartialSize;
+
          this.cb = cb;
 
          SyncSettings(settings, enc);
