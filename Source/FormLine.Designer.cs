@@ -47,6 +47,7 @@ namespace Bitmanager.BigFile
       /// </summary>
       private void InitializeComponent()
       {
+         this.components = new System.ComponentModel.Container();
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormLine));
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
          this.textLine = new System.Windows.Forms.RichTextBox();
@@ -58,6 +59,7 @@ namespace Bitmanager.BigFile
          this.buttonClose = new System.Windows.Forms.Button();
          this.statusStrip1 = new System.Windows.Forms.StatusStrip();
          this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+         this.timer1 = new System.Windows.Forms.Timer(this.components);
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
          this.splitContainer1.Panel1.SuspendLayout();
          this.splitContainer1.Panel2.SuspendLayout();
@@ -197,6 +199,12 @@ namespace Bitmanager.BigFile
          this.toolStripStatusLabel1.Size = new System.Drawing.Size(118, 17);
          this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
          // 
+         // timer1
+         // 
+         this.timer1.Enabled = true;
+         this.timer1.Interval = 1000;
+         this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+         // 
          // FormLine
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -239,5 +247,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.StatusStrip statusStrip1;
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
       private System.Windows.Forms.CheckBox cbPartial;
+      private System.Windows.Forms.Timer timer1;
    }
 }

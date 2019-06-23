@@ -100,6 +100,7 @@ namespace Bitmanager.BigFile
 
       private CancellationToken ct;
       private bool disposed;
+      public bool Disposed { get { return disposed;  } }
       private bool partialsEncountered;
       private void checkCancelled ()
       {
@@ -137,7 +138,22 @@ namespace Bitmanager.BigFile
          threadCtx = other.threadCtx.NewInstanceForThread(maxBufferSize);
       }
 
-      
+      /// <summary>
+      /// Returns true if both logFile's are reflecting the same. This is the case when
+      /// 1) the file is the same
+      /// 2) the selected zip-entry is the same (in case of a zip-file)
+      /// </summary>
+      public bool IsSameFile (LogFile other)
+      {
+         if (other == null || disposed || other.disposed) return false;
+         if (fileName != other.fileName) return false;
+         if (zipEntries == null && other.zipEntries == null) return true;
+         if (zipEntries != null && other.zipEntries != null)
+            return zipEntries.SelectedEntry == other.zipEntries.SelectedEntry;
+         return false;
+      }
+
+
       /// <summary>
       /// Given a partial line number, get the next partial line number. 
       /// If the line is beyond the end, PartialLineCount is returned.

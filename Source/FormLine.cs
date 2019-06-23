@@ -40,7 +40,7 @@ namespace Bitmanager.BigFile
       private static int lastViewAsIndex;
       private static bool LastViewAsPartial=true;
       private static Logger logger = Globals.MainLogger.Clone("line");
-      private SettingsSource settings;
+      private Settings settings;
       private List<SearchNode> searchNodes;
       private LogFile lf;
       private List<int> filter;
@@ -71,7 +71,20 @@ namespace Bitmanager.BigFile
          textLine.LanguageOption = RichTextBoxLanguageOptions.DualFont;
       }
 
-      public void ShowLine (SettingsSource c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)
+      /// <summary>
+      /// Updates the connected (partial) logFile with a new one if the source of the logFile is the same
+      /// </summary>
+      public void UpdateLogFile (LogFile lf)
+      {
+         if (closed || this.lf==null) return;
+         if (this.lf.IsSameFile (lf))
+            this.lf = lf;
+      }
+
+      /// <summary>
+      /// Shows the requested line in this form
+      /// </summary>
+      public void ShowLine (Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)
       {
          this.settings = c;
          if (lastQuery == null)
@@ -96,6 +109,7 @@ namespace Bitmanager.BigFile
             else partialLineNo = filter[partialLineNo];
          }
 
+         enableAll(true);
          setLine(partialLineNo);
          Show();
       }
@@ -409,6 +423,23 @@ namespace Bitmanager.BigFile
       private void FormLine_FormClosed(object sender, FormClosedEventArgs e)
       {
          closed = true;
+      }
+
+      private void enableAll (bool enabled)
+      {
+         buttonNext.Enabled = enabled;
+         buttonPrev.Enabled = enabled;
+         cbPartial.Enabled = enabled;
+         cbViewAs.Enabled = enabled;
+         timer1.Enabled = enabled;
+      }
+      private void timer1_Tick(object sender, EventArgs e)
+      {
+         if (lf != null && lf.Disposed)
+         {
+            this.Text += " [DISCONNECTED]";
+            enableAll(false);
+         }
       }
    }
 

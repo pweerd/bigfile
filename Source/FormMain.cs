@@ -467,7 +467,7 @@ namespace Bitmanager.BigFile
             fl = lineForm;
             if (fl == null || fl.IsClosed) fl = lineForm = new FormLine();
          }
-         fl.ShowLine(this.settingsSource, lf, listDatasource.Filter, m, lastQuery);
+         fl.ShowLine(settingsSource.Settings, lf, listDatasource.Filter, m, lastQuery);
       }
 
       private enum WhatToExport { All, Selected, Matched};
@@ -797,6 +797,9 @@ namespace Bitmanager.BigFile
             logger.Log("-- Max width is {0} pixels, pixels in screen is {1}", w, listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width);
          }
          listDatasource.SetContent(newLF.PartialLineCount);
+         if (lineForm != null && !lineForm.IsClosed)
+            lineForm.UpdateLogFile(newLF);
+
 
          if (lf.ZipEntries==null || lf.ZipEntries.Count==0)
          {
