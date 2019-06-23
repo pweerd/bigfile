@@ -98,13 +98,13 @@ Because the content is splitted into lines, the content needs to be read complet
 
 For very large files it is difficult to keep them in memory. Bigfile uses LZW compression to compress large chunks of memory. Because LZW is extremely fast, this combination is typically faster when the system would need to swap memory.
 
-On my laptop Bigfile loads a 2GB gz json file in ~1 minute into memory (raw: 15GB, LZW compressed < 4GB).
+On my laptop Bigfile loads a 2GB gz json file in ~1 minute into memory (raw: 15GB, LZW compressed ~3GB).
 
 The exact behavior can be configured via tools->settings.
 
 ## Copy Line
 
-The selected line's contents can be copied to the clipboard via the list context menu. There is a maximum limit of 10000 lines
+The selected line's contents can be copied to the clipboard via the list context menu. There is a maximum limit of 10000 lines. Also, big lines (> 10MB) will be truncated to prevent an out-of-memory 
 
 ## Export
 
@@ -135,6 +135,13 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 
 
 ### Changes
+
+#### V0.914
+
+- When loading files with big lines, the lines are splitted in smaller, partial lines. By default, the size of a partial line is 2048.
+- Very big lines (above currently 10MB) will be truncated in the detail view.
+- Detail view is more stable during loading of a file. Partial loads are propagated to the detail view and a view disconnects itself when the logfile is closed
+- Bugfixes
 
 #### V0.913
 
