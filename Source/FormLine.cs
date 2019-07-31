@@ -95,11 +95,12 @@ namespace Bitmanager.BigFile
          this.lf = lf;
          this.filter = filter;
          logger.Log("Starting with partial {0}", partialLineNo);
-         if (this.searchNodes.Count != 0 && filter == null)
-         {
-            logger.Log("Building filter");
-            filter = lf.GetMatchedList(settings.NumContextLines);
-         }
+         //PW Don't know why this was needed, but it is wrong and causing problems
+         //if (this.searchNodes.Count != 0 && filter == null)
+         //{
+         //   logger.Log("Building filter");
+         //   filter = lf.GetMatchedList(settings.NumContextLines);
+         //}
 
          //Translate logical record into partial record index if we have a filter
          if (filter != null)
