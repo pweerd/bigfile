@@ -35,6 +35,7 @@ using Bitmanager.IO;
 using System.Diagnostics;
 using Bitmanager.Query;
 using System.Reflection;
+using Microsoft.Win32;
 
 namespace Bitmanager.BigFile
 {
@@ -1096,6 +1097,42 @@ namespace Bitmanager.BigFile
       private void btnResetSearch_Click(object sender, EventArgs e)
       {
          searchboxDriver.Clear();
+      }
+
+      private void registerShellextToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         registerShellExt();
+      }
+
+      private void registerShellExt()
+      {
+         String exe = Assembly.GetExecutingAssembly().Location;
+         try
+         {
+            using (var rk = Registry.ClassesRoot.CreateSubKey(@"*\shell\BigFile", true))
+            {
+               createRegEntries(rk, exe);
+            }
+            using (var rk = Registry.ClassesRoot.CreateSubKey(@"Directory\shell\BigFile", true))
+            {
+               createRegEntries(rk, exe);
+            }
+         }
+         catch (Exception e)
+         {
+            throw new BMException(e, "{0}\r\n\r\nYou might want to run BigFile as administrator and rerun.", e.Message);
+         }
+      }
+
+      private void createRegEntries (RegistryKey key, String exe)
+      {
+         key.SetValue("", "BigFile");
+         key.SetValue("icon", exe);
+         using (var rk = key.CreateSubKey(@"command", true))
+         {
+            rk.SetValue("", String.Format ("\"{0}\"  \"%1\"", exe));
+         }
+
       }
    }
 
