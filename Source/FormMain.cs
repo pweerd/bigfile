@@ -44,7 +44,7 @@ namespace Bitmanager.BigFile
    /// </summary>
    public partial class FormMain : Form, ILogFileCallback
    {
-      private static Logger logger = Globals.MainLogger;
+      private static readonly Logger logger = Globals.MainLogger;
       private LogFile lf;
       private readonly SynchronizationContext synchronizationContext;
       private readonly SearchHistory searchboxDriver;
@@ -114,7 +114,7 @@ namespace Bitmanager.BigFile
       ToolStripToolTipHelper tooltipHelper;
       private void FormMain_Load(object sender, EventArgs e)
       {
-         Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
+         Bitmanager.Core.GlobalExceptionHandler.Hook();
          GCSettings.LatencyMode = GCLatencyMode.Batch;
          this.settingsSource = new SettingsSource(true);
          this.fileHistory = new FileHistory("fh_");

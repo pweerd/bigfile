@@ -39,7 +39,7 @@ namespace Bitmanager.BigFile
    {
       private static int lastViewAsIndex;
       private static bool LastViewAsPartial=true;
-      private static Logger logger = Globals.MainLogger.Clone("line");
+      private static readonly Logger logger = Globals.MainLogger.Clone("line");
       private Settings settings;
       private List<SearchNode> searchNodes;
       private LogFile lf;
