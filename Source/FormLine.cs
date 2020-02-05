@@ -38,7 +38,7 @@ namespace Bitmanager.BigFile
    public partial class FormLine : Form
    {
       private static int lastViewAsIndex;
-      private static bool LastViewAsPartial=true;
+      private static bool LastViewAsPartial=false;
       private static readonly Logger logger = Globals.MainLogger.Clone("line");
       private Settings settings;
       private List<SearchNode> searchNodes;

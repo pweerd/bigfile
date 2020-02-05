@@ -28,7 +28,7 @@ namespace Bitmanager.BigFile
    /// </summary>
    public partial class FormGoToLine : Form
    {
-      static bool prevPartial = true;
+      static bool prevPartial = false;
       static String prevGoto = String.Empty;
 
       public int LineNumber { get { return Invariant.ToInt32(prevGoto); } }
@@ -37,7 +37,7 @@ namespace Bitmanager.BigFile
       public FormGoToLine()
       {
          InitializeComponent();
-         Bitmanager.Core.GlobalExceptionHandler.HookGlobalExceptionHandler();
+         Bitmanager.Core.GlobalExceptionHandler.Hook();
          textLineNum.Text = prevGoto;
          chkPartial.Checked = prevPartial;
       }
