@@ -36,6 +36,7 @@ using System.Diagnostics;
 using Bitmanager.Query;
 using System.Reflection;
 using Microsoft.Win32;
+using Bitmanager.ZLib;
 
 namespace Bitmanager.BigFile
 {
@@ -134,9 +135,13 @@ namespace Bitmanager.BigFile
             String fn = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             fn = IOUtils.FindFileToRoot (fn, @"UnitTests\data\test.txt", FindToTootFlags.Except);
             LoadFile(fn);
+            cbDbgLoad.SelectedIndex = 0;
          }
          else
+         {
             toolStripButton2.Visible = false;
+            cbDbgLoad.Visible = false;
+         }
 
          var sb = new StringBuilder();
          sb.Append("You can enter boolean expressions (AND, OR, NOT) in the search bar.");
@@ -184,23 +189,15 @@ namespace Bitmanager.BigFile
       private void checkWarnings()
       {
          var sb = new StringBuilder();
-         if (String.IsNullOrEmpty(settingsSource.Settings.GzipExe))
-         {
-            sb.Append("\n\nLoading .gz files via gzip is disabled since it is not specified in the settings");
-            sb.Append("\n.gz files will be loaded via the slower SharpZLib.");
-         }
-         else
-         {
-            if (!File.Exists (settingsSource.Settings.GzipExe))
-            {
-               sb.Append("\n\nLoading .gz files via gzip is disabled since gzip.exe is not found.");
-               sb.Append("\n.gz files will be loaded via the slower SharpZLib.");
-            }
-         }
          if (!Globals.CanCompress)
          {
             sb.Append("\n\nMemory compression is disabled because bmucore_XX.dll is not found or too old.");
             sb.AppendFormat("\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion);
+         }
+         if (!Globals.CanInternalGZip)
+         {
+            sb.Append("\n\nInternal gUnzipping is disabled because bmcore_102.dll is too old.");
+            sb.AppendFormat("\nVersion of bmcore_102.dll is {0}.", Globals.CoreDllVersion);
          }
 
          if (sb.Length==0)
@@ -338,6 +335,7 @@ namespace Bitmanager.BigFile
       /// </summary>
       private void LoadFile(string filePath, String zipEntry=null)
       {
+         Globals.CheckMinimumCoreVersion();
          int maxPartial = Invariant.ToInt32(cbSplit.Text);
          if (maxPartial < 0) maxPartial = 10 * 1024 * 1024;
 
@@ -483,7 +481,6 @@ namespace Bitmanager.BigFile
          sfd.Title = "Select export file";
          if (sfd.ShowDialog(this) != DialogResult.OK) return;
 
-         String fn = sfd.FileName;
          List<int> toExport = null;
          switch (what)
          {
@@ -1122,6 +1119,14 @@ namespace Bitmanager.BigFile
          {
             throw new BMException(e, "{0}\r\n\r\nYou might want to run BigFile as administrator and rerun.", e.Message);
          }
+      }
+
+      private void cbDbgLoad_SelectedIndexChanged(object sender, EventArgs e)
+      {
+         var cb = sender as ToolStripComboBox;
+         int ix = cb.SelectedIndex;
+         if (ix < 0) return;
+         LogFile.DbgStr = (String)cb.Items[ix];
       }
 
       private void createRegEntries (RegistryKey key, String exe)

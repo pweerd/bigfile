@@ -57,9 +57,6 @@ namespace Bitmanager.BigFile
          this.txtHilight = new System.Windows.Forms.TextBox();
          this.label3 = new System.Windows.Forms.Label();
          this.txtContext = new System.Windows.Forms.TextBox();
-         this.label4 = new System.Windows.Forms.Label();
-         this.txtGZip = new System.Windows.Forms.TextBox();
-         this.button1 = new System.Windows.Forms.Button();
          this.cbSearchThreads = new System.Windows.Forms.ComboBox();
          this.label5 = new System.Windows.Forms.Label();
          this.label6 = new System.Windows.Forms.Label();
@@ -164,31 +161,6 @@ namespace Bitmanager.BigFile
          this.txtContext.Size = new System.Drawing.Size(100, 20);
          this.txtContext.TabIndex = 8;
          this.txtContext.Click += new System.EventHandler(this.colorBox_Click);
-         // 
-         // label4
-         // 
-         this.label4.AutoSize = true;
-         this.label4.Location = new System.Drawing.Point(21, 147);
-         this.label4.Name = "label4";
-         this.label4.Size = new System.Drawing.Size(30, 13);
-         this.label4.TabIndex = 9;
-         this.label4.Text = "GZip";
-         // 
-         // txtGZip
-         // 
-         this.txtGZip.Location = new System.Drawing.Point(116, 144);
-         this.txtGZip.Name = "txtGZip";
-         this.txtGZip.Size = new System.Drawing.Size(218, 20);
-         this.txtGZip.TabIndex = 10;
-         // 
-         // button1
-         // 
-         this.button1.Location = new System.Drawing.Point(340, 142);
-         this.button1.Name = "button1";
-         this.button1.Size = new System.Drawing.Size(28, 23);
-         this.button1.TabIndex = 11;
-         this.button1.Text = "...";
-         this.button1.UseVisualStyleBackColor = true;
          // 
          // cbSearchThreads
          // 
@@ -330,9 +302,6 @@ namespace Bitmanager.BigFile
          this.Controls.Add(this.label6);
          this.Controls.Add(this.label5);
          this.Controls.Add(this.cbSearchThreads);
-         this.Controls.Add(this.button1);
-         this.Controls.Add(this.txtGZip);
-         this.Controls.Add(this.label4);
          this.Controls.Add(this.txtContext);
          this.Controls.Add(this.label3);
          this.Controls.Add(this.txtHilight);
@@ -366,9 +335,6 @@ namespace Bitmanager.BigFile
         private System.Windows.Forms.TextBox txtHilight;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtContext;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox txtGZip;
-        private System.Windows.Forms.Button button1;
       private System.Windows.Forms.ComboBox cbSearchThreads;
       private System.Windows.Forms.Label label5;
       private System.Windows.Forms.Label label6;

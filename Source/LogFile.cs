@@ -32,6 +32,7 @@ using System.Runtime;
 using System.IO.Compression;
 using System.Linq;
 using System.Collections.ObjectModel;
+using Bitmanager.ZLib;
 
 namespace Bitmanager.BigFile
 {
@@ -50,6 +51,7 @@ namespace Bitmanager.BigFile
    /// </summary>
    public class LogFile
    {
+      static public String DbgStr="gzip";
       static readonly Logger logger = Globals.MainLogger.Clone("logfile");
       public const int FLAGS_SHIFT = 24; //Doublecheck with LineFlags!
       public const int FLAGS_MASK = (1 << 24) - 1;
@@ -108,6 +110,7 @@ namespace Bitmanager.BigFile
             throw new TaskCanceledException();
       }
 
+      public int Checked; 
       public LogFile(ILogFileCallback cb, Settings settings, Encoding enc, int maxPartialSize)
       {
          if (maxPartialSize <= 0) this.maxPartialSize = int.MaxValue;
@@ -470,7 +473,8 @@ namespace Bitmanager.BigFile
                   if (zipEntries.SelectedEntry < 0) throw new BMException("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
                }
                using (var entryStrm = getZipArchiveEntry(entries, zipEntries[zipEntries.SelectedEntry]).Open())
-                  loadStreamIntoMemory(entryStrm, new LoadProgress(this, -1), false);
+                  using (var threadedReader = new ThreadedIOBlockReader (entryStrm, true, 64*1024))
+                      loadStreamIntoMemory(threadedReader, new LoadProgress(this, -1), false);
             }
          }
       }
@@ -488,20 +492,13 @@ namespace Bitmanager.BigFile
          cur.IsBackground = false;  //Make sure that the process is kept alive as long as this thread is alive
          try
          {
-            try
+            if (Globals.CanInternalGZip)
             {
-               if (!String.IsNullOrEmpty(settings.GzipExe))
-               {
-                  logger.Log("Try loading '{0}' via GZip.", fn);
-                  strm = new GzipProcessInputStream(fn, settings.GzipExe, Globals.MainLogger);
-               }
+               logger.Log("Loading '{0}' via internal Zlib.", fn);
+               strm = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read, 16*1024);
+               var gz = new GZipDecompressStream(strm, false, 16 * 1024);
+               strm = gz;
             }
-            catch (Exception e)
-            {
-               logger.Log("Cannot use gzip:");
-               logger.Log(e);
-            }
-
             if (strm == null)
             {
                logger.Log("Loading '{0}' via SharpZipLib.", fn);
@@ -510,8 +507,8 @@ namespace Bitmanager.BigFile
                gz.IsStreamOwner = true;
                strm = gz;
             }
-
-            loadStreamIntoMemory(strm, new LoadProgress(this, -1), false);
+            using (var rdr = new ThreadedIOBlockReader(strm, false, 64 * 1024))
+               loadStreamIntoMemory(rdr, new LoadProgress(this, -1), false);
          }
          finally
          {
@@ -526,7 +523,7 @@ namespace Bitmanager.BigFile
       /// If the size of the file is too large, and we load from a filestream, we simply exit
       /// and let our caller do the rest
       /// </summary>
-      private bool loadStreamIntoMemory(Stream strm, LoadProgress loadProgress, bool allowDegradeToNonMem)
+      private bool loadStreamIntoMemory(IBlockReader strm, LoadProgress loadProgress, bool allowDegradeToNonMem)
       {
          const int chunksize = 256 * 1024;
          Logger compressLogger = Globals.MainLogger.Clone("compress");
@@ -538,17 +535,17 @@ namespace Bitmanager.BigFile
 
          threadCtx = new ThreadContext(encoding, mem as IDirectStream, this.partialLines);
 
-         var readBuffer = new byte[64 * 1024];
+         IOBlock buffer = null;
          long position = 0;
          bool checkCompress = true;
          bool checkDegrade = allowDegradeToNonMem;
          while (true)
          {
-            int len = strm.Read(readBuffer, 0, readBuffer.Length);
-            if (len == 0) break;
+            buffer = strm.GetNextBuffer(buffer);
+            if (buffer == null) break;
 
-            mem.Write(readBuffer, 0, len);
-            position = addLinesForBuffer(position, readBuffer, len);
+            mem.Write(buffer.Buffer, 0, buffer.Length);
+            position = addLinesForBuffer(buffer.Position, buffer.Buffer, buffer.Length);
             if (!loadProgress.HandleProgress(position)) continue;
 
 
@@ -597,10 +594,9 @@ namespace Bitmanager.BigFile
 
       private void loadNormalFile(string fn, CancellationToken ct)
       {
-         byte[] tempBuffer = new byte[64 * 1024];
-
          var directStream = new DirectFileStreamWrapper(fn, 4096);
          var fileStream = directStream.BaseStream;
+         var rdr = new ThreadedIOBlockReader(fileStream, true, 64*1024);
 
          long totalLength = fileStream.Length;
          var loadProgress = new LoadProgress(this, fileStream.Length);
@@ -616,7 +612,7 @@ namespace Bitmanager.BigFile
                   Pretty.PrintSize(totalLength),
                   Pretty.PrintSize(settings.LoadMemoryIfBigger),
                   Pretty.PrintSize(limit));
-               if (loadStreamIntoMemory(fileStream, loadProgress, true)) return;
+               if (loadStreamIntoMemory(rdr, loadProgress, true)) return;
                //Fallthrough, since the compression failed. We fallback to filestream loading
             }
          }
@@ -626,12 +622,13 @@ namespace Bitmanager.BigFile
          //This involves creating a directStream from it.
          this.threadCtx = new ThreadContext(encoding, directStream, partialLines);
          long position = fileStream.Position;
+         IOBlock buf = null;
          while (true)
          {
-            int bytesRead = fileStream.Read(tempBuffer, 0, tempBuffer.Length);
-            if (bytesRead == 0) break;
+            buf = rdr.GetNextBuffer(buf);
+            if (buf == null) break;
 
-            position = addLinesForBuffer(position, tempBuffer, bytesRead);
+            position = addLinesForBuffer(buf.Position, buf.Buffer, buf.Length);
             loadProgress.HandleProgress(position);
          }
          addSentinelForLastPartial(position);

@@ -32,7 +32,6 @@ namespace Bitmanager.BigFile
    public class Settings
    {
       public readonly SettingsSource Source;
-      public readonly string GzipExe;
       public readonly long TotalPhysicalMemory;
       public readonly long AvailablePhysicalMemory;
 
@@ -55,7 +54,6 @@ namespace Bitmanager.BigFile
          ContextColor = src.ContextColor;
          NumContextLines = src.NumContextLines;
          MultiSelectLimit = src.MultiSelectLimit;
-         GzipExe = src.GzipExe;
          MaxLineLength = (int)SettingsSource.GetActualSize(src.MaxLineLengthSetting, "10MB");
          SearchThreads = src.GetActualNumSearchThreads();
 
@@ -95,7 +93,6 @@ namespace Bitmanager.BigFile
          }
       }
       public int SearchThreads { get { return GetActualNumSearchThreads(); } }
-      public string GzipExe;
 
       private String _MaxLineLengthSetting = AUTO;
       public String MaxLineLengthSetting
@@ -122,9 +119,7 @@ namespace Bitmanager.BigFile
 
       public SettingsSource(bool autoLoad=false)
       {
-         if (!autoLoad)
-            GzipExe = gzipExe;
-         else
+         if (autoLoad)
             Load();
 
          var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
@@ -158,7 +153,6 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.OpenSubKey(_KEY, false))
          {
-            GzipExe = readVal(key, "gzip", GzipExe);
             ContextColor = readVal(key, "context_color", ContextColor);
             HighlightColor = readVal(key, "highlight_color", HighlightColor);
             MultiSelectLimit = readVal(key, "select_limit", MultiSelectLimit);
@@ -166,7 +160,6 @@ namespace Bitmanager.BigFile
             SearchThreadsAsText = readVal(key, "search_threads", SearchThreadsAsText);
             LoadMemoryIfBigger = CheckAndRepairSizeWithOnOff(readVal(key, "load_memory", LoadMemoryIfBigger), false);
             CompressMemoryIfBigger = CheckAndRepairSizeWithOnOff(readVal(key, "compress_memory", CompressMemoryIfBigger), false);
-            if (GzipExe == null) GzipExe = gzipExe;
          }
       }
 
@@ -175,7 +168,6 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey(_KEY, true))
          {
-            writeVal(key, "gzip", GzipExe);
             writeVal(key, "context_color", ContextColor);
             writeVal(key, "highlight_color", HighlightColor);
             writeVal(key, "select_limit", MultiSelectLimit);

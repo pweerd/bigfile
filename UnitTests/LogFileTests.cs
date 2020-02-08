@@ -35,7 +35,6 @@ namespace Bitmanager.BigFile
       public LogFileTests()
       {
          settingsSource = new SettingsSource();
-         if (settingsSource.GzipExe == null) throw new Exception("Cannot find Gzip.exe in path or app folders.");
       }
 
       [TestMethod]

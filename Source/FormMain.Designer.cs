@@ -66,6 +66,7 @@ namespace Bitmanager.BigFile
          this.exportMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
          this.menuToolsConfiguration = new System.Windows.Forms.ToolStripMenuItem();
+         this.registerShellextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.menuView = new System.Windows.Forms.ToolStripMenuItem();
          this.menuViewAll = new System.Windows.Forms.ToolStripMenuItem();
          this.menuViewMatched = new System.Windows.Forms.ToolStripMenuItem();
@@ -93,13 +94,13 @@ namespace Bitmanager.BigFile
          this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
          this.cbSplit = new System.Windows.Forms.ToolStripComboBox();
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
+         this.cbDbgLoad = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
          this.listLines = new BrightIdeasSoftware.VirtualObjectListView();
          this.olvcLineNumber = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.olvcText = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
-         this.registerShellextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -195,7 +196,7 @@ namespace Bitmanager.BigFile
          // gotoToolStripMenuItem
          // 
          this.gotoToolStripMenuItem.Name = "gotoToolStripMenuItem";
-         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.gotoToolStripMenuItem.Text = "Goto";
          this.gotoToolStripMenuItem.Click += new System.EventHandler(this.gotoToolStripMenuItem_Click);
          // 
@@ -206,7 +207,7 @@ namespace Bitmanager.BigFile
             this.exportSelectedToolStripMenuItem,
             this.exportMatchedToolStripMenuItem});
          this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-         this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.exportToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.exportToolStripMenuItem.Text = "Export";
          // 
          // exportAllToolStripMenuItem
@@ -233,14 +234,21 @@ namespace Bitmanager.BigFile
          // toolStripMenuItem2
          // 
          this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-         this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
+         this.toolStripMenuItem2.Size = new System.Drawing.Size(156, 6);
          // 
          // menuToolsConfiguration
          // 
          this.menuToolsConfiguration.Name = "menuToolsConfiguration";
-         this.menuToolsConfiguration.Size = new System.Drawing.Size(180, 22);
+         this.menuToolsConfiguration.Size = new System.Drawing.Size(159, 22);
          this.menuToolsConfiguration.Text = "Settings";
          this.menuToolsConfiguration.Click += new System.EventHandler(this.menuToolsConfiguration_Click);
+         // 
+         // registerShellextToolStripMenuItem
+         // 
+         this.registerShellextToolStripMenuItem.Name = "registerShellextToolStripMenuItem";
+         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.registerShellextToolStripMenuItem.Text = "Register shellext";
+         this.registerShellextToolStripMenuItem.Click += new System.EventHandler(this.registerShellextToolStripMenuItem_Click);
          // 
          // menuView
          // 
@@ -358,7 +366,8 @@ namespace Bitmanager.BigFile
             this.toolStripSeparator3,
             this.toolStripLabel1,
             this.cbSplit,
-            this.btnResplit});
+            this.btnResplit,
+            this.cbDbgLoad});
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
          this.toolStrip.Name = "toolStrip";
          this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -477,6 +486,17 @@ namespace Bitmanager.BigFile
          this.btnResplit.Text = "Re-split";
          this.btnResplit.Click += new System.EventHandler(this.btnResplit_Click);
          // 
+         // cbDbgLoad
+         // 
+         this.cbDbgLoad.Items.AddRange(new object[] {
+            "gzip",
+            "zlib",
+            "sharp",
+            "intern"});
+         this.cbDbgLoad.Name = "cbDbgLoad";
+         this.cbDbgLoad.Size = new System.Drawing.Size(75, 31);
+         this.cbDbgLoad.SelectedIndexChanged += new System.EventHandler(this.cbDbgLoad_SelectedIndexChanged);
+         // 
          // panelMain
          // 
          this.panelMain.Controls.Add(this.listLines);
@@ -562,13 +582,6 @@ namespace Bitmanager.BigFile
          this.contextMenuCopy.Size = new System.Drawing.Size(102, 22);
          this.contextMenuCopy.Text = "Copy";
          this.contextMenuCopy.Click += new System.EventHandler(this.contextMenuCopy_Click);
-         // 
-         // registerShellextToolStripMenuItem
-         // 
-         this.registerShellextToolStripMenuItem.Name = "registerShellextToolStripMenuItem";
-         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-         this.registerShellextToolStripMenuItem.Text = "Register shellext";
-         this.registerShellextToolStripMenuItem.Click += new System.EventHandler(this.registerShellextToolStripMenuItem_Click);
          // 
          // FormMain
          // 
@@ -658,6 +671,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripComboBox cbSplit;
       private System.Windows.Forms.ToolStripButton btnResplit;
       private System.Windows.Forms.ToolStripMenuItem registerShellextToolStripMenuItem;
+      private System.Windows.Forms.ToolStripComboBox cbDbgLoad;
    }
 }
 

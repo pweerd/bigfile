@@ -38,7 +38,6 @@ namespace Bitmanager.BigFile
          comboNumLines.SelectedIndex = this.settingsSource.NumContextLines;
          txtHilight.Text = ColorTranslator.ToHtml(settings.HighlightColor);
          txtContext.Text = ColorTranslator.ToHtml(settings.ContextColor);
-         txtGZip.Text = settings.GzipExe;
          cbSearchThreads.Text = settings.SearchThreadsAsText;
          cbCompress.Text = settings.CompressMemoryIfBigger;
          cbInMemory.Text = settings.LoadMemoryIfBigger;
@@ -50,7 +49,6 @@ namespace Bitmanager.BigFile
          settingsSource.HighlightColor = ColorTranslator.FromHtml(txtHilight.Text);
          settingsSource.ContextColor = ColorTranslator.FromHtml(txtContext.Text);
          settingsSource.NumContextLines = comboNumLines.SelectedIndex;
-         settingsSource.GzipExe = txtGZip.Text;
          settingsSource.SearchThreadsAsText = cbSearchThreads.Text;
          settingsSource.CompressMemoryIfBigger = cbCompress.Text;
          settingsSource.LoadMemoryIfBigger = cbInMemory.Text;
