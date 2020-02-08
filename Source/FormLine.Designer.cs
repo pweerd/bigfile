@@ -134,6 +134,7 @@ namespace Bitmanager.BigFile
          // 
          this.cbViewAs.FormattingEnabled = true;
          this.cbViewAs.Items.AddRange(new object[] {
+            "Auto",
             "Text",
             "Json",
             "Xml",

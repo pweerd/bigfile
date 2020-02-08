@@ -95,12 +95,6 @@ namespace Bitmanager.BigFile
          this.lf = lf;
          this.filter = filter;
          logger.Log("Starting with partial {0}", partialLineNo);
-         //PW Don't know why this was needed, but it is wrong and causing problems
-         //if (this.searchNodes.Count != 0 && filter == null)
-         //{
-         //   logger.Log("Building filter");
-         //   filter = lf.GetMatchedList(settings.NumContextLines);
-         //}
 
          //Translate logical record into partial record index if we have a filter
          if (filter != null)
@@ -247,6 +241,47 @@ namespace Bitmanager.BigFile
          int rc = x.Item1 - y.Item1;
          return rc != 0 ? rc : x.Item2 - y.Item2;
       }
+
+      enum ContentType { Auto = 0, Text = 1, Json = 2, Xml = 3, Csv = 4 };
+      private static ContentType determineContentType(String content)
+      {
+         int jsonChars = 0;
+         int xmlChars = 0;
+         int csvChars = 0;
+         for (int i=0; i<content.Length; i++)
+         {
+            switch (content[i])
+            {
+               case '[':
+               case ']':
+               case '{':
+               case '}':
+               case ':':
+                  jsonChars += 2;
+                  continue;
+               case '<':
+               case '>':
+               case '/':
+               case '&':
+                  xmlChars += 2;
+                  continue;
+               case '\t':
+               case ';':
+                  csvChars += 2;
+                  continue;
+               case ',':
+                  jsonChars += 1;
+                  csvChars += 1;
+                  continue;
+            }
+         }
+         if (jsonChars <=3 && csvChars <= 2 && xmlChars <= 3) return ContentType.Text;
+         if (jsonChars > xmlChars && jsonChars > csvChars)
+            return ContentType.Json;
+         if (xmlChars == csvChars) return ContentType.Text;
+         return xmlChars > csvChars ? ContentType.Xml : ContentType.Csv;
+      }
+
       private void loadLineInControl()
       {
          textLine.Focus();
@@ -260,12 +295,15 @@ namespace Bitmanager.BigFile
             Exception error = null;
             try
             {
-               switch (cbViewAs.SelectedIndex)
+               ContentType sel = (ContentType)cbViewAs.SelectedIndex;
+               if (sel == ContentType.Auto)
+                  sel = determineContentType(curLine);
+               switch (sel)
                {
                   default: break;
-                  case 1: content = convertToJson(curLine); break;
-                  case 2: content = convertToXml(curLine); break;
-                  case 3: content = convertToCsv(curLine); break;
+                  case ContentType.Json: content = convertToJson(curLine); break;
+                  case ContentType.Xml: content = convertToXml(curLine); break;
+                  case ContentType.Csv: content = convertToCsv(curLine); break;
                }
             }
             catch (Exception err)
