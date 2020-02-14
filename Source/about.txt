@@ -5,8 +5,9 @@ BigFile is inspired by Woanware's LogViewer (https://github.com/woanware/LogView
 Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.
 
 The biggest changes are:
-- Loading of .gz files is supported
-- In memory loading is supported
+- Very fast loading/searching 
+- Loading of .gz / .zip files
+- In memory loading
 - For large files (15GB is large?) memory compression is used.
 - Encoding can be changed dynamically
 - Searches can contain boolean expressions
@@ -20,4 +21,3 @@ Credits:
 - ObjectListView (http://objectlistview.sourceforge.net/cs/index.html)
 - LZ4 - Fast LZ compression algorithm (http://fastcompression.blogspot.com/p/lz4.html)
 - Icons8 (https://icons8.com)
-

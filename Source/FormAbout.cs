@@ -19,23 +19,35 @@
 
 using Bitmanager.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Bitmanager.BigFile
 {
-    public partial class FormAbout : Form
-    {
-        public FormAbout()
-        {
-            InitializeComponent();
+   public partial class FormAbout : Form
+   {
+      static readonly string year;
+      static FormAbout()
+      {
+         var attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false);
+         if (attributes.Length > 0)
+         {
+            var copyRight = ((AssemblyCopyrightAttribute)attributes[0]).Copyright;
+            var match = Regex.Match(copyRight, @" (\d\d\d\d)");
+            if (match.Success) year = match.Groups[1].ToString();
+         }
+      }
+      public FormAbout()
+      {
+         InitializeComponent();
 
-            lblApp.Text = Application.ProductName + " v" + Application.ProductVersion;
-        }
+         lblApp.Text = Application.ProductName + " v" + Application.ProductVersion;
+      }
 
-        private void btnClose_Click(object sender, System.EventArgs e)
-        {
-            this.DialogResult = DialogResult.OK;
-        }
+      private void btnClose_Click(object sender, System.EventArgs e)
+      {
+         this.DialogResult = DialogResult.OK;
+      }
 
       private void FormAbout_Load(object sender, System.EventArgs e)
       {
@@ -44,6 +56,7 @@ namespace Bitmanager.BigFile
             var fn = IOUtils.FindFileToRoot(Globals.LoadDir + @"\about.txt", FindToTootFlags.Except);
             richTextBox1.Text = IOUtils.LoadFromFile(fn);
          }
+         if (year != null) richTextBox1.Rtf = richTextBox1.Rtf.Replace("2019", year);
          richTextBox1.ShowSelectionMargin = true;
          var m = richTextBox1.Margin;
          m.All = 10;

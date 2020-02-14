@@ -29,7 +29,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("De Bitmanager")]
 [assembly: AssemblyProduct("BigFile")]
-[assembly: AssemblyCopyright("Copyright © De Bitmanager 2019")]
+[assembly: AssemblyCopyright("Copyright © De Bitmanager 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -38,5 +38,5 @@ using System.Runtime.InteropServices;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("0.9.1.4")]
-[assembly: AssemblyFileVersion("0.9.1.4")]
+[assembly: AssemblyVersion("0.9.1.5")]
+[assembly: AssemblyFileVersion("0.9.1.5")]
