@@ -84,14 +84,16 @@ namespace Bitmanager.BigFile
       /// <summary>
       /// Shows the requested line in this form
       /// </summary>
-      public void ShowLine (Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)
+      public void ShowLine (Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)//, String lastQueryText)
       {
          this.settings = c;
          if (lastQuery == null)
             searchNodes = new List<SearchNode>();
          else
+         {
             searchNodes = lastQuery.CollectValueNodes().ConvertAll<SearchNode>(x => (SearchNode)x);
-
+            txtSearch.Text = String.Join ("  ", searchNodes.ConvertAll(x=>x.ToString()));
+         }
          this.lf = lf;
          this.filter = filter;
          logger.Log("Starting with partial {0}", partialLineNo);
@@ -233,6 +235,7 @@ namespace Bitmanager.BigFile
             }
          }
          ret.Sort(cmpTuple);
+         logger.Log("Found {0} matches", ret.Count);
          return ret;
       }
 
@@ -311,31 +314,7 @@ namespace Bitmanager.BigFile
                error = err;
             }
 
-            textLine.Text = content;
-            curMatches = extractMatches(content);
-            matchIdx = 0;
-
-            if (curMatches.Count > 0)
-            {
-               textLine.BeginUpdate();
-               try
-               {
-                  Color backColor = settings.HighlightColor;
-                  foreach (var m in curMatches)
-                  {
-                     textLine.Select(m.Item1, m.Item2);
-                     textLine.SelectionBackColor = backColor;
-                  }
-                  logger.Log("SetLine ({0}): all done...", partialIndex);
-                  textLine.Select(curMatches[0].Item1, 0);
-                  textLine.ScrollToCaret();
-               }
-               finally
-               {
-                  textLine.EndUpdate();
-               }
-            }
-
+            setMatchedText(content);
             toolStripStatusLabel1.Text = error == null ? String.Empty : error.Message.Replace('\n', ' ');
 
          }
@@ -346,6 +325,34 @@ namespace Bitmanager.BigFile
          }
       }
 
+      private void setMatchedText(String content)
+      {
+         textLine.Clear();
+         textLine.Text = content;
+         curMatches = extractMatches(content);
+         matchIdx = 0;
+
+         if (curMatches.Count > 0)
+         {
+            textLine.BeginUpdate();
+            try
+            {
+               Color backColor = settings.HighlightColor;
+               foreach (var m in curMatches)
+               {
+                  textLine.Select(m.Item1, m.Item2);
+                  textLine.SelectionBackColor = backColor;
+               }
+               logger.Log("SetLine ({0}): all done...", partialIndex);
+               textLine.Select(curMatches[0].Item1, 0);
+               textLine.ScrollToCaret();
+            }
+            finally
+            {
+               textLine.EndUpdate();
+            }
+         }
+      }
 
       private void buttonClose_Click(object sender, EventArgs e)
       {
@@ -416,6 +423,8 @@ namespace Bitmanager.BigFile
                default: return;
                case Keys.F3:
                   gotoPrevHit(); break;
+               case Keys.F:
+                  txtSearch.Focus(); break;
                case Keys.Home:
                   matchIdx = -1; return;
                case Keys.End:
@@ -480,6 +489,24 @@ namespace Bitmanager.BigFile
             enableAll(false);
          }
       }
+
+      private void btnSearch_Click(object sender, EventArgs e)
+      {
+         if (String.IsNullOrEmpty(txtSearch.Text)) return;
+         var topNode = new SearchNodes().Parse(txtSearch.Text);
+         var nodes = topNode.CollectValueNodes().ConvertAll<SearchNode>(x => (SearchNode)x);
+         if (nodes.Count == 0) return;
+
+         this.searchNodes = nodes;
+         setMatchedText(textLine.Text);
+      }
+
+      private void txtSearch_KeyUp(object sender, KeyEventArgs e)
+      {
+         if (e.KeyValue != 13) return;
+         if (e.Alt || e.Control || e.Shift) return;
+         btnSearch_Click(btnSearch, null);
+      }
    }
 
    static class ControlExtensions
@@ -495,13 +522,11 @@ namespace Bitmanager.BigFile
       public static void BeginUpdate(this Control c)
       {
          SendMessage(c.Handle, WM_SETREDRAW, IntPtr.Zero, IntPtr.Zero);
-         //   //return (IntPtr)SendMessage(textLine.Handle, EM_SETEVENTMASK, IntPtr.Zero, IntPtr.Zero);
       }
       public static void EndUpdate(this Control c)
       {
          SendMessage(c.Handle, WM_SETREDRAW, one, IntPtr.Zero);
          c.Refresh();
-         //   //SendMessage(textLine.Handle, EM_SETEVENTMASK, IntPtr.Zero, status);
       }
       public static IntPtr SendMessage(this Control c, int msg, int wParam, long lParam)
       {

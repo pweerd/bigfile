@@ -51,6 +51,8 @@ namespace Bitmanager.BigFile
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormLine));
          this.splitContainer1 = new System.Windows.Forms.SplitContainer();
          this.textLine = new System.Windows.Forms.RichTextBox();
+         this.btnSearch = new System.Windows.Forms.Button();
+         this.txtSearch = new System.Windows.Forms.TextBox();
          this.cbPartial = new System.Windows.Forms.CheckBox();
          this.label1 = new System.Windows.Forms.Label();
          this.cbViewAs = new System.Windows.Forms.ComboBox();
@@ -84,6 +86,8 @@ namespace Bitmanager.BigFile
          // 
          // splitContainer1.Panel2
          // 
+         this.splitContainer1.Panel2.Controls.Add(this.btnSearch);
+         this.splitContainer1.Panel2.Controls.Add(this.txtSearch);
          this.splitContainer1.Panel2.Controls.Add(this.cbPartial);
          this.splitContainer1.Panel2.Controls.Add(this.label1);
          this.splitContainer1.Panel2.Controls.Add(this.cbViewAs);
@@ -110,10 +114,32 @@ namespace Bitmanager.BigFile
          this.textLine.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textLine_KeyPress);
          this.textLine.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textLine_KeyUp);
          // 
+         // btnSearch
+         // 
+         this.btnSearch.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+         this.btnSearch.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+         this.btnSearch.Image = ((System.Drawing.Image)(resources.GetObject("btnSearch.Image")));
+         this.btnSearch.Location = new System.Drawing.Point(660, 9);
+         this.btnSearch.Margin = new System.Windows.Forms.Padding(2);
+         this.btnSearch.Name = "btnSearch";
+         this.btnSearch.Padding = new System.Windows.Forms.Padding(2);
+         this.btnSearch.Size = new System.Drawing.Size(28, 28);
+         this.btnSearch.TabIndex = 11;
+         this.btnSearch.UseVisualStyleBackColor = true;
+         this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
+         // 
+         // txtSearch
+         // 
+         this.txtSearch.Location = new System.Drawing.Point(299, 12);
+         this.txtSearch.Name = "txtSearch";
+         this.txtSearch.Size = new System.Drawing.Size(355, 20);
+         this.txtSearch.TabIndex = 10;
+         this.txtSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtSearch_KeyUp);
+         // 
          // cbPartial
          // 
          this.cbPartial.AutoSize = true;
-         this.cbPartial.Location = new System.Drawing.Point(232, 16);
+         this.cbPartial.Location = new System.Drawing.Point(208, 14);
          this.cbPartial.Name = "cbPartial";
          this.cbPartial.Size = new System.Drawing.Size(74, 17);
          this.cbPartial.TabIndex = 9;
@@ -124,7 +150,7 @@ namespace Bitmanager.BigFile
          // label1
          // 
          this.label1.AutoSize = true;
-         this.label1.Location = new System.Drawing.Point(21, 16);
+         this.label1.Location = new System.Drawing.Point(12, 16);
          this.label1.Name = "label1";
          this.label1.Size = new System.Drawing.Size(44, 13);
          this.label1.TabIndex = 8;
@@ -139,7 +165,7 @@ namespace Bitmanager.BigFile
             "Json",
             "Xml",
             "Csv"});
-         this.cbViewAs.Location = new System.Drawing.Point(71, 13);
+         this.cbViewAs.Location = new System.Drawing.Point(62, 12);
          this.cbViewAs.Name = "cbViewAs";
          this.cbViewAs.Size = new System.Drawing.Size(140, 21);
          this.cbViewAs.TabIndex = 7;
@@ -149,7 +175,7 @@ namespace Bitmanager.BigFile
          // 
          this.buttonPrev.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.buttonPrev.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.buttonPrev.Location = new System.Drawing.Point(725, 9);
+         this.buttonPrev.Location = new System.Drawing.Point(750, 9);
          this.buttonPrev.Margin = new System.Windows.Forms.Padding(2);
          this.buttonPrev.Name = "buttonPrev";
          this.buttonPrev.Size = new System.Drawing.Size(80, 26);
@@ -162,7 +188,7 @@ namespace Bitmanager.BigFile
          // 
          this.buttonNext.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
          this.buttonNext.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.buttonNext.Location = new System.Drawing.Point(820, 9);
+         this.buttonNext.Location = new System.Drawing.Point(834, 9);
          this.buttonNext.Margin = new System.Windows.Forms.Padding(2);
          this.buttonNext.Name = "buttonNext";
          this.buttonNext.Size = new System.Drawing.Size(80, 26);
@@ -249,5 +275,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
       private System.Windows.Forms.CheckBox cbPartial;
       private System.Windows.Forms.Timer timer1;
+      private System.Windows.Forms.Button btnSearch;
+      private System.Windows.Forms.TextBox txtSearch;
    }
 }

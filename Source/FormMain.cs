@@ -197,7 +197,7 @@ namespace Bitmanager.BigFile
          if (!Globals.CanInternalGZip)
          {
             sb.Append("\n\nInternal gUnzipping is disabled because bmcore_102.dll is too old.");
-            sb.AppendFormat("\nVersion of bmcore_102.dll is {0}.", Globals.CoreDllVersion);
+            sb.AppendFormat("\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion);
          }
 
          if (sb.Length==0)
@@ -335,7 +335,6 @@ namespace Bitmanager.BigFile
       /// </summary>
       private void LoadFile(string filePath, String zipEntry=null)
       {
-         Globals.CheckMinimumCoreVersion();
          int maxPartial = Invariant.ToInt32(cbSplit.Text);
          if (maxPartial < 0) maxPartial = 10 * 1024 * 1024;
 
@@ -601,6 +600,13 @@ namespace Bitmanager.BigFile
          searchboxDriver.Clear();
          lastQuery = null;
          this.listDatasource.Clear();
+
+         if (lineForm != null)
+         {
+            lineForm.Close();
+            lineForm.Dispose();
+            lineForm = null;
+         }
       }
 
       /// <summary>
@@ -943,10 +949,8 @@ namespace Bitmanager.BigFile
             switch (e.KeyCode)
             {
                default: return;
-               //case Keys.C:
-               //    logger.Log("Cancelling");
-               //    this.cancellationTokenSource.Cancel();
-               //    break;
+               case Keys.F:
+                  cbSearch.Focus(); break;
                case Keys.G:
                   gotoToolStripMenuItem_Click(this, null); break;
                case Keys.Home:
@@ -1069,7 +1073,6 @@ namespace Bitmanager.BigFile
          if (e.Alt || e.Control || e.Shift) return;
          toolButtonSearch_Click(btnSearch, null);
          listLines.Focus();
-
       }
       private void cbSearch_KeyPress(object sender, KeyPressEventArgs e)
       {

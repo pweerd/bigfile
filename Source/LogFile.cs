@@ -492,11 +492,18 @@ namespace Bitmanager.BigFile
          cur.IsBackground = false;  //Make sure that the process is kept alive as long as this thread is alive
          try
          {
-            if (Globals.CanInternalGZip)
+            if (Globals.CanInternalGZip && (DbgStr == null || DbgStr == "intern"))
             {
-               logger.Log("Loading '{0}' via internal Zlib.", fn);
-               strm = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read, 16*1024);
-               var gz = new GZipDecompressStream(strm, false, 16 * 1024);
+               logger.Log("Loading '{0}' via internal Zlib.DLL", fn);
+               strm = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read, 16 * 1024);
+               var gz = new GZipDecompressStream2(strm, false, 64 * 1024);
+               strm = gz;
+            }
+            if (strm==null && Globals.CanInternalGZip && DbgStr == "zlib")
+            {
+               logger.Log("Loading '{0}' via external Zlib.", fn);
+               strm = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read, 16 * 1024);
+               var gz = new GZipDecompressStream(strm, false, 64 * 1024);
                strm = gz;
             }
             if (strm == null)

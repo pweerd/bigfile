@@ -489,10 +489,9 @@ namespace Bitmanager.BigFile
          // cbDbgLoad
          // 
          this.cbDbgLoad.Items.AddRange(new object[] {
-            "gzip",
+            "intern",
             "zlib",
-            "sharp",
-            "intern"});
+            "sharp"});
          this.cbDbgLoad.Name = "cbDbgLoad";
          this.cbDbgLoad.Size = new System.Drawing.Size(75, 31);
          this.cbDbgLoad.SelectedIndexChanged += new System.EventHandler(this.cbDbgLoad_SelectedIndexChanged);

@@ -37,7 +37,6 @@ namespace Bitmanager.BigFile
 
       public static readonly String UCoreDll;
       public static readonly String UCoreDllVersion;
-      public static readonly String CoreDllVersion;
       public static readonly bool CanCompress;
       public static readonly bool CanInternalGZip;
 
@@ -49,21 +48,11 @@ namespace Bitmanager.BigFile
          IsDebug = File.Exists(Path.Combine(LoadDir, "debug.txt"));
 
          UCoreDll = Environment.Is64BitProcess ? "bmucore102_64" : "bmucore102_32";
-         CanCompress = BMVersion.DllHasMinimalVersion(UCoreDll, 1, 2, 2019, 429);
          Version v = BMVersion.FromDll(UCoreDll);
          UCoreDllVersion = v == null ? null : v.ToString();
-         CanInternalGZip = BMVersion.DllHasMinimalVersion("BMCore102.dll", 1, 2, 2020, 0208);
-         v = BMVersion.FromDll("BMCore102.dll");
-         CoreDllVersion = v == null ? null : v.ToString();
-         MainLogger.Log("Core version: {0}, Can GZip: {1}", CoreDllVersion, CanInternalGZip);
-
-      }
-
-      public static void CheckMinimumCoreVersion()
-      {
-         if (!Globals.CanInternalGZip)
-            BMVersion.DllCheckVersion("bmcore102.dll", 1, 2, 2020, 0208);
-
+         CanCompress = BMVersion.HasMinimalVersion(v, 1, 2, 2019, 429);
+         CanInternalGZip = BMVersion.HasMinimalVersion(v, 1, 2, 2020, 0208);
+         MainLogger.Log("UCore version: {0}, Can GZip: {1}", UCoreDllVersion, CanInternalGZip);
       }
 
    }
