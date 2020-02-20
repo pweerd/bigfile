@@ -1,9 +1,9 @@
-# BigFile
+# BigFile (V0.9.2)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems.
 The following provides a brief help guide for the core operations of BigFile.
 
-#### History
+## History
 
 BigFile is inspired by Woanware's LogViewer (https://github.com/woanware/LogViewer)
 Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.
@@ -12,30 +12,23 @@ Unfortunately BigFile diverged way too far from the original logviewer, so I dec
 
 Either use the File->Open menu item or drag and drop a file onto the list
 
-BigFile can open **.zip** and **.gz** files directly. The content will be loaded into memory and served from there. gz-files will be loaded via a gzip.exe if found, or via SharpZLib (slower!)
+BigFile can open **.zip** and **.gz** files directly. The content will be loaded into memory and served from there. gz-files will be loaded via an internal zlib implementation if found, or via SharpZLib (slower!) .zip files will be loaded via the internal .Net zip-classes. 
 
 In case of a zip archive, the largest sub-file will be loaded. Also, a dropdown box with all entries from the zip file is shown. Selecting a different entry from that dropdown will load the associated zip entry from the archive.  
 
-The load process is done in the background but regularly sends a partial loaded file to the application, to make it possible to view the file before it is completely loaded.
+The load process is done in the background but regularly sends a partial loaded file to the user-interface, to make it possible to view the file before it is completely loaded.
 
 All background processing can be cancelled by pressing the escape-key, or by clicking in the progress bar.
 
-#### gzip
-
-When the application starts, and no settings are found, a search is done for the presence of a gzip.exe. For this, the system path and the appdata folder for the current user are scanned. 
-
-If a gzip.exe is found, it is saved in the settings for future use. If you experience problems you can supply a correct gzip.exe (or clear it) from the settings form.
-
-
+<a name="search"></a>
 ## Search
-
 If the searchbox contains any of AND, OR, NOT, the search is considered to be a boolean search. Otherwise it is a 1-term search.
 Also, search types can be specified via a ':'.
 Following types are supported:
 * no type: case ***in***sensitive search
 * cs: case sensitive search
-* regex or r: case *in*sensitive search by a regex
-* rcs: case ***in***sensitive search by a regex
+* regex or r: case ***in***sensitive search by a regex
+* rcs: case sensitive search by a regex
 
 #### Example
 * (Paris AND r:on$) NOT cs:Amsterdam   
@@ -84,10 +77,28 @@ There are two modes for filtering; hide matched and show matched. Filtering and 
 
 If you double click on a line, a new form is opened where the current line is viewed in a textbox. The form will be reused whenever a different line is opened, unless you you the alt-key. Using the alt-key makes sure that a new window is opened.
 
-The formatting can be changed between text, json, xml and csv.
+The formatting can be changed between auto (default), text, json, xml and csv.
+In auto-mode, a quick check is done for the content type and the text is formatted in that content type. In case of errors, it is shown as text.
+Some formatters support a 'normalized' mode (click the wrench button). For instance, when normalize mode, all keys in a json object will be sorted.  
 
 Eventual hits (after a search) are highlighted, and one can navigate between the hits via the same navigation keys as in the main window.
 
+#### Searching in detail view
+
+By default the search terms from the main form are used in the detail view. However, you can enter more or other terms in the searchbox. Pressing enter or click 'search' will navigate to the highlighted hit in the record.
+
+Search terms follow the same [syntax](#search) as in the main window, with the exception that boolean expressions (AND, OR, NOT) are not supported. Matching is done by simply searching in the complete text.
+
+#### Navigation in detail view
+
+- / or F3  
+  goto the next hit in the record 
+- ? or CTRL-F3  
+  goto the previous hit in the record
+- CTRL-up  
+  goto the previous line. 
+- CTRL-down  
+  goto the next line. 
 
 
 ## Memory
@@ -130,13 +141,24 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 - SharpZipLib (<https://github.com/icsharpcode/SharpZipLib>)
 - ObjectListView (<http://objectlistview.sourceforge.net/cs/index.html>)
 - LZ4 - Fast LZ compression algorithm (<http://fastcompression.blogspot.com/p/lz4.html>)
+- ZLib (<https://github.com/madler/zlib>)
 - Icons8 (https://icons8.com)
 
 
 
-### Changes
+## Changes
 
-#### V0.914
+#### V0.92 (feb 2020)
+
+- Gzip loading is now done via an internal zlib implementation.
+This shaves off some 10-20% of load times for big .gz files, and there is no need for searching for an gzip.exe.
+- Extra view-as mode: auto.
+Content type of a line will be detected and the line will be formatted using this content type.
+- Searching of terms in the detail view
+- Revamp of the detail view UI
+- Bugfixes
+
+#### V0.914 (jun 2019)
 
 - When loading files with big lines, the lines are splitted in smaller, partial lines. By default, the size of a partial line is 2048.
 - Very big lines (above currently 10MB) will be truncated in the detail view.
