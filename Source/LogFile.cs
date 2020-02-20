@@ -496,16 +496,10 @@ namespace Bitmanager.BigFile
             {
                logger.Log("Loading '{0}' via internal Zlib.DLL", fn);
                strm = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read, 16 * 1024);
-               var gz = new GZipDecompressStream2(strm, false, 64 * 1024);
-               strm = gz;
-            }
-            if (strm==null && Globals.CanInternalGZip && DbgStr == "zlib")
-            {
-               logger.Log("Loading '{0}' via external Zlib.", fn);
-               strm = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read, 16 * 1024);
                var gz = new GZipDecompressStream(strm, false, 64 * 1024);
                strm = gz;
             }
+
             if (strm == null)
             {
                logger.Log("Loading '{0}' via SharpZipLib.", fn);

@@ -79,7 +79,7 @@ namespace Bitmanager.IO
          this._mode = Mode._None;
          this._decompressBuffer = new byte[chunckSize];
 
-         this._compressor = new CoreHelper().CreateCompressor();
+         this._compressor = Bitmanager.Core.CoreHelper.Instance.CreateCompressor();
          this._decompressBufferIdx = -1;
          this._logger = logger;
       }
@@ -98,7 +98,7 @@ namespace Bitmanager.IO
          this._mode = Mode._Writing;
          this._decompressBuffer = new byte[chunckSize];
 
-         this._compressor = new CoreHelper().CreateCompressor();
+         this._compressor = Bitmanager.Core.CoreHelper.Instance.CreateCompressor();
          this._decompressBufferIdx = -1;
 
          this._position = position;

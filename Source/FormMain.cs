@@ -130,12 +130,12 @@ namespace Bitmanager.BigFile
          listLines.Dock = DockStyle.Fill;
          listLines.Visible = true;
          fontMeasures = new FixedFontMeasures(listLines.Font);
+         cbDbgLoad.SelectedIndex = 0;
          if (Globals.IsDebug)
          {
             String fn = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             fn = IOUtils.FindFileToRoot (fn, @"UnitTests\data\test.txt", FindToTootFlags.Except);
             LoadFile(fn);
-            cbDbgLoad.SelectedIndex = 0;
          }
          else
          {
