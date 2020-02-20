@@ -38,7 +38,7 @@ namespace Bitmanager.BigFile
    public partial class FormLine : Form
    {
       private static int lastViewAsIndex;
-      private static bool LastViewAsPartial=false;
+      private static bool lastNormalizedState;
       private static readonly Logger logger = Globals.MainLogger.Clone("line");
       private Settings settings;
       private List<SearchNode> searchNodes;
@@ -52,23 +52,19 @@ namespace Bitmanager.BigFile
       //private Task<String> jsonConverter, xmlConverter;
       private int lineIndex;
       private int partialIndex;
-      private void setIndexes(int partial, int line)
-      {
-         partialIndex = partial;
-         lineIndex = line;
-      }
-
       private int matchIdx;
 
       public FormLine()
       {
          InitializeComponent();
          cbViewAs.SelectedIndex = lastViewAsIndex;
-         cbPartial.Checked = LastViewAsPartial;
+         menuNormalized.Checked = lastNormalizedState;
+
          ShowInTaskbar = true;
 
          //Prevent font being way too small after non-latin chars 
          textLine.LanguageOption = RichTextBoxLanguageOptions.DualFont;
+         textLine.Dock = DockStyle.Fill;
       }
 
       /// <summary>
@@ -92,7 +88,7 @@ namespace Bitmanager.BigFile
          else
          {
             searchNodes = lastQuery.CollectValueNodes().ConvertAll<SearchNode>(x => (SearchNode)x);
-            txtSearch.Text = String.Join ("  ", searchNodes.ConvertAll(x=>x.ToString()));
+            cbSearch.Text = String.Join ("  ", searchNodes.ConvertAll(x=>x.ToString()));
          }
          this.lf = lf;
          this.filter = filter;
@@ -109,6 +105,12 @@ namespace Bitmanager.BigFile
          enableAll(true);
          setLine(partialLineNo);
          Show();
+      }
+
+      private void setIndexes(int partial, int line)
+      {
+         partialIndex = partial;
+         lineIndex = line;
       }
 
       private void setLine(int partialLineNo)
@@ -132,16 +134,16 @@ namespace Bitmanager.BigFile
 
          setIndexes(partialLineNo, lf.PartialToLineNumber(partialLineNo));
 
-         if (cbPartial.Checked)
-         {
-            curLine = lf.GetPartialLine(partialLineNo);
-            if (lf.LineCount == lf.PartialLineCount)
-               Text = String.Format("{0} - Line {1}", lf.FileName, partialLineNo);
-            else
-               Text = String.Format("{0} - Partial Line {1}, part of {2}", lf.FileName, partialLineNo, lineIndex);
-            logger.Log("SetLine ({0}): loading partial line. Part of line {1}...", partialLineNo, lineIndex);
-         }
-         else
+         //if (cbPartial.Checked)
+         //{
+         //   curLine = lf.GetPartialLine(partialLineNo);
+         //   if (lf.LineCount == lf.PartialLineCount)
+         //      Text = String.Format("{0} - Line {1}", lf.FileName, partialLineNo);
+         //   else
+         //      Text = String.Format("{0} - Partial Line {1}, part of {2}", lf.FileName, partialLineNo, lineIndex);
+         //   logger.Log("SetLine ({0}): loading partial line. Part of line {1}...", partialLineNo, lineIndex);
+         //}
+         //else
          {
             bool truncated;
             curLine = lf.GetLine(lineIndex, out truncated);
@@ -153,9 +155,10 @@ namespace Bitmanager.BigFile
          logger.Log("SetLine (): loaded {0} chars in control", curLine.Length);
       }
 
-      private static String convertToJson(String s)
+      private static String convertToJson(String s, bool normalized)
       {
          var json = JsonObjectValue.Parse(s);
+         if (normalized) json = (JsonObjectValue)json.Canonicalize();
          return json.ToString(true).Replace("\r\n", "\n");
       }
       private static String convertToXml(String s)
@@ -304,7 +307,7 @@ namespace Bitmanager.BigFile
                switch (sel)
                {
                   default: break;
-                  case ContentType.Json: content = convertToJson(curLine); break;
+                  case ContentType.Json: content = convertToJson(curLine, menuNormalized.Checked); break;
                   case ContentType.Xml: content = convertToXml(curLine); break;
                   case ContentType.Csv: content = convertToCsv(curLine); break;
                }
@@ -360,24 +363,13 @@ namespace Bitmanager.BigFile
          Close();
       }
 
-      private void buttonNext_Click(object sender, EventArgs e)
+      private void btnNext_Click(object sender, EventArgs e)
       {
-         int nextPartial;
-         if (cbPartial.Checked)
-            nextPartial = lf.NextPartialLineNumber(partialIndex, filter);
-         else
-            nextPartial = lf.PartialFromLineNumber(lf.NextLineNumber(lineIndex, filter));
-         setLine(nextPartial);
+         gotoNextLine();
       }
-
-      private void buttonPrev_Click(object sender, EventArgs e)
+      private void btnPrev_Click(object sender, EventArgs e)
       {
-         int prevPartial;
-         if (cbPartial.Checked)
-            prevPartial = lf.PrevPartialLineNumber(partialIndex, filter);
-         else
-            prevPartial = lf.PartialFromLineNumber(lf.PrevLineNumber(lineIndex, filter));
-         setLine(prevPartial);
+         gotoPrevLine();
       }
 
       private void cbViewAs_SelectedIndexChanged(object sender, EventArgs e)
@@ -390,13 +382,13 @@ namespace Bitmanager.BigFile
       private void cbPartial_CheckedChanged(object sender, EventArgs e)
       {
          if (lf == null) return;
-         LastViewAsPartial = cbPartial.Checked;
+         //LastViewAsPartial = cbPartial.Checked;
          setLine(partialIndex);
          loadLineInControl();
          textLine.Focus();
       }
 
-      private void textLine_KeyPress(object sender, KeyPressEventArgs e)
+      private void form_KeyPress(object sender, KeyPressEventArgs e)
       {
          if (sender is TextBox || sender is ComboBox) return;
          switch (e.KeyChar)
@@ -414,17 +406,21 @@ namespace Bitmanager.BigFile
          e.Handled = true;
       }
 
-      private void textLine_KeyUp(object sender, KeyEventArgs e)
+      private void form_KeyUp(object sender, KeyEventArgs e)
       {
          if (e.Control)
          {
             switch (e.KeyCode)
             {
                default: return;
+               case Keys.Up:
+                  gotoPrevLine(); return;
+               case Keys.Down:
+                  gotoNextLine(); return;
                case Keys.F3:
                   gotoPrevHit(); break;
                case Keys.F:
-                  txtSearch.Focus(); break;
+                  cbSearch.Focus(); break;
                case Keys.Home:
                   matchIdx = -1; return;
                case Keys.End:
@@ -463,6 +459,26 @@ namespace Bitmanager.BigFile
          scrollToCharPos(curMatches[matchIdx].Item1);
       }
 
+      private void gotoNextLine()
+      {
+         int nextPartial;
+         //if (cbPartial.Checked)
+         //   nextPartial = lf.NextPartialLineNumber(partialIndex, filter);
+         //else
+         nextPartial = lf.PartialFromLineNumber(lf.NextLineNumber(lineIndex, filter));
+         setLine(nextPartial);
+      }
+
+      private void gotoPrevLine()
+      {
+         int prevPartial;
+         //if (cbPartial.Checked)
+         //   prevPartial = lf.PrevPartialLineNumber(partialIndex, filter);
+         //else
+         prevPartial = lf.PartialFromLineNumber(lf.PrevLineNumber(lineIndex, filter));
+         setLine(prevPartial);
+      }
+
       private void FormLine_Load(object sender, EventArgs e)
       {
 
@@ -475,9 +491,9 @@ namespace Bitmanager.BigFile
 
       private void enableAll (bool enabled)
       {
-         buttonNext.Enabled = enabled;
-         buttonPrev.Enabled = enabled;
-         cbPartial.Enabled = enabled;
+         btnNext.Enabled = enabled;
+         btnPrev.Enabled = enabled;
+         btnSearch.Enabled = enabled;
          cbViewAs.Enabled = enabled;
          timer1.Enabled = enabled;
       }
@@ -492,8 +508,8 @@ namespace Bitmanager.BigFile
 
       private void btnSearch_Click(object sender, EventArgs e)
       {
-         if (String.IsNullOrEmpty(txtSearch.Text)) return;
-         var topNode = new SearchNodes().Parse(txtSearch.Text);
+         if (String.IsNullOrEmpty(cbSearch.Text)) return;
+         var topNode = new SearchNodes().Parse(cbSearch.Text);
          var nodes = topNode.CollectValueNodes().ConvertAll<SearchNode>(x => (SearchNode)x);
          if (nodes.Count == 0) return;
 
@@ -505,7 +521,13 @@ namespace Bitmanager.BigFile
       {
          if (e.KeyValue != 13) return;
          if (e.Alt || e.Control || e.Shift) return;
-         btnSearch_Click(btnSearch, null);
+         btnSearch_Click(cbSearch, null);
+      }
+
+      private void menuNormalized_CheckStateChanged(object sender, EventArgs e)
+      {
+         lastNormalizedState = menuNormalized.Checked;
+
       }
    }
 
