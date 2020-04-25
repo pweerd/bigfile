@@ -32,7 +32,6 @@ using System.Runtime;
 using System.IO.Compression;
 using System.Linq;
 using System.Collections.ObjectModel;
-using Bitmanager.ZLib;
 
 namespace Bitmanager.BigFile
 {
@@ -510,6 +509,10 @@ namespace Bitmanager.BigFile
             }
             using (var rdr = new ThreadedIOBlockReader(strm, false, 64 * 1024))
                loadStreamIntoMemory(rdr, new LoadProgress(this, -1), false);
+         }
+         catch (Exception e)
+         {
+            throw IOUtils.WrapFilenameInException(e, fn);
          }
          finally
          {
@@ -997,8 +1000,12 @@ namespace Bitmanager.BigFile
 
             try
             {
-               using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read, 16*1024))
+               using (Stream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read, 16*1024))
                {
+                  Stream strm = fs;
+                  if (String.Equals(Path.GetExtension(filePath), ".gz", StringComparison.OrdinalIgnoreCase))
+                    strm = wrapToGZipCompressStream (fs);
+
                   byte[] endLine = new byte[2] { 13, 10 };
                   int perc=0;
                   int nextPercAt = 0;
@@ -1024,10 +1031,10 @@ namespace Bitmanager.BigFile
                      for (int j = start; j < end; j++)
                      {
                         int len = ctx.ReadPartialLineBytesInBuffer(j, j+1);
-                        fs.Write(ctx.ByteBuffer, 0, len);
+                        strm.Write(ctx.ByteBuffer, 0, len);
                      }
                      // Add \r\n
-                     fs.Write(endLine, 0, 2);
+                     strm.Write(endLine, 0, 2);
 
                      if (i < nextPercAt) continue;
 
@@ -1036,6 +1043,8 @@ namespace Bitmanager.BigFile
                      perc++;
                      nextPercAt = (int)(perc * N / 100.0);
                   }
+                  if (strm != fs)
+                     closeGZipCompressStream(strm);
                }
             }
             catch (Exception e)
@@ -1049,6 +1058,32 @@ namespace Bitmanager.BigFile
                if (!disposed) cb.OnExportComplete(new ExportResult(this, startTime, err, N));
             }
          });
+      }
+
+      private Stream wrapToGZipCompressStream(Stream fs)
+      {
+         if (Globals.CanInternalGZip)
+         {
+            logger.Log("Export via internal ZLib");
+            return new GZipCompressStream(fs, false, ZLibCompressionLevel.Default, 4 * 1024);
+         }
+
+         logger.Log("Saving via SharpZipLib.");
+         var gz = new ICSharpCode.SharpZipLib.GZip.GZipOutputStream(fs);
+         gz.IsStreamOwner = true;
+         return gz;
+      }
+
+      private void closeGZipCompressStream(Stream strm)
+      {
+         var gz2 = strm as ICSharpCode.SharpZipLib.GZip.GZipOutputStream;
+         if (gz2 != null)
+         {
+            gz2.Finish();
+            gz2.Close();
+            return;
+         }
+         strm.Close();
       }
 
       //private int exportCompleteLine (ThreadContext ctx, Stream fs, int partialLine, CancellationToken ct)

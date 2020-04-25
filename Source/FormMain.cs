@@ -36,7 +36,6 @@ using System.Diagnostics;
 using Bitmanager.Query;
 using System.Reflection;
 using Microsoft.Win32;
-using Bitmanager.ZLib;
 
 namespace Bitmanager.BigFile
 {

@@ -43,8 +43,9 @@
     <ApplicationIcon>bigfile.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="bmcore102">
-      <HintPath>..\..\..\Bitmanager\_References\bmcore102.dll</HintPath>
+    <Reference Include="BMCore102, Version=1.2.2020.410, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\_References\BMCore102.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=2.84.0.0, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
