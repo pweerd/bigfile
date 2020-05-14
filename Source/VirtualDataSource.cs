@@ -33,13 +33,13 @@ namespace Bitmanager.BigFile
    /// </summary>
    public class VirtualDataSource : IVirtualListDataSource
    {
-      private readonly VirtualObjectListView parent;
+      private readonly BrightIdeasSoftware.VirtualObjectListView parent;
       private List<int> filter;
       private int count;
       public List<int> Filter { get { return filter; } }
       public int Count { get { return count; } }
 
-      public VirtualDataSource(VirtualObjectListView parent)
+      public VirtualDataSource(BrightIdeasSoftware.VirtualObjectListView parent)
       {
          this.parent = parent;
       }

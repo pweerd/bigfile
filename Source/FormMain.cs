@@ -55,6 +55,7 @@ namespace Bitmanager.BigFile
       private readonly VirtualDataSource listDatasource;
       private readonly Encoding[] encodings;
       private ParserNode<SearchContext> lastQuery;
+      private readonly SelectionHandler selectionHandler;
 
       public FormMain()
       {
@@ -83,6 +84,8 @@ namespace Bitmanager.BigFile
          }
          dropdownEncoding.SelectedIndex = 0;
          listLines.VirtualListDataSource = listDatasource = new VirtualDataSource(listLines);
+         listLines.MultiSelect = false;
+         listLines.SelectAllOnControlA = false;
 
          searchboxDriver = new SearchHistory(cbSearch);
          btnResetSearch.Visible = Globals.IsDebug;
@@ -92,6 +95,10 @@ namespace Bitmanager.BigFile
          olvcLineNumber.AutoResize(ColumnHeaderAutoResizeStyle.None);
          olvcText.AutoResize(ColumnHeaderAutoResizeStyle.None);
          showZipEntries(false);
+         selectionHandler = new SelectionHandler(this, listLines);
+         selectionHandler.OnAddSelection += selectionHandler_Add;
+         selectionHandler.OnRemoveSelection += selectionHandler_Remove;
+         selectionHandler.OnToggleSelection += selectionHandler_Toggle;
       }
 
       private void showZipEntries (bool visible)
@@ -438,10 +445,21 @@ namespace Bitmanager.BigFile
          if (e.Model == null) return;
 
          LineFlags flags = lf.GetLineFlags((int)e.Model);
-         if ((flags & LineFlags.Match) != 0)
+         Color f = listLines.ForeColor;
+         Color b = listLines.BackColor;
+         if ((flags & LineFlags.Selected) != 0)
          {
-            e.Item.BackColor = settingsSource.HighlightColor;
+            f = listLines.SelectedForeColorOrDefault;
+            b = listLines.SelectedBackColorOrDefault;
+         } else if ((flags & LineFlags.Match) != 0)
+         {
+            b = settingsSource.HighlightColor;
          }
+
+         e.Item.BackColor = b;
+         e.Item.SelectedBackColor = b;
+         e.Item.ForeColor = f;
+         e.Item.SelectedForeColor = f;
          //PW
          //else if ((flags & LineFlags.Context) != 0)
          //{
@@ -473,10 +491,11 @@ namespace Bitmanager.BigFile
          if (lf == null) return;
 
          SaveFileDialog sfd = new SaveFileDialog();
-         sfd.Filter = "All Files|*.*";
-         sfd.FileName = Path.GetFileName(lf.FileName) + ".exported.txt";
+         sfd.Filter = "Text file|*.txt|Gzip file|*.gz|All Files|*.*";
+         sfd.FileName = Path.GetFileName(lf.FileName).Replace('.', '_') + "_exported";
          sfd.InitialDirectory = Path.GetDirectoryName(lf.FileName);
          sfd.Title = "Select export file";
+         sfd.DefaultExt = ".gz";
          if (sfd.ShowDialog(this) != DialogResult.OK) return;
 
          List<int> toExport = null;
@@ -967,9 +986,6 @@ namespace Bitmanager.BigFile
          switch (e.KeyCode)
          {
             default: return;
-            case Keys.Enter:
-               logger.Log("enter-key from {0}", sender);
-               return;
             case Keys.F3:
                gotoNextHit(); break;
          }
@@ -1042,6 +1058,8 @@ namespace Bitmanager.BigFile
             case (char)27: //escape
                cancel();
                break;
+            case (char)13: //Enter: activate line
+               break;
 
             case '/':
                gotoNextHit(); break;
@@ -1066,19 +1084,13 @@ namespace Bitmanager.BigFile
          UseWaitCursor = false;
       }
 
-      private void cbSearch_KeyUp(object sender, KeyEventArgs e)
-      {
-         if (e.KeyValue != 13) return;
-         if (e.Alt || e.Control || e.Shift) return;
-         toolButtonSearch_Click(btnSearch, null);
-         listLines.Focus();
-      }
       private void cbSearch_KeyPress(object sender, KeyPressEventArgs e)
       {
-         if (e.KeyChar == '\r')
+         if (e.KeyChar == '\r') //Enter key
          {
             toolButtonSearch_Click(btnSearch, null);
             listLines.Focus();
+            e.Handled = true;
          }
       }
 
@@ -1129,6 +1141,76 @@ namespace Bitmanager.BigFile
          int ix = cb.SelectedIndex;
          if (ix < 0) return;
          LogFile.DbgStr = (String)cb.Items[ix];
+      }
+
+      private void allToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         selectionHandler_Add(0, listLines.VirtualListSize);
+      }
+
+      private void clearAllToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         selectionHandler_Remove(0, listLines.VirtualListSize);
+      }
+
+      private void toggleToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         selectionHandler_Toggle(0, listLines.VirtualListSize);
+      }
+
+      private void selectionHandler_Add(int from, int to)
+      {
+         if (lf == null) return;
+         lf.MarkSelected(from, to);
+         listLines.Invalidate();
+         logger.Log("done");
+      }
+      private void selectionHandler_Remove(int from, int to)
+      {
+         if (lf == null) return;
+         lf.MarkUnselected(from, to);
+         listLines.Invalidate();
+      }
+      private void selectionHandler_Toggle(int from, int to)
+      {
+         if (lf == null) return;
+         lf.ToggleSelected(from, to);
+         listLines.Invalidate();
+      }
+
+      /// <summary>
+      /// Select all matching lines (without clearing the selected items)
+      /// </summary>
+      private void matchedToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         if (lf != null) { lf.SelectAllMatched(); selectionHandler.NotifyExternalChange(); }
+      }
+
+      /// <summary>
+      /// Select all non-matching lines (without clearing the selected items)
+      /// </summary>
+      private void nonMatchedToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         if (lf != null)
+         {
+            lf.SelectAllNonMatched(); selectionHandler.NotifyExternalChange();
+         }
+      }
+
+      private void clearByMatchedToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         if (lf != null)
+         {
+            lf.UnselectAllMatched(); selectionHandler.NotifyExternalChange();
+         }
+      }
+
+      private void clearByNonMatchedToolStripMenuItem_Click(object sender, EventArgs e)
+      {
+         if (lf != null)
+         {
+            lf.UnselectAllNonMatched(); selectionHandler.NotifyExternalChange();
+         }
       }
 
       private void createRegEntries (RegistryKey key, String exe)

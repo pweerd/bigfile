@@ -149,6 +149,7 @@ namespace Bitmanager.BigFile
          this.menuNormalized.Name = "menuNormalized";
          this.menuNormalized.Size = new System.Drawing.Size(180, 22);
          this.menuNormalized.Text = "Normalized";
+         this.menuNormalized.ToolTipText = "Try normalize (sort) json-keys";
          this.menuNormalized.CheckStateChanged += new System.EventHandler(this.menuNormalized_CheckStateChanged);
          // 
          // toolStripSeparator2

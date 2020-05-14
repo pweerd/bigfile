@@ -42,7 +42,8 @@ namespace Bitmanager.BigFile
       Match = 1 << 0,
       Continuation = 1 << 1,
       AllEvaluated = 1 << 2,
-      Mask0 = 1 << 3,
+      Selected = 1 << 3,
+      Mask0 = 1 << 4,
    };
 
    /// <summary>
@@ -53,8 +54,8 @@ namespace Bitmanager.BigFile
       static public String DbgStr="gzip";
       static readonly Logger logger = Globals.MainLogger.Clone("logfile");
       public const int FLAGS_SHIFT = 24; //Doublecheck with LineFlags!
-      public const int FLAGS_MASK = (1 << 24) - 1;
-      public const int MAX_NUM_MASKS = 21;
+      public const int FLAGS_MASK = (1 << FLAGS_SHIFT) - 1;
+      public const int MAX_NUM_MASKS = 20;
 
       private ThreadContext threadCtx;
       private readonly List<long> partialLines;
@@ -345,7 +346,9 @@ namespace Bitmanager.BigFile
       }
 
 
-
+      /// <summary>
+      /// Get a list of indexes for partial lines that are matched 
+      /// </summary>
       public List<int> GetMatchedList(int contextLines)
       {
          var ret = new List<int>();
@@ -788,6 +791,94 @@ namespace Bitmanager.BigFile
          for (int i = 0; i < partialLines.Count; i++)
          {
             partialLines[i] = notmask & partialLines[i];
+         }
+      }
+
+      public void MarkSelected(int row)
+      {
+         long mask = (int)LineFlags.Selected;
+         partialLines[row] |= mask;
+      }
+
+      public void MarkSelected(int from, int to)
+      {
+         long mask = (int)LineFlags.Selected;
+         for (int i = from; i < to; i++)
+         {
+            partialLines[i] |= mask;
+         }
+      }
+
+      public void MarkUnselected()
+      {
+         MarkUnselected(0, PartialLineCount);
+      }
+      public void MarkUnselected(int from, int to)
+      {
+         long mask = ~(int)LineFlags.Selected;
+         for (int i = from; i < to; i++)
+         {
+            partialLines[i] &= mask;
+         }
+      }
+
+      public void ToggleSelected(int from, int to)
+      {
+         long mask = (int)LineFlags.Selected;
+         for (int i = from; i < to; i++)
+         {
+            partialLines[i] ^= mask;
+         }
+      }
+
+      public int CountFlagged(LineFlags flags)
+      {
+         int mask = (int)flags;
+         int cnt = 0;
+         for (int i = 0; i < PartialLineCount; i++)
+         {
+            if ((mask & (int)partialLines[i]) != 0) ++cnt;
+         }
+         return cnt;
+      }
+      public void SelectAllMatched()
+      {
+         long mask = (int)LineFlags.Selected;
+         int check = (int)LineFlags.Match;
+         for (int i = 0; i < PartialLineCount; i++)
+         {
+            if ((check & (int)partialLines[i]) != 0)
+               partialLines[i] |= mask;
+         }
+      }
+      public void SelectAllNonMatched()
+      {
+         long mask = (int)LineFlags.Selected;
+         int check = (int)LineFlags.Match;
+         for (int i = 0; i < PartialLineCount; i++)
+         {
+            if ((check & (int)partialLines[i]) == 0)
+               partialLines[i] |= mask;
+         }
+      }
+      public void UnselectAllMatched()
+      {
+         long mask = ~(int)LineFlags.Selected;
+         int check = (int)LineFlags.Match;
+         for (int i = 0; i < PartialLineCount; i++)
+         {
+            if ((check & (int)partialLines[i]) != 0)
+               partialLines[i] &= mask;
+         }
+      }
+      public void UnselectAllNonMatched()
+      {
+         long mask = ~(int)LineFlags.Selected;
+         int check = (int)LineFlags.Match;
+         for (int i = 0; i < PartialLineCount; i++)
+         {
+            if ((check & (int)partialLines[i]) == 0)
+               partialLines[i] &= mask;
          }
       }
 

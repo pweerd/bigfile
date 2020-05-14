@@ -66,11 +66,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ControlExtensions.cs" />
     <Compile Include="Encodings.cs" />
     <Compile Include="FileHistory.cs" />
     <Compile Include="LogFileCallback.cs" />
     <Compile Include="LogFileResuls.cs" />
     <Compile Include="SearchHistory.cs" />
+    <Compile Include="SelectionHandler.cs" />
     <Compile Include="ThreadContext.cs" />
     <Compile Include="ToolStripToolTipHelper.cs" />
     <Compile Include="CompressedChunkedMemoryStream.cs" />

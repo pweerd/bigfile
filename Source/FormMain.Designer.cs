@@ -64,6 +64,15 @@ namespace Bitmanager.BigFile
          this.exportAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.selectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.clearAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.toggleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+         this.matchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.nonMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.clearByMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.clearByNonMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
          this.menuToolsConfiguration = new System.Windows.Forms.ToolStripMenuItem();
          this.registerShellextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -186,6 +195,7 @@ namespace Bitmanager.BigFile
          this.menuTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.gotoToolStripMenuItem,
             this.exportToolStripMenuItem,
+            this.selectToolStripMenuItem,
             this.toolStripMenuItem2,
             this.menuToolsConfiguration,
             this.registerShellextToolStripMenuItem});
@@ -230,6 +240,75 @@ namespace Bitmanager.BigFile
          this.exportMatchedToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
          this.exportMatchedToolStripMenuItem.Text = "Matched";
          this.exportMatchedToolStripMenuItem.Click += new System.EventHandler(this.exportMatchedToolStripMenuItem_Click);
+         // 
+         // selectToolStripMenuItem
+         // 
+         this.selectToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.allToolStripMenuItem,
+            this.clearAllToolStripMenuItem,
+            this.toggleToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.matchedToolStripMenuItem,
+            this.nonMatchedToolStripMenuItem,
+            this.clearByMatchedToolStripMenuItem,
+            this.clearByNonMatchedToolStripMenuItem});
+         this.selectToolStripMenuItem.Name = "selectToolStripMenuItem";
+         this.selectToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.selectToolStripMenuItem.Text = "Select";
+         // 
+         // allToolStripMenuItem
+         // 
+         this.allToolStripMenuItem.Name = "allToolStripMenuItem";
+         this.allToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+         this.allToolStripMenuItem.Text = "All";
+         this.allToolStripMenuItem.Click += new System.EventHandler(this.allToolStripMenuItem_Click);
+         // 
+         // clearAllToolStripMenuItem
+         // 
+         this.clearAllToolStripMenuItem.Name = "clearAllToolStripMenuItem";
+         this.clearAllToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+         this.clearAllToolStripMenuItem.Text = "Clear all";
+         this.clearAllToolStripMenuItem.Click += new System.EventHandler(this.clearAllToolStripMenuItem_Click);
+         // 
+         // toggleToolStripMenuItem
+         // 
+         this.toggleToolStripMenuItem.Name = "toggleToolStripMenuItem";
+         this.toggleToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+         this.toggleToolStripMenuItem.Text = "Toggle";
+         this.toggleToolStripMenuItem.Click += new System.EventHandler(this.toggleToolStripMenuItem_Click);
+         // 
+         // toolStripSeparator1
+         // 
+         this.toolStripSeparator1.Name = "toolStripSeparator1";
+         this.toolStripSeparator1.Size = new System.Drawing.Size(188, 6);
+         // 
+         // matchedToolStripMenuItem
+         // 
+         this.matchedToolStripMenuItem.Name = "matchedToolStripMenuItem";
+         this.matchedToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+         this.matchedToolStripMenuItem.Text = "By matched";
+         this.matchedToolStripMenuItem.Click += new System.EventHandler(this.matchedToolStripMenuItem_Click);
+         // 
+         // nonMatchedToolStripMenuItem
+         // 
+         this.nonMatchedToolStripMenuItem.Name = "nonMatchedToolStripMenuItem";
+         this.nonMatchedToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+         this.nonMatchedToolStripMenuItem.Text = "By non matched";
+         this.nonMatchedToolStripMenuItem.Click += new System.EventHandler(this.nonMatchedToolStripMenuItem_Click);
+         // 
+         // clearByMatchedToolStripMenuItem
+         // 
+         this.clearByMatchedToolStripMenuItem.Name = "clearByMatchedToolStripMenuItem";
+         this.clearByMatchedToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+         this.clearByMatchedToolStripMenuItem.Text = "Clear by matched";
+         this.clearByMatchedToolStripMenuItem.Click += new System.EventHandler(this.clearByMatchedToolStripMenuItem_Click);
+         // 
+         // clearByNonMatchedToolStripMenuItem
+         // 
+         this.clearByNonMatchedToolStripMenuItem.Name = "clearByNonMatchedToolStripMenuItem";
+         this.clearByNonMatchedToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+         this.clearByNonMatchedToolStripMenuItem.Text = "Clear by non matched";
+         this.clearByNonMatchedToolStripMenuItem.Click += new System.EventHandler(this.clearByNonMatchedToolStripMenuItem_Click);
          // 
          // toolStripMenuItem2
          // 
@@ -404,7 +483,6 @@ namespace Bitmanager.BigFile
          this.cbSearch.Name = "cbSearch";
          this.cbSearch.Size = new System.Drawing.Size(350, 31);
          this.cbSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cbSearch_KeyPress);
-         this.cbSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.cbSearch_KeyUp);
          // 
          // btnSearch
          // 
@@ -671,6 +749,15 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripButton btnResplit;
       private System.Windows.Forms.ToolStripMenuItem registerShellextToolStripMenuItem;
       private System.Windows.Forms.ToolStripComboBox cbDbgLoad;
+      private System.Windows.Forms.ToolStripMenuItem selectToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem clearAllToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem toggleToolStripMenuItem;
+      private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+      private System.Windows.Forms.ToolStripMenuItem matchedToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem nonMatchedToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem clearByMatchedToolStripMenuItem;
+      private System.Windows.Forms.ToolStripMenuItem clearByNonMatchedToolStripMenuItem;
    }
 }
 
