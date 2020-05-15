@@ -56,7 +56,7 @@ namespace Bitmanager.BigFile
          {
             result = e.Message;
          }
-         if (result.IndexOf(": not in gzip format") < 0)
+         if (result.IndexOf("Error GZIP header") < 0)
             throw new BMException("error should contain ': not in gzip format', but was {0}", result);
       }
 
