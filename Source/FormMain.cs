@@ -287,11 +287,11 @@ namespace Bitmanager.BigFile
 
       private void createRecentItems()
       {
-         createRecentItems(fileHistory, menuRecentFiles);
-         createRecentItems(directoryHistory, menuRecentFolders);
+         createRecentItems(fileHistory, menuRecentFiles, File.Exists);
+         createRecentItems(directoryHistory, menuRecentFolders, Directory.Exists);
       }
          
-      private void createRecentItems(FileHistory hist, ToolStripMenuItem menuItem)
+      private void createRecentItems(FileHistory hist, ToolStripMenuItem menuItem, Func<String,bool> checker)
       {
          String[] history = hist.Items;
 
@@ -299,6 +299,8 @@ namespace Bitmanager.BigFile
          foreach (var x in history)
          {
             if (x == null) break;
+            if (checker != null && !checker(x)) continue;
+
             var subItem = new ToolStripMenuItem();
             subItem.Text = x;
             subItem.AutoSize = true;
