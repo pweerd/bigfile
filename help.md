@@ -1,5 +1,4 @@
 # BigFile (V0.9.3)
-[toc]
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems.
 The following provides a brief help guide for the core operations of BigFile.
@@ -153,6 +152,7 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 #### V0.93 (may 2020)
 - Gzip saving of export files is supported.
 - More (de-)selection possibilities. Selections are now handled by the logfile itself, since the ListView was way too slow.
+- Line view supports expansion of json, if the json contained strings with encoded json. 
 - Bugfixes.
 
 #### V0.92 (feb 2020)
