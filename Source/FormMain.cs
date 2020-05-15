@@ -962,7 +962,7 @@ namespace Bitmanager.BigFile
          listLines.Update();
       }
 
-      private void FormMain_KeyUp(object sender, KeyEventArgs e)
+      private void FormMain_KeyDown (object sender, KeyEventArgs e)
       {
          if (e.Control)
          {
@@ -1057,9 +1057,13 @@ namespace Bitmanager.BigFile
          switch (e.KeyChar)
          {
             default: return;
+
             case (char)27: //escape
                cancel();
                break;
+
+            case (char)6:  //CTRL_F
+            case (char)7:  //CTRL_G
             case (char)13: //Enter: activate line
                break;
 

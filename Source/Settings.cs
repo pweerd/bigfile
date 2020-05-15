@@ -153,13 +153,15 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.OpenSubKey(_KEY, false))
          {
-            ContextColor = readVal(key, "context_color", ContextColor);
-            HighlightColor = readVal(key, "highlight_color", HighlightColor);
-            MultiSelectLimit = readVal(key, "select_limit", MultiSelectLimit);
-            NumContextLines = readVal(key, "context_lines", NumContextLines);
-            SearchThreadsAsText = readVal(key, "search_threads", SearchThreadsAsText);
-            LoadMemoryIfBigger = CheckAndRepairSizeWithOnOff(readVal(key, "load_memory", LoadMemoryIfBigger), false);
-            CompressMemoryIfBigger = CheckAndRepairSizeWithOnOff(readVal(key, "compress_memory", CompressMemoryIfBigger), false);
+            ContextColor = ReadVal(key, "context_color", ContextColor);
+            HighlightColor = ReadVal(key, "highlight_color", HighlightColor);
+            MultiSelectLimit = ReadVal(key, "select_limit", MultiSelectLimit);
+            NumContextLines = ReadVal(key, "context_lines", NumContextLines);
+            SearchThreadsAsText = ReadVal(key, "search_threads", SearchThreadsAsText);
+            LoadMemoryIfBigger = CheckAndRepairSizeWithOnOff(ReadVal(key, "load_memory", LoadMemoryIfBigger), false);
+            CompressMemoryIfBigger = CheckAndRepairSizeWithOnOff(ReadVal(key, "compress_memory", CompressMemoryIfBigger), false);
+
+            FormLine.LoadState(key);
          }
       }
 
@@ -168,13 +170,15 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey(_KEY, true))
          {
-            writeVal(key, "context_color", ContextColor);
-            writeVal(key, "highlight_color", HighlightColor);
-            writeVal(key, "select_limit", MultiSelectLimit);
-            writeVal(key, "context_lines", NumContextLines);
-            writeVal(key, "search_threads", SearchThreadsAsText);
-            writeVal(key, "load_memory", LoadMemoryIfBigger);
-            writeVal(key, "compress_memory", CompressMemoryIfBigger);
+            WriteVal(key, "context_color", ContextColor);
+            WriteVal(key, "highlight_color", HighlightColor);
+            WriteVal(key, "select_limit", MultiSelectLimit);
+            WriteVal(key, "context_lines", NumContextLines);
+            WriteVal(key, "search_threads", SearchThreadsAsText);
+            WriteVal(key, "load_memory", LoadMemoryIfBigger);
+            WriteVal(key, "compress_memory", CompressMemoryIfBigger);
+
+            FormLine.SaveState(key);
          }
          Load();
       }
@@ -234,7 +238,7 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey(_KEY, true))
          {
-            writeVal(key, "position", sizeStr);
+            WriteVal(key, "position", sizeStr);
          }
       }
 
@@ -244,7 +248,7 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey(_KEY, false))
          {
-            sizeStr = readVal(key, "position", null);
+            sizeStr = ReadVal(key, "position", null);
          }
          Globals.MainLogger.Log("Loaded size str={0}", sizeStr);
 
@@ -281,7 +285,7 @@ namespace Bitmanager.BigFile
             for (int i=0; i<list.Length; i++)
             {
                if (list[i] == null) break;
-               writeVal(key, prefix + i.ToString(), list[i]);
+               WriteVal(key, prefix + i.ToString(), list[i]);
             }
          }
       }
@@ -293,14 +297,14 @@ namespace Bitmanager.BigFile
          {
             for (int i = 0; i < ret.Length; i++)
             {
-               ret[i] = readVal(key, prefix + i.ToString(), null);
+               ret[i] = ReadVal(key, prefix + i.ToString(), null);
                if (ret[i] == null) break;
             }
          }
          return ret;
       }
 
-      private static String readVal(RegistryKey key, String valName, String def)
+      public static String ReadVal(RegistryKey key, String valName, String def)
       {
          if (key == null) return def;
          var v = key.GetValue(valName, def);
@@ -309,62 +313,42 @@ namespace Bitmanager.BigFile
          String ret = v.ToString();
          return String.IsNullOrEmpty(ret) ? def : ret;
       }
-      private static Color readVal(RegistryKey key, String valName, Color def)
+      public static Color ReadVal(RegistryKey key, String valName, Color def)
       {
-         return ColorTranslator.FromHtml(readVal(key, valName, ColorTranslator.ToHtml(def)));
+         return ColorTranslator.FromHtml(ReadVal(key, valName, ColorTranslator.ToHtml(def)));
       }
-      private static int readVal(RegistryKey key, String valName, int def)
+      public static int ReadVal(RegistryKey key, String valName, int def)
       {
          if (key == null) return def;
          var v = key.GetValue(valName, def);
          return v == null ? def : (int)v;
       }
-      private static bool readVal(RegistryKey key, String valName, bool def)
+      public static bool ReadVal(RegistryKey key, String valName, bool def)
       {
          if (key == null) return def;
          var v = key.GetValue(valName, def ? 1 : 0);
          return v == null ? def : (0 != (int)v);
       }
-      private static void writeVal(RegistryKey key, String valName, String val)
+      public static void WriteVal(RegistryKey key, String valName, String val)
       {
          if (key == null) return;
          if (val == null) val = String.Empty;
          key.SetValue(valName, val);
       }
-      private static void writeVal(RegistryKey key, String valName, int val)
+      public static void WriteVal(RegistryKey key, String valName, int val)
       {
          if (key == null) return;
          key.SetValue(valName, val);
       }
-      private static void writeVal(RegistryKey key, String valName, bool val)
+      public static void WriteVal(RegistryKey key, String valName, bool val)
       {
          if (key == null) return;
          key.SetValue(valName, val ? 1 : 0);
       }
-      private static void writeVal(RegistryKey key, String valName, Color val)
+      public static void WriteVal(RegistryKey key, String valName, Color val)
       {
          if (key == null) return;
-         writeVal(key, valName, ColorTranslator.ToHtml(val));
-      }
-
-      private static String _gzipExe;
-
-      private String gzipExe
-      {
-         get
-         {
-            if (_gzipExe != null) return _gzipExe;
-            try
-            {
-               _gzipExe = GzipProcessInputStream.FindGzip();
-            }
-            catch (Exception e)
-            {
-               Logs.ErrorLog.Log("Failure while searching for gzip.exe.");
-               Logs.ErrorLog.Log(e);
-            }
-            return _gzipExe;
-         }
+         WriteVal(key, valName, ColorTranslator.ToHtml(val));
       }
 
    }

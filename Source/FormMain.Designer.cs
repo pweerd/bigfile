@@ -625,7 +625,7 @@ namespace Bitmanager.BigFile
          this.listLines.DragDrop += new System.Windows.Forms.DragEventHandler(this.listLines_DragDrop);
          this.listLines.DragEnter += new System.Windows.Forms.DragEventHandler(this.listLines_DragEnter);
          this.listLines.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.FormMain_KeyPress);
-         this.listLines.KeyUp += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyUp);
+         this.listLines.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
          this.listLines.Resize += new System.EventHandler(this.listLines_Resize);
          // 
          // olvcLineNumber
@@ -681,7 +681,7 @@ namespace Bitmanager.BigFile
          this.DragDrop += new System.Windows.Forms.DragEventHandler(this.FormMain_DragDrop);
          this.DragEnter += new System.Windows.Forms.DragEventHandler(this.FormMain_DragEnter);
          this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.FormMain_KeyPress);
-         this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyUp);
+         this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
          this.menuStrip.ResumeLayout(false);
          this.menuStrip.PerformLayout();
          this.statusStrip.ResumeLayout(false);

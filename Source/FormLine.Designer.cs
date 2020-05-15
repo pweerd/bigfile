@@ -123,12 +123,6 @@ namespace Bitmanager.BigFile
          // 
          // cbViewAs
          // 
-         this.cbViewAs.Items.AddRange(new object[] {
-            "Auto",
-            "Text",
-            "Json",
-            "Xml",
-            "Csv"});
          this.cbViewAs.Name = "cbViewAs";
          this.cbViewAs.Size = new System.Drawing.Size(121, 31);
          this.cbViewAs.SelectedIndexChanged += new System.EventHandler(this.cbViewAs_SelectedIndexChanged);
@@ -160,7 +154,7 @@ namespace Bitmanager.BigFile
          this.menuNormalized.Size = new System.Drawing.Size(187, 22);
          this.menuNormalized.Text = "Normalized";
          this.menuNormalized.ToolTipText = "Try normalize (sort) json-keys";
-         this.menuNormalized.CheckStateChanged += new System.EventHandler(this.options_CheckStateChanged);
+         this.menuNormalized.CheckStateChanged += new System.EventHandler(this.menuNormalized_CheckStateChanged);
          // 
          // menuExpandJson
          // 
@@ -169,7 +163,7 @@ namespace Bitmanager.BigFile
          this.menuExpandJson.Size = new System.Drawing.Size(187, 22);
          this.menuExpandJson.Text = "Expand encoded json";
          this.menuExpandJson.ToolTipText = "Try to expand encoded json in a string";
-         this.menuExpandJson.CheckStateChanged += new System.EventHandler(this.options_CheckStateChanged);
+         this.menuExpandJson.CheckStateChanged += new System.EventHandler(this.menuExpandJson_CheckStateChanged);
          // 
          // toolStripSeparator2
          // 
@@ -264,7 +258,7 @@ namespace Bitmanager.BigFile
          this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormLine_FormClosed);
          this.Load += new System.EventHandler(this.FormLine_Load);
          this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.form_KeyPress);
-         this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.form_KeyUp);
+         this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.form_KeyDown);
          this.statusStrip1.ResumeLayout(false);
          this.statusStrip1.PerformLayout();
          this.toolStrip1.ResumeLayout(false);

@@ -28,6 +28,7 @@ using System.Linq;
 using Bitmanager.Xml;
 using Bitmanager.Query;
 using System.Text;
+using Microsoft.Win32;
 
 namespace Bitmanager.BigFile
 {
@@ -36,9 +37,10 @@ namespace Bitmanager.BigFile
    /// </summary>
    public partial class FormLine : Form
    {
+      static readonly String[] ViewAsItems = { "Auto", "Text", "Json", "Xml", "Csv" };
       private static int lastViewAsIndex;
-      private static bool lastNormalizedState;
-      private static bool lastExpandJsonState;
+      private static bool lastCanonicalState;
+      private static bool lastExpandEncodedState;
       private static readonly Logger logger = Globals.MainLogger.Clone("line");
       private Settings settings;
       private List<SearchNode> searchNodes;
@@ -56,15 +58,17 @@ namespace Bitmanager.BigFile
       public FormLine()
       {
          InitializeComponent();
-         cbViewAs.SelectedIndex = lastViewAsIndex;
-         menuNormalized.Checked = lastNormalizedState;
-         menuExpandJson.Checked = lastExpandJsonState;
+         menuNormalized.Checked = lastCanonicalState;
+         menuExpandJson.Checked = lastExpandEncodedState;
 
          ShowInTaskbar = true;
 
          //Prevent font being way too small after non-latin chars 
          textLine.LanguageOption = RichTextBoxLanguageOptions.DualFont;
          textLine.Dock = DockStyle.Fill;
+
+         cbViewAs.Items.AddRange(ViewAsItems);
+         cbViewAs.SelectedIndex = lastViewAsIndex;
       }
 
       /// <summary>
@@ -212,6 +216,32 @@ namespace Bitmanager.BigFile
       private void clear()
       {
          textLine.Clear();
+      }
+
+      //Reading last state from the registry
+      public static void LoadState(RegistryKey key)
+      {
+         String x = SettingsSource.ReadVal(key, "line_view_as", String.Empty);
+         int ix;
+         for (ix=0; ix<ViewAsItems.Length; ix++)
+         {
+            if (String.Equals(x, ViewAsItems[ix], StringComparison.InvariantCultureIgnoreCase))
+            {
+               lastViewAsIndex = ix;
+            }
+         }
+         lastCanonicalState = SettingsSource.ReadVal(key, "line_canonical", false);
+         lastExpandEncodedState = SettingsSource.ReadVal(key, "line_expand_encoded", false);
+      }
+
+      //Saving state into the registry
+      public static void SaveState(RegistryKey key)
+      {
+         int ix = lastViewAsIndex;
+         if (ix >= 0 && ix < ViewAsItems.Length)
+            SettingsSource.WriteVal(key, "line_view_as", ViewAsItems[ix]);
+         SettingsSource.WriteVal(key, "line_canonical", lastCanonicalState);
+         SettingsSource.WriteVal(key, "line_expand_encoded", lastExpandEncodedState);
       }
 
       private List<Tuple<int, int>> extractMatches(String x)
@@ -386,7 +416,7 @@ namespace Bitmanager.BigFile
          e.Handled = true;
       }
 
-      private void form_KeyUp(object sender, KeyEventArgs e)
+      private void form_KeyDown(object sender, KeyEventArgs e)
       {
          if (e.Control)
          {
@@ -394,17 +424,17 @@ namespace Bitmanager.BigFile
             {
                default: return;
                case Keys.Up:
-                  gotoPrevLine(); return;
+                  gotoPrevLine(); break;
                case Keys.Down:
-                  gotoNextLine(); return;
+                  gotoNextLine(); break;
                case Keys.F3:
                   gotoPrevHit(); break;
                case Keys.F:
                   cbSearch.Focus(); break;
                case Keys.Home:
-                  matchIdx = -1; return;
+                  matchIdx = -1; break;
                case Keys.End:
-                  matchIdx = curMatches.Count; return;
+                  matchIdx = curMatches.Count; break;
             }
             e.Handled = true;
             return;
@@ -494,14 +524,20 @@ namespace Bitmanager.BigFile
          btnSearch_Click(cbSearch, null);
       }
 
-      private void options_CheckStateChanged(object sender, EventArgs e)
+      private void menuExpandJson_CheckStateChanged(object sender, EventArgs e)
       {
-         lastNormalizedState = menuNormalized.Checked;
-         lastExpandJsonState = menuExpandJson.Checked;
-
+         lastExpandEncodedState = menuExpandJson.Checked;
          loadLineInControl();
          textLine.Focus();
       }
+
+      private void menuNormalized_CheckStateChanged(object sender, EventArgs e)
+      {
+         lastCanonicalState = menuNormalized.Checked;
+         loadLineInControl();
+         textLine.Focus();
+      }
+
 
       private static JsonValue expandEncodedJson (JsonValue x)
       {
