@@ -36,9 +36,15 @@ namespace Bitmanager.BigFile
       {
          this.LogFile = logfile;
          this.Duration = DateTime.Now - started;
-         if (err is TaskCanceledException)
-            this.Cancelled = true;
-         else
+         for (Exception x=err; x!=null; x=x.InnerException)
+         {
+            if (x is TaskCanceledException)
+            {
+               this.Cancelled = true;
+               break;
+            }
+         }
+         if (!this.Cancelled)
          {
             this.Error = err;
             if (err != null) Logs.ErrorLog.Log(err);

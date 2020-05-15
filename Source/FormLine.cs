@@ -24,7 +24,7 @@ using System.Windows.Forms;
 using Bitmanager.Core;
 using Bitmanager.Json;
 using Bitmanager.BigFile.Query;
-using System.Threading.Tasks;
+using System.Linq;
 using Bitmanager.Xml;
 using Bitmanager.Query;
 using System.Text;
@@ -32,12 +32,13 @@ using System.Text;
 namespace Bitmanager.BigFile
 {
    /// <summary>
-   /// Form to show one line (with highlighting)
+   /// Form to show one line (with highlighting and navigation)
    /// </summary>
    public partial class FormLine : Form
    {
       private static int lastViewAsIndex;
       private static bool lastNormalizedState;
+      private static bool lastExpandJsonState;
       private static readonly Logger logger = Globals.MainLogger.Clone("line");
       private Settings settings;
       private List<SearchNode> searchNodes;
@@ -48,7 +49,6 @@ namespace Bitmanager.BigFile
       public bool IsClosed { get { return closed; } }
 
       private List<Tuple<int, int>> curMatches;
-      //private Task<String> jsonConverter, xmlConverter;
       private int lineIndex;
       private int partialIndex;
       private int matchIdx;
@@ -58,6 +58,7 @@ namespace Bitmanager.BigFile
          InitializeComponent();
          cbViewAs.SelectedIndex = lastViewAsIndex;
          menuNormalized.Checked = lastNormalizedState;
+         menuExpandJson.Checked = lastExpandJsonState;
 
          ShowInTaskbar = true;
 
@@ -125,7 +126,7 @@ namespace Bitmanager.BigFile
          }
          if (partialLineNo >= lf.PartialLineCount)
          {
-            setIndexes (lf.PartialLineCount, lf.LineCount);
+            setIndexes(lf.PartialLineCount, lf.LineCount);
             Text = String.Format("{0} - After bottom", lf.FileName);
             clear();
             return;
@@ -133,31 +134,20 @@ namespace Bitmanager.BigFile
 
          setIndexes(partialLineNo, lf.PartialToLineNumber(partialLineNo));
 
-         //if (cbPartial.Checked)
-         //{
-         //   curLine = lf.GetPartialLine(partialLineNo);
-         //   if (lf.LineCount == lf.PartialLineCount)
-         //      Text = String.Format("{0} - Line {1}", lf.FileName, partialLineNo);
-         //   else
-         //      Text = String.Format("{0} - Partial Line {1}, part of {2}", lf.FileName, partialLineNo, lineIndex);
-         //   logger.Log("SetLine ({0}): loading partial line. Part of line {1}...", partialLineNo, lineIndex);
-         //}
-         //else
-         {
-            bool truncated;
-            curLine = lf.GetLine(lineIndex, out truncated);
-            Text = String.Format(truncated ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, lineIndex);
-            logger.Log("SetLine ({0}): loading full line {1}...", partialLineNo, lineIndex);
-         }
+         bool truncated;
+         curLine = lf.GetLine(lineIndex, out truncated);
+         Text = String.Format(truncated ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, lineIndex);
+         logger.Log("SetLine ({0}): loading full line {1}...", partialLineNo, lineIndex);
 
          loadLineInControl();
          logger.Log("SetLine (): loaded {0} chars in control", curLine.Length);
       }
-
-      private static String convertToJson(String s, bool normalized)
+      private static String convertToJson(String s, bool normalized, bool handleEncodedJson)
       {
-         var json = JsonObjectValue.Parse(s);
-         if (normalized) json = (JsonObjectValue)json.Canonicalize();
+         var json = JsonValue.Parse(s);
+         if (normalized) json = json.Canonicalize();
+         if (handleEncodedJson) json = expandEncodedJson(json);
+
          return json.ToString(true).Replace("\r\n", "\n");
       }
       private static String convertToXml(String s)
@@ -306,7 +296,7 @@ namespace Bitmanager.BigFile
                switch (sel)
                {
                   default: break;
-                  case ContentType.Json: content = convertToJson(curLine, menuNormalized.Checked); break;
+                  case ContentType.Json: content = convertToJson(curLine, menuNormalized.Checked, menuExpandJson.Checked); break;
                   case ContentType.Xml: content = convertToXml(curLine); break;
                   case ContentType.Csv: content = convertToCsv(curLine); break;
                }
@@ -374,15 +364,6 @@ namespace Bitmanager.BigFile
       private void cbViewAs_SelectedIndexChanged(object sender, EventArgs e)
       {
          lastViewAsIndex = cbViewAs.SelectedIndex;
-         loadLineInControl();
-         textLine.Focus();
-      }
-
-      private void cbPartial_CheckedChanged(object sender, EventArgs e)
-      {
-         if (lf == null) return;
-         //LastViewAsPartial = cbPartial.Checked;
-         setLine(partialIndex);
          loadLineInControl();
          textLine.Focus();
       }
@@ -460,22 +441,12 @@ namespace Bitmanager.BigFile
 
       private void gotoNextLine()
       {
-         int nextPartial;
-         //if (cbPartial.Checked)
-         //   nextPartial = lf.NextPartialLineNumber(partialIndex, filter);
-         //else
-         nextPartial = lf.PartialFromLineNumber(lf.NextLineNumber(lineIndex, filter));
-         setLine(nextPartial);
+         setLine(lf.PartialFromLineNumber(lf.NextLineNumber(lineIndex, filter)));
       }
 
       private void gotoPrevLine()
       {
-         int prevPartial;
-         //if (cbPartial.Checked)
-         //   prevPartial = lf.PrevPartialLineNumber(partialIndex, filter);
-         //else
-         prevPartial = lf.PartialFromLineNumber(lf.PrevLineNumber(lineIndex, filter));
-         setLine(prevPartial);
+         setLine(lf.PartialFromLineNumber(lf.PrevLineNumber(lineIndex, filter)));
       }
 
       private void FormLine_Load(object sender, EventArgs e)
@@ -523,10 +494,70 @@ namespace Bitmanager.BigFile
          btnSearch_Click(cbSearch, null);
       }
 
-      private void menuNormalized_CheckStateChanged(object sender, EventArgs e)
+      private void options_CheckStateChanged(object sender, EventArgs e)
       {
          lastNormalizedState = menuNormalized.Checked;
+         lastExpandJsonState = menuExpandJson.Checked;
 
+         loadLineInControl();
+         textLine.Focus();
+      }
+
+      private static JsonValue expandEncodedJson (JsonValue x)
+      {
+         if (x == null) return x;
+         switch (x.Type)
+         {
+            default: break;
+            case JsonType.Array:
+               var arr = (JsonArrayValue)x;
+               for (int i = 0; i < arr.Count; i++) arr[i] = expandEncodedJson(arr[i]);
+               break; 
+
+            case JsonType.Object:
+               var obj = (JsonObjectValue)x;
+               foreach (var k in obj.Keys.ToList()) obj[k] = expandEncodedJson(obj[k]);
+               break;
+
+            case JsonType.String:
+               JsonValue repl;
+               if (tryExpandJson((String)x, out repl)) x = repl;
+               break;
+         }
+         return x;
+      }
+
+      private static bool tryExpandJson (String x, out JsonValue repl)
+      {
+         if (String.IsNullOrEmpty(x)) goto FAILED;
+
+         for (int i=0; i<x.Length; i++)
+         {
+            switch (x[i])
+            {
+               default: goto FAILED;
+               case '{':
+               case '[':
+                  try
+                  {
+                     repl = JsonValue.Parse (Encoders.UnEscapeJavascript(x));
+                     return true;
+                  }
+                  catch (Exception e)
+                  {
+                     goto FAILED;
+                  }
+               case ' ':
+               case '\t':
+               case '\r':
+               case '\n':
+                  continue;
+            }
+         }
+
+         FAILED:
+         repl = null;
+         return false;
       }
    }
 }

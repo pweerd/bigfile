@@ -55,8 +55,10 @@ namespace Bitmanager.BigFile
          this.toolStrip1 = new System.Windows.Forms.ToolStrip();
          this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
          this.cbViewAs = new System.Windows.Forms.ToolStripComboBox();
+         this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
          this.menuNormalized = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuExpandJson = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
          this.toolLabelSearch = new System.Windows.Forms.ToolStripLabel();
          this.cbSearch = new System.Windows.Forms.ToolStripComboBox();
@@ -98,6 +100,7 @@ namespace Bitmanager.BigFile
          this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripLabel1,
             this.cbViewAs,
+            this.toolStripSeparator3,
             this.toolStripDropDownButton1,
             this.toolStripSeparator2,
             this.toolLabelSearch,
@@ -130,27 +133,43 @@ namespace Bitmanager.BigFile
          this.cbViewAs.Size = new System.Drawing.Size(121, 31);
          this.cbViewAs.SelectedIndexChanged += new System.EventHandler(this.cbViewAs_SelectedIndexChanged);
          // 
+         // toolStripSeparator3
+         // 
+         this.toolStripSeparator3.Name = "toolStripSeparator3";
+         this.toolStripSeparator3.Size = new System.Drawing.Size(6, 31);
+         // 
          // toolStripDropDownButton1
          // 
-         this.toolStripDropDownButton1.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-         this.toolStripDropDownButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+         this.toolStripDropDownButton1.BackColor = System.Drawing.SystemColors.ButtonFace;
+         this.toolStripDropDownButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
          this.toolStripDropDownButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuNormalized});
-         this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
+            this.menuNormalized,
+            this.menuExpandJson});
          this.toolStripDropDownButton1.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
          this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+         this.toolStripDropDownButton1.Margin = new System.Windows.Forms.Padding(2, 1, 0, 2);
          this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
-         this.toolStripDropDownButton1.Size = new System.Drawing.Size(37, 28);
-         this.toolStripDropDownButton1.Text = "Extra ettings";
+         this.toolStripDropDownButton1.Size = new System.Drawing.Size(62, 28);
+         this.toolStripDropDownButton1.Text = "Options";
+         this.toolStripDropDownButton1.ToolTipText = "Extra options";
          // 
          // menuNormalized
          // 
          this.menuNormalized.CheckOnClick = true;
          this.menuNormalized.Name = "menuNormalized";
-         this.menuNormalized.Size = new System.Drawing.Size(180, 22);
+         this.menuNormalized.Size = new System.Drawing.Size(187, 22);
          this.menuNormalized.Text = "Normalized";
          this.menuNormalized.ToolTipText = "Try normalize (sort) json-keys";
-         this.menuNormalized.CheckStateChanged += new System.EventHandler(this.menuNormalized_CheckStateChanged);
+         this.menuNormalized.CheckStateChanged += new System.EventHandler(this.options_CheckStateChanged);
+         // 
+         // menuExpandJson
+         // 
+         this.menuExpandJson.CheckOnClick = true;
+         this.menuExpandJson.Name = "menuExpandJson";
+         this.menuExpandJson.Size = new System.Drawing.Size(187, 22);
+         this.menuExpandJson.Text = "Expand encoded json";
+         this.menuExpandJson.ToolTipText = "Try to expand encoded json in a string";
+         this.menuExpandJson.CheckStateChanged += new System.EventHandler(this.options_CheckStateChanged);
          // 
          // toolStripSeparator2
          // 
@@ -159,6 +178,7 @@ namespace Bitmanager.BigFile
          // 
          // toolLabelSearch
          // 
+         this.toolLabelSearch.Margin = new System.Windows.Forms.Padding(2, 1, 0, 2);
          this.toolLabelSearch.Name = "toolLabelSearch";
          this.toolLabelSearch.Size = new System.Drawing.Size(42, 28);
          this.toolLabelSearch.Text = "Search";
@@ -189,9 +209,12 @@ namespace Bitmanager.BigFile
          // 
          // btnPrev
          // 
+         this.btnPrev.AutoSize = false;
          this.btnPrev.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
          this.btnPrev.Image = ((System.Drawing.Image)(resources.GetObject("btnPrev.Image")));
+         this.btnPrev.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
          this.btnPrev.ImageTransparentColor = System.Drawing.Color.Magenta;
+         this.btnPrev.Margin = new System.Windows.Forms.Padding(2, 0, 0, 0);
          this.btnPrev.Name = "btnPrev";
          this.btnPrev.Size = new System.Drawing.Size(28, 28);
          this.btnPrev.Text = "Previous line (Ctrl-Up)";
@@ -199,8 +222,10 @@ namespace Bitmanager.BigFile
          // 
          // btnNext
          // 
+         this.btnNext.AutoSize = false;
          this.btnNext.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
          this.btnNext.Image = ((System.Drawing.Image)(resources.GetObject("btnNext.Image")));
+         this.btnNext.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
          this.btnNext.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.btnNext.Name = "btnNext";
          this.btnNext.Size = new System.Drawing.Size(28, 28);
@@ -266,5 +291,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
       private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton1;
       private System.Windows.Forms.ToolStripMenuItem menuNormalized;
+      private System.Windows.Forms.ToolStripMenuItem menuExpandJson;
+      private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
    }
 }
