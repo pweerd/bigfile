@@ -1,4 +1,5 @@
 # BigFile (V0.9.3)
+[toc]
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems.
 The following provides a brief help guide for the core operations of BigFile.
