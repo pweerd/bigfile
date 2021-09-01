@@ -111,8 +111,8 @@ namespace Bitmanager.BigFile
       public void TestCompressErrors()
       {
          var settingsSource = new SettingsSource();
-         settingsSource.CompressMemoryIfBigger = "0";
-         settingsSource.LoadMemoryIfBigger = "0";
+         settingsSource.CompressMemoryIfBigger.Set("0");
+         settingsSource.LoadMemoryIfBigger.Set("0");
          var cb = new CB();
          var logFile = new LogFile(cb, settingsSource.ActualizeDefaults(), null, -1);
          logFile.Load(dataDir + "compress-errors.txt", CancellationToken.None).Wait();

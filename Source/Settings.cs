@@ -18,6 +18,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Bitmanager.Core;
 using Bitmanager.IO;
@@ -41,10 +42,11 @@ namespace Bitmanager.BigFile
       public readonly Color HighlightColor;
       public readonly Color SelectedHighlightColor;
       public readonly Color ContextColor;
-      public readonly int MultiSelectLimit;
       public readonly int NumContextLines;
       public readonly int SearchThreads;
       public readonly int MaxLineLength;
+      public readonly int MaxCopyLines;
+      public readonly int MaxCopySize;
 
       public Settings(SettingsSource src)
       {
@@ -57,12 +59,26 @@ namespace Bitmanager.BigFile
 
          ContextColor = src.ContextColor;
          NumContextLines = src.NumContextLines;
-         MultiSelectLimit = src.MultiSelectLimit;
-         MaxLineLength = (int)SettingsSource.GetActualSize(src.MaxLineLengthSetting, "10MB");
-         SearchThreads = src.GetActualNumSearchThreads();
+         MaxCopyLines = src.MaxCopyLines;
+         MaxCopySize = src.MaxCopySize;
+         MaxLineLength = src.MaxLineLength;
+         SearchThreads = src.SearchThreads;
 
-         CompressMemoryIfBigger = SettingsSource.GetActualSize(src.CompressMemoryIfBigger, "1GB");
-         LoadMemoryIfBigger = SettingsSource.GetActualSize(src.LoadMemoryIfBigger, "32GB");
+         CompressMemoryIfBigger = src.CompressMemoryIfBigger;
+         LoadMemoryIfBigger = src.LoadMemoryIfBigger;
+      }
+
+      public void Dump () {
+         var logger = Globals.SettingsLogger;
+         logger.Log("Dumping current ACTUAL settings:");
+         logger.Log("-- HighlightColor: {0}, SelectedHighlightColor: {1}", HighlightColor, SelectedHighlightColor);
+         logger.Log("-- ContextColor: {0}, NumContextLines={1}", ContextColor, NumContextLines);
+         logger.Log("-- MaxCopyLines: {0}, MaxCopySize={1} ({2})", MaxCopyLines, MaxCopySize, Pretty.PrintSize(MaxCopySize));
+         logger.Log("-- MaxLineLength: {0} ({1})", MaxLineLength, Pretty.PrintSize(MaxLineLength));
+         logger.Log("-- SearchThreads: {0}", SearchThreads);
+         logger.Log("-- CompressMemoryIfBigger: {0} ({1})", CompressMemoryIfBigger, Pretty.PrintSize(CompressMemoryIfBigger));
+         logger.Log("-- LoadMemoryIfBigger: {0} ({1})", LoadMemoryIfBigger, Pretty.PrintSize(LoadMemoryIfBigger));
+         logger.Log("-- PhysicalMem: total={0}, available={1}", Pretty.PrintSize(TotalPhysicalMemory), Pretty.PrintSize(AvailablePhysicalMemory));
       }
    }
 
@@ -71,55 +87,24 @@ namespace Bitmanager.BigFile
    /// <summary>
    /// Save/load settings in registry
    /// </summary>
-   public class SettingsSource
-   {
-      public Settings Settings { get; private set; }
-      public const String DefaultMaxLineLength = "10MB";
-      private const String _KEY = @"software\bitmanager\bigfile";
+   public class SettingsSource {
       public const String AUTO = @"Auto";
+      public Settings Settings { get; private set; }
+      private const String _KEY = @"software\bitmanager\bigfile";
       public readonly long TotalPhysicalMemory;
       public readonly long AvailablePhysicalMemory;
 
-      public Color HighlightColor = Color.Lime;
-      public Color ContextColor = Color.LightGray;
-      public int MultiSelectLimit = 100000;
-      public int NumContextLines = 0;
-      private int _searchThreads = 0;
-      public String SearchThreadsAsText
-      {
-         get
-         {
-            return _searchThreads == 0 ? AUTO : _searchThreads.ToString();
-         }
-         set
-         {
-            _searchThreads = AUTO.Equals(value, StringComparison.InvariantCultureIgnoreCase) ? 0 : Invariant.ToInt32(value);
-         }
-      }
-      public int SearchThreads { get { return GetActualNumSearchThreads(); } }
+      public readonly SizeSetting MaxLineLength = new SizeSetting("max_line_size", "10MB");
+      public readonly ColorSetting HighlightColor = new ColorSetting("highlight_color", Color.Lime);
+      public readonly ColorSetting ContextColor = new ColorSetting("context_color", Color.LightGray);
+      public readonly IntSetting NumContextLines = new IntSetting("context_lines", "0");
 
-      private String _MaxLineLengthSetting = AUTO;
-      public String MaxLineLengthSetting
-      {
-         get { return _MaxLineLengthSetting; }
-         set { _MaxLineLengthSetting = CheckAndRepairSizeWithOnOff(value, true); }
-      }
-      public int MaxLineLength
-      {
-         get { return (int) GetActualSize(_MaxLineLengthSetting, DefaultMaxLineLength); }
-      }
-      private String _LoadMemoryIfBigger = AUTO;
-      public String LoadMemoryIfBigger
-      {
-         get { return _LoadMemoryIfBigger; }
-         set { _LoadMemoryIfBigger = CheckAndRepairSizeWithOnOff(value, true); }
-      }
-      private String _CompressMemoryIfBigger = AUTO;
-      public String CompressMemoryIfBigger
-      {
-         get { return _CompressMemoryIfBigger; }
-         set { _CompressMemoryIfBigger = CheckAndRepairSizeWithOnOff(value, true); }
-      }
+      public readonly ThreadsSetting SearchThreads = new ThreadsSetting("search_threads", "0", AUTO);
+      public readonly SizeSetting LoadMemoryIfBigger = new SizeSetting("load_memory", "32GB", AUTO);
+      public readonly SizeSetting CompressMemoryIfBigger = new SizeSetting("compress_memory", "1GB", AUTO);
+
+      public readonly IntSetting MaxCopyLines = new IntSetting("max_copy_lines", "100000");
+      public readonly SizeSetting MaxCopySize = new SizeSetting("max_copy_size", "100MB");
 
       public SettingsSource(bool autoLoad=false)
       {
@@ -134,18 +119,7 @@ namespace Bitmanager.BigFile
          ActualizeDefaults();
       }
 
-      public int GetActualNumSearchThreads()
-      {
-         Globals.MainLogger.Log("Threads={0}", _searchThreads);
-         var ret = _searchThreads;
-         var N = Environment.ProcessorCount;
-         if (ret <= 0) ret += N;
 
-         if (ret < 1) ret = 1;
-         else if (ret > N) ret = N;
-         Globals.MainLogger.Log("Threads result={0}", ret);
-         return ret;
-      }
 
       public Settings ActualizeDefaults()
       {
@@ -157,13 +131,15 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.OpenSubKey(_KEY, false))
          {
-            ContextColor = ReadVal(key, "context_color", ContextColor);
-            HighlightColor = ReadVal(key, "highlight_color", HighlightColor);
-            MultiSelectLimit = ReadVal(key, "select_limit", MultiSelectLimit);
-            NumContextLines = ReadVal(key, "context_lines", NumContextLines);
-            SearchThreadsAsText = ReadVal(key, "search_threads", SearchThreadsAsText);
-            LoadMemoryIfBigger = CheckAndRepairSizeWithOnOff(ReadVal(key, "load_memory", LoadMemoryIfBigger), false);
-            CompressMemoryIfBigger = CheckAndRepairSizeWithOnOff(ReadVal(key, "compress_memory", CompressMemoryIfBigger), false);
+            MaxLineLength.Load(key);
+            ContextColor.Load(key);
+            HighlightColor.Load(key);
+            NumContextLines.Load(key);
+            MaxCopyLines.Load(key);
+            MaxCopySize.Load(key);
+            SearchThreads.Load(key);
+            LoadMemoryIfBigger.Load(key);
+            CompressMemoryIfBigger.Load(key);
 
             FormLine.LoadState(key);
          }
@@ -174,50 +150,35 @@ namespace Bitmanager.BigFile
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey(_KEY, true))
          {
-            WriteVal(key, "context_color", ContextColor);
-            WriteVal(key, "highlight_color", HighlightColor);
-            WriteVal(key, "select_limit", MultiSelectLimit);
-            WriteVal(key, "context_lines", NumContextLines);
-            WriteVal(key, "search_threads", SearchThreadsAsText);
-            WriteVal(key, "load_memory", LoadMemoryIfBigger);
-            WriteVal(key, "compress_memory", CompressMemoryIfBigger);
+            MaxLineLength.Save(key);
+            ContextColor.Save(key);
+            HighlightColor.Save(key);
+            NumContextLines.Save(key);
+            MaxCopyLines.Save(key);
+            MaxCopySize.Save(key);
+            SearchThreads.Save(key);
+            LoadMemoryIfBigger.Save(key);
+            CompressMemoryIfBigger.Save(key);
 
             FormLine.SaveState(key);
          }
          Load();
       }
 
-      public static String CheckAndRepairSizeWithOnOff(String x, bool mustExcept)
-      {
-         return _CheckAndRepairSize(x, mustExcept, true);
+      public void Dump(String why) {
+         var logger = Globals.SettingsLogger;
+         logger.Log("Dumping current registry settings ({0}):", why);
+         logger.Log("-- {0}", HighlightColor);
+         logger.Log("-- {0}, {1}", ContextColor, NumContextLines);
+         logger.Log("-- {0}, {1}", MaxCopyLines, MaxCopySize);
+         logger.Log("-- {0}", MaxLineLength);
+         logger.Log("-- {0}", SearchThreads);
+         logger.Log("-- {0}", CompressMemoryIfBigger);
+         logger.Log("-- {0}", LoadMemoryIfBigger);
+         logger.Log("-- PhysicalMem: total={0}, available={1}", Pretty.PrintSize(TotalPhysicalMemory), Pretty.PrintSize(AvailablePhysicalMemory));
+         if (Settings != null) Settings.Dump();
       }
-      public static String _CheckAndRepairSize(String x, bool mustExcept, bool supportOnOff=false)
-      {
-         x = x.TrimToNull();
-         if (x == null) return AUTO;
-         switch (x.ToLowerInvariant())
-         {
-            case "auto": x = AUTO; break;
-            case "off":
-            case "on": 
-               if (supportOnOff) return x;
-               if (mustExcept) throw new BMException("Unsupported value: '{0}'.", x);
-               x = AUTO;
-               break;
-            default:
-               try
-               {
-                  Pretty.ParseSize(x);
-               }
-               catch (Exception e)
-               {
-                  if (mustExcept) throw new BMException(e, e.Message);
-                  x = AUTO;
-               }
-               break;
-         }
-         return x;
-      }
+
 
       public static long GetActualSize (String size, String auto)
       {

@@ -38,23 +38,28 @@ namespace Bitmanager.BigFile
          comboNumLines.SelectedIndex = this.settingsSource.NumContextLines;
          txtHilight.Text = ColorTranslator.ToHtml(settings.HighlightColor);
          txtContext.Text = ColorTranslator.ToHtml(settings.ContextColor);
-         cbSearchThreads.Text = settings.SearchThreadsAsText;
-         cbCompress.Text = settings.CompressMemoryIfBigger;
-         cbInMemory.Text = settings.LoadMemoryIfBigger;
+         cbSearchThreads.Text = settings.SearchThreads.Value;
+         cbCompress.Text = settings.CompressMemoryIfBigger.Value;
+         cbInMemory.Text = settings.LoadMemoryIfBigger.Value;
+         txtMaxCopyLines.Text = settingsSource.MaxCopyLines.Value;
+         txtMaxCopySize.Text = settingsSource.MaxCopySize.Value;
          label6.Text = Invariant.Format("(#cpu's: {0})", Environment.ProcessorCount);
       }
 
       private void buttonOK_Click(object sender, EventArgs e)
       {
-         settingsSource.HighlightColor = ColorTranslator.FromHtml(txtHilight.Text);
-         settingsSource.ContextColor = ColorTranslator.FromHtml(txtContext.Text);
-         settingsSource.NumContextLines = comboNumLines.SelectedIndex;
-         settingsSource.SearchThreadsAsText = cbSearchThreads.Text;
-         settingsSource.CompressMemoryIfBigger = cbCompress.Text;
-         settingsSource.LoadMemoryIfBigger = cbInMemory.Text;
-         settingsSource.MaxLineLengthSetting = cbLineLength.Text;
+         settingsSource.HighlightColor.Set (txtHilight.Text);
+         settingsSource.ContextColor.Set (txtContext.Text);
+         settingsSource.NumContextLines.Set (comboNumLines.SelectedIndex.ToString());
+         settingsSource.SearchThreads.Set(cbSearchThreads.Text);
+         settingsSource.CompressMemoryIfBigger.Set(cbCompress.Text);
+         settingsSource.LoadMemoryIfBigger.Set(cbInMemory.Text);
+         settingsSource.MaxLineLength.Set(cbLineLength.Text);
+         settingsSource.MaxCopyLines.Set(txtMaxCopyLines.Text);
+         settingsSource.MaxCopySize.Set(txtMaxCopySize.Text);
          settingsSource.Save();
          settingsSource.ActualizeDefaults();
+         settingsSource.Dump("settings changed");
 
          this.DialogResult = DialogResult.OK;
       }
@@ -84,9 +89,5 @@ namespace Bitmanager.BigFile
          }
       }
 
-      private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-      {
-
-      }
    }
 }

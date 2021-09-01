@@ -129,6 +129,7 @@ namespace Bitmanager.BigFile
          GCSettings.LatencyMode = GCLatencyMode.Batch;
          this.settingsSource = new SettingsSource(true);
          this.settings = this.settingsSource.Settings;
+         this.settingsSource.Dump("initial load");
          this.fileHistory = new FileHistory("fh_");
          this.directoryHistory = new FileHistory("dh_");
          createRecentItems();
@@ -547,7 +548,7 @@ namespace Bitmanager.BigFile
       private void copyToClipboard() {
          if (lf == null) return;
          int copied = 0;
-         var toExport = getSelectedLineIndexes(settings.MultiSelectLimit, out var truncated);
+         var toExport = getSelectedLineIndexes(settings.MaxCopyLines, out var truncated);
          if (toExport == null || toExport.Count == 0) {
             Clipboard.SetText(String.Empty);
             goto EXIT_RTN;
@@ -577,7 +578,7 @@ namespace Bitmanager.BigFile
 
       private void contextMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
       {
-         if (listLines.SelectedObjects.Count > this.settings.MultiSelectLimit)
+         if (listLines.SelectedObjects.Count > this.settings.MaxCopyLines)
          {
             contextMenuCopy.Enabled = false;
             exportSelectedToolStripMenuItem.Enabled = false;

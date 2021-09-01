@@ -74,6 +74,7 @@
     <Compile Include="LogFileResuls.cs" />
     <Compile Include="SearchHistory.cs" />
     <Compile Include="SelectionHandler.cs" />
+    <Compile Include="Setting.cs" />
     <Compile Include="ThreadContext.cs" />
     <Compile Include="ToolStripToolTipHelper.cs" />
     <Compile Include="CompressedChunkedMemoryStream.cs" />

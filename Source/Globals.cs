@@ -32,6 +32,7 @@ namespace Bitmanager.BigFile
    {
       public const String TITLE = "BigFile";
       public static readonly Logger MainLogger;
+      public static readonly Logger SettingsLogger;
       public static readonly String LoadDir;
       public static readonly bool IsDebug;
 
@@ -44,6 +45,8 @@ namespace Bitmanager.BigFile
       {
          MainLogger = Logs.CreateLogger("bigfile", "main");
          MainLogger.Log();
+         SettingsLogger = MainLogger.Clone("settings");
+
          LoadDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
          IsDebug = File.Exists(Path.Combine(LoadDir, "debug.txt"));
 
