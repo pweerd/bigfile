@@ -69,6 +69,7 @@
     <Compile Include="ControlExtensions.cs" />
     <Compile Include="Encodings.cs" />
     <Compile Include="FileHistory.cs" />
+    <Compile Include="LineSplitter.cs" />
     <Compile Include="LogFileCallback.cs" />
     <Compile Include="LogFileResuls.cs" />
     <Compile Include="SearchHistory.cs" />
@@ -166,6 +167,12 @@
   <ItemGroup>
     <Content Include="bigfile.ico" />
     <Content Include="Query\Todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CustomVirtualListView\CustomVirtualListView.csproj">
+      <Project>{50e90553-160a-42b9-a94c-86eb61017b1a}</Project>
+      <Name>CustomVirtualListView</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
