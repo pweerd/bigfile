@@ -138,6 +138,12 @@ namespace Bitmanager.BigFile
          this.olvcText.AspectGetter = getLimitedLine;
          this.dropdownEncoding.SelectedIndex = 0;
 
+         contextMenu.Items.Clear();
+         contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripCopyMenuItem,
+            this.selectToolStripMenuItem,
+            this.exportToolStripMenuItem});
+
          menuFileClose.Enabled = false;
          listLines.Dock = DockStyle.Fill;
          listLines.Visible = true;
@@ -364,8 +370,13 @@ namespace Bitmanager.BigFile
          this.Text = String.Format("[{0}] - {1}", filePath, Globals.TITLE);
 
          statusLabelMain.Text = "Loading...";
-         statusLabelSearch.Text = String.Empty;
+         setSearchStatus (String.Empty);
          new LogFile(this, settings, getCurrentEncoding(), maxPartial).Load(filePath, cancellationTokenSource.Token, zipEntry);
+      }
+
+      private void setSearchStatus(String txt, int count = 1) {
+         statusLabelSearch.Text = txt;
+         statusLabelSearch.BackColor = count==0 ? Color.FromArgb(0xF1, 0xD0, 0xD0) : statusLabelMain.BackColor;
       }
 
       private void SearchFile()
@@ -375,7 +386,7 @@ namespace Bitmanager.BigFile
          lastQuery = searchboxDriver.GetParsedQuery();
          if (lastQuery == null) return;
 
-         statusLabelSearch.Text = "Searching...";
+         setSearchStatus("Searching...");
 
          indicateProcessing();
          lf.SyncSettings(settings, getCurrentEncoding());
@@ -525,7 +536,7 @@ namespace Bitmanager.BigFile
          }
 
          indicateProcessing();
-         statusLabelSearch.Text = Invariant.Format("Exporting {0} lines...", what.ToString().ToLowerInvariant());
+         setSearchStatus(Invariant.Format("Exporting {0:n0} lines...", what.ToString().ToLowerInvariant()));
          lf.Export(toExport, sfd.FileName, cancellationTokenSource.Token);
       }
       private void exportMatchedToolStripMenuItem_Click(object sender, EventArgs e)
@@ -568,12 +579,18 @@ namespace Bitmanager.BigFile
          Clipboard.SetText(sb.ToString());
 
          EXIT_RTN:
-         var fmt = truncated ? "Copied {0} lines (truncated!)" : "Copied {0} lines";
-         statusLabelSearch.Text = Invariant.Format(fmt, copied);
+         var fmt = truncated ? "Copied {0:n0} lines (truncated!)" : "Copied {0:n0} lines";
+         setSearchStatus(Invariant.Format(fmt, copied));
       }
+
       private void contextMenuCopy_Click(object sender, EventArgs e) {
          copyToClipboard();
       }
+
+      private void toolStripCopyMenuItem_Click(object sender, EventArgs e) {
+         copyToClipboard();
+      }
+
 
 
       private void contextMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
@@ -658,7 +675,7 @@ namespace Bitmanager.BigFile
 
          menuFileClose.Enabled = false;
          statusLabelMain.Text = "";
-         statusLabelSearch.Text = "";
+         setSearchStatus("");
       }
 
       /// <summary>
@@ -763,7 +780,7 @@ namespace Bitmanager.BigFile
             int all = result.LogFile.PartialLineCount;
             int matched = result.NumMatches;
             int perc = all == 0 ? 0 : (int)(0.5 + 100.0 * matched / all);
-            var msg = String.Format("Matched {0} / {1} lines ({2}%, Search Terms: {3}),  # Duration: {4}",
+            var msg = String.Format("Matched {0:n0} / {1:n0} lines ({2}%, Search Terms: {3}),  # Duration: {4}",
                    matched,
                    all,
                    perc,
@@ -772,14 +789,14 @@ namespace Bitmanager.BigFile
             );
             if (result.Error != null)
             {
-               statusLabelSearch.Text = msg + " [ERROR]"; 
+               setSearchStatus(msg + " [ERROR]", 0); 
                handleViewSelection();
                result.ThrowIfError();
             }
             else if (result.Cancelled)
-               statusLabelSearch.Text = msg + " [CANCELLED]";
+               setSearchStatus(msg + " [CANCELLED]", 0);
             else
-               statusLabelSearch.Text = msg;
+               setSearchStatus(msg, matched);
 
             handleViewSelection();
          }), null);
@@ -858,11 +875,11 @@ namespace Bitmanager.BigFile
          synchronizationContext.Post(new SendOrPostCallback(o =>
          {
             indicateFinished();
-            statusLabelSearch.Text = "";
+            setSearchStatus("");
             menuFileClose.Enabled = true;
 
             var lf = result.LogFile;
-            String part1 = String.Format("{0} lines / {1}", lf.PartialLineCount, Pretty.PrintSize(lf.Size));
+            String part1 = String.Format("{0:n0} lines / {1}", lf.PartialLineCount, Pretty.PrintSize(lf.Size));
 
             if (result.Error != null)
             {
@@ -890,7 +907,7 @@ namespace Bitmanager.BigFile
          {
             logger.Log(); //Separate by empty line
             setLogFile(cloned);
-            statusLabelMain.Text = String.Format("Loading...  {0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize(cloned.Size));
+            statusLabelMain.Text = String.Format("Loading...  {0:n0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize(cloned.Size));
          }), null);
       }
 
@@ -901,19 +918,19 @@ namespace Bitmanager.BigFile
             indicateFinished();
 
             result.ThrowIfError();
-            var msg = String.Format("Exported {0} lines,  # Duration: {1}",
+            var msg = String.Format("Exported {0:n0} lines,  # Duration: {1}",
                    result.NumExported,
                    Pretty.PrintElapsedMs((int)result.Duration.TotalMilliseconds)
             );
             if (result.Error != null)
             {
-               statusLabelSearch.Text = msg + " [ERROR]";
+               setSearchStatus(msg + " [ERROR]", 0);
                result.ThrowIfError();
             }
             else if (result.Cancelled)
-               statusLabelSearch.Text = msg + " [CANCELLED]";
+               setSearchStatus(msg + " [CANCELLED]", 0);
             else
-               statusLabelSearch.Text = msg;
+               setSearchStatus(msg);
          }), null);
       }
 
@@ -1238,7 +1255,6 @@ namespace Bitmanager.BigFile
       private void listLines_CellRightClick(object sender, CellRightClickEventArgs e) {
          e.Handled = true;
       }
-
 
       private void createRegEntries (RegistryKey key, String exe)
       {

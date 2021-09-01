@@ -75,6 +75,7 @@ namespace Bitmanager.BigFile
          this.nonMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.clearByMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.clearByNonMatchedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+         this.toolStripCopyMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
          this.menuToolsConfiguration = new System.Windows.Forms.ToolStripMenuItem();
          this.registerShellextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -198,6 +199,7 @@ namespace Bitmanager.BigFile
             this.gotoToolStripMenuItem,
             this.exportToolStripMenuItem,
             this.selectToolStripMenuItem,
+            this.toolStripCopyMenuItem,
             this.toolStripMenuItem2,
             this.menuToolsConfiguration,
             this.registerShellextToolStripMenuItem});
@@ -208,8 +210,8 @@ namespace Bitmanager.BigFile
          // gotoToolStripMenuItem
          // 
          this.gotoToolStripMenuItem.Name = "gotoToolStripMenuItem";
-         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
-         this.gotoToolStripMenuItem.Text = "Goto";
+         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.gotoToolStripMenuItem.Text = "Goto (Ctrl-G)";
          this.gotoToolStripMenuItem.Click += new System.EventHandler(this.gotoToolStripMenuItem_Click);
          // 
          // exportToolStripMenuItem
@@ -219,7 +221,7 @@ namespace Bitmanager.BigFile
             this.exportSelectedToolStripMenuItem,
             this.exportMatchedToolStripMenuItem});
          this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-         this.exportToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.exportToolStripMenuItem.Text = "Export";
          // 
          // exportAllToolStripMenuItem
@@ -255,7 +257,7 @@ namespace Bitmanager.BigFile
             this.clearByMatchedToolStripMenuItem,
             this.clearByNonMatchedToolStripMenuItem});
          this.selectToolStripMenuItem.Name = "selectToolStripMenuItem";
-         this.selectToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.selectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.selectToolStripMenuItem.Text = "Select";
          // 
          // allToolStripMenuItem
@@ -312,22 +314,29 @@ namespace Bitmanager.BigFile
          this.clearByNonMatchedToolStripMenuItem.Text = "Clear by non matched";
          this.clearByNonMatchedToolStripMenuItem.Click += new System.EventHandler(this.clearByNonMatchedToolStripMenuItem_Click);
          // 
+         // toolStripCopyMenuItem
+         // 
+         this.toolStripCopyMenuItem.Name = "toolStripCopyMenuItem";
+         this.toolStripCopyMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.toolStripCopyMenuItem.Text = "Copy (Ctrl-C)";
+         this.toolStripCopyMenuItem.Click += new System.EventHandler(this.toolStripCopyMenuItem_Click);
+         // 
          // toolStripMenuItem2
          // 
          this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-         this.toolStripMenuItem2.Size = new System.Drawing.Size(156, 6);
+         this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
          // 
          // menuToolsConfiguration
          // 
          this.menuToolsConfiguration.Name = "menuToolsConfiguration";
-         this.menuToolsConfiguration.Size = new System.Drawing.Size(159, 22);
-         this.menuToolsConfiguration.Text = "Settings";
+         this.menuToolsConfiguration.Size = new System.Drawing.Size(180, 22);
+         this.menuToolsConfiguration.Text = "Options";
          this.menuToolsConfiguration.Click += new System.EventHandler(this.menuToolsConfiguration_Click);
          // 
          // registerShellextToolStripMenuItem
          // 
          this.registerShellextToolStripMenuItem.Name = "registerShellextToolStripMenuItem";
-         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.registerShellextToolStripMenuItem.Text = "Register shellext";
          this.registerShellextToolStripMenuItem.Click += new System.EventHandler(this.registerShellextToolStripMenuItem_Click);
          // 
@@ -760,6 +769,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem clearByMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByNonMatchedToolStripMenuItem;
       private CustomVirtualListView listLines;
+      private System.Windows.Forms.ToolStripMenuItem toolStripCopyMenuItem;
    }
 }
 

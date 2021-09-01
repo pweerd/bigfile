@@ -55,7 +55,7 @@ namespace Bitmanager.BigFile
          AvailablePhysicalMemory = src.AvailablePhysicalMemory;
          Color tmp = src.HighlightColor;
          HighlightColor = tmp;
-         SelectedHighlightColor = Color.FromArgb((int)(tmp.R * .7f), (int)(tmp.G * .7f), (int)(tmp.B * .7f));
+         SelectedHighlightColor = Color.FromArgb((int)(tmp.R * .6f), (int)(tmp.G * .6f), (int)(tmp.B * .6f));
 
          ContextColor = src.ContextColor;
          NumContextLines = src.NumContextLines;
