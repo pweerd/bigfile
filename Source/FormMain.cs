@@ -501,7 +501,7 @@ namespace Bitmanager.BigFile
          if (lf == null) return;
 
          SaveFileDialog sfd = new SaveFileDialog();
-         sfd.Filter = "Text file|*.txt|Gzip file|*.gz|All Files|*.*";
+         sfd.Filter = "Gzip file|*.gz|Text file|*.txt|Any File|*.*";
          sfd.FileName = Path.GetFileName(lf.FileName).Replace('.', '_') + "_exported";
          sfd.InitialDirectory = Path.GetDirectoryName(lf.FileName);
          sfd.Title = "Select export file";
