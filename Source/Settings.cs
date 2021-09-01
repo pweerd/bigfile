@@ -39,6 +39,7 @@ namespace Bitmanager.BigFile
       public readonly long LoadMemoryIfBigger;
 
       public readonly Color HighlightColor;
+      public readonly Color SelectedHighlightColor;
       public readonly Color ContextColor;
       public readonly int MultiSelectLimit;
       public readonly int NumContextLines;
@@ -50,7 +51,10 @@ namespace Bitmanager.BigFile
          Source = src;
          TotalPhysicalMemory = src.TotalPhysicalMemory;
          AvailablePhysicalMemory = src.AvailablePhysicalMemory;
-         HighlightColor = src.HighlightColor;
+         Color tmp = src.HighlightColor;
+         HighlightColor = tmp;
+         SelectedHighlightColor = Color.FromArgb((int)(tmp.R * .7f), (int)(tmp.G * .7f), (int)(tmp.B * .7f));
+
          ContextColor = src.ContextColor;
          NumContextLines = src.NumContextLines;
          MultiSelectLimit = src.MultiSelectLimit;
@@ -78,7 +82,7 @@ namespace Bitmanager.BigFile
 
       public Color HighlightColor = Color.Lime;
       public Color ContextColor = Color.LightGray;
-      public int MultiSelectLimit = 1000;
+      public int MultiSelectLimit = 100000;
       public int NumContextLines = 0;
       private int _searchThreads = 0;
       public String SearchThreadsAsText

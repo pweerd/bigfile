@@ -794,6 +794,20 @@ namespace Bitmanager.BigFile
          }
       }
 
+      public List<int> GetSelectedPartialLines(int maxCount, out bool truncated) {
+         var ret = new List<int> ();
+         long mask = (int)LineFlags.Selected;
+         truncated = false;
+         for (int i = 0; i < partialLines.Count; i++) {
+            if ((partialLines[i] & mask) == 0) continue;
+            if (ret.Count >= maxCount) {
+               truncated = true;  break;
+            }
+            ret.Add(i);
+         }
+         return ret;
+      }
+
       public void MarkSelected(int row)
       {
          long mask = (int)LineFlags.Selected;

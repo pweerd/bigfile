@@ -17,6 +17,8 @@
  * under the License.
  */
 
+using System.ComponentModel;
+
 namespace Bitmanager.BigFile
 {
    partial class FormMain
@@ -105,7 +107,7 @@ namespace Bitmanager.BigFile
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
          this.cbDbgLoad = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
-         this.listLines = new BrightIdeasSoftware.VirtualObjectListView();
+         this.listLines = new Bitmanager.BigFile.CustomVirtualListView();
          this.olvcLineNumber = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.olvcText = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -562,7 +564,6 @@ namespace Bitmanager.BigFile
          this.btnResplit.Name = "btnResplit";
          this.btnResplit.Size = new System.Drawing.Size(28, 28);
          this.btnResplit.Text = "Re-split";
-         this.btnResplit.Click += new System.EventHandler(this.btnResplit_Click);
          // 
          // cbDbgLoad
          // 
@@ -619,13 +620,14 @@ namespace Bitmanager.BigFile
          this.listLines.UseCompatibleStateImageBehavior = false;
          this.listLines.View = System.Windows.Forms.View.Details;
          this.listLines.VirtualMode = true;
+         this.listLines.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.listLines_CellRightClick);
          this.listLines.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.listLines_FormatRow);
          this.listLines.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs>(this.listLines_Scroll);
          this.listLines.ItemActivate += new System.EventHandler(this.listLines_ItemActivate);
          this.listLines.DragDrop += new System.Windows.Forms.DragEventHandler(this.listLines_DragDrop);
          this.listLines.DragEnter += new System.Windows.Forms.DragEventHandler(this.listLines_DragEnter);
-         this.listLines.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.FormMain_KeyPress);
          this.listLines.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
+         this.listLines.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.FormMain_KeyPress);
          this.listLines.Resize += new System.EventHandler(this.listLines_Resize);
          // 
          // olvcLineNumber
@@ -680,8 +682,8 @@ namespace Bitmanager.BigFile
          this.Load += new System.EventHandler(this.FormMain_Load);
          this.DragDrop += new System.Windows.Forms.DragEventHandler(this.FormMain_DragDrop);
          this.DragEnter += new System.Windows.Forms.DragEventHandler(this.FormMain_DragEnter);
-         this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.FormMain_KeyPress);
          this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
+         this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.FormMain_KeyPress);
          this.menuStrip.ResumeLayout(false);
          this.menuStrip.PerformLayout();
          this.statusStrip.ResumeLayout(false);
@@ -724,7 +726,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem menuTools;
       private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
       private System.Windows.Forms.ToolStripMenuItem menuToolsConfiguration;
-      private BrightIdeasSoftware.VirtualObjectListView listLines;
       private BrightIdeasSoftware.OLVColumn olvcLineNumber;
       private BrightIdeasSoftware.OLVColumn olvcText;
       private System.Windows.Forms.ToolStripMenuItem menuFileClose;
@@ -758,6 +759,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem nonMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByNonMatchedToolStripMenuItem;
+      private CustomVirtualListView listLines;
    }
 }
 

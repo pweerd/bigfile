@@ -36,6 +36,7 @@ using System.Diagnostics;
 using Bitmanager.Query;
 using System.Reflection;
 using Microsoft.Win32;
+using static BrightIdeasSoftware.ObjectListView;
 
 namespace Bitmanager.BigFile
 {
@@ -51,6 +52,7 @@ namespace Bitmanager.BigFile
       private CancellationTokenSource cancellationTokenSource;
       private bool processing;
       private SettingsSource settingsSource;
+      private Settings settings;
       private FixedFontMeasures fontMeasures;
       private readonly VirtualDataSource listDatasource;
       private readonly Encoding[] encodings;
@@ -86,6 +88,8 @@ namespace Bitmanager.BigFile
          listLines.VirtualListDataSource = listDatasource = new VirtualDataSource(listLines);
          listLines.MultiSelect = false;
          listLines.SelectAllOnControlA = false;
+         listLines.SelectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.None;
+         listLines.CopySelectionOnControlC = false;
 
          searchboxDriver = new SearchHistory(cbSearch);
          btnResetSearch.Visible = Globals.IsDebug;
@@ -124,6 +128,7 @@ namespace Bitmanager.BigFile
          Bitmanager.Core.GlobalExceptionHandler.Hook();
          GCSettings.LatencyMode = GCLatencyMode.Batch;
          this.settingsSource = new SettingsSource(true);
+         this.settings = this.settingsSource.Settings;
          this.fileHistory = new FileHistory("fh_");
          this.directoryHistory = new FileHistory("dh_");
          createRecentItems();
@@ -359,7 +364,7 @@ namespace Bitmanager.BigFile
 
          statusLabelMain.Text = "Loading...";
          statusLabelSearch.Text = String.Empty;
-         new LogFile(this, settingsSource.Settings, getCurrentEncoding(), maxPartial).Load(filePath, cancellationTokenSource.Token, zipEntry);
+         new LogFile(this, settings, getCurrentEncoding(), maxPartial).Load(filePath, cancellationTokenSource.Token, zipEntry);
       }
 
       private void SearchFile()
@@ -372,26 +377,26 @@ namespace Bitmanager.BigFile
          statusLabelSearch.Text = "Searching...";
 
          indicateProcessing();
-         lf.SyncSettings(settingsSource.Settings, getCurrentEncoding());
+         lf.SyncSettings(settings, getCurrentEncoding());
          lf.Search(lastQuery, cancellationTokenSource.Token);
       }
 
-      private List<int> getSelectedLineIndexes()
+
+      private List<int> getSelectedLineIndexes(int maxCount, out bool truncated)
       {
-         var selected = listLines.SelectedIndices;
-         if (lf==null || selected.Count == 0) return null;
-         var list = new List<int>(selected.Count);
+         truncated = false;
+         if (lf == null) return null;
+         var selected = lf.GetSelectedPartialLines(maxCount, out truncated);
+         if (selected.Count == 0) return null;
 
          var filter = listDatasource.Filter;
-         if (filter == null)
-         {
-            foreach (int x in selected) list.Add(x);
-         }
-         else
-         {
+         if (filter != null) {
+            var list = new List<int>(selected.Count);
             foreach (int x in selected) list.Add(filter[x]);
+            selected = list;
          }
-         return lf.ConvertToLines(list);
+
+         return lf.ConvertToLines(selected);
       }
 
 
@@ -449,13 +454,16 @@ namespace Bitmanager.BigFile
          LineFlags flags = lf.GetLineFlags((int)e.Model);
          Color f = listLines.ForeColor;
          Color b = listLines.BackColor;
-         if ((flags & LineFlags.Selected) != 0)
-         {
+
+         if ((flags & LineFlags.Match) != 0) {
+            b = settings.HighlightColor;
+            if ((flags & LineFlags.Selected) != 0) {
+               b = settings.SelectedHighlightColor;
+               f = listLines.SelectedForeColorOrDefault;
+            }
+         } else if ((flags & LineFlags.Selected) != 0) {
             f = listLines.SelectedForeColorOrDefault;
             b = listLines.SelectedBackColorOrDefault;
-         } else if ((flags & LineFlags.Match) != 0)
-         {
-            b = settingsSource.HighlightColor;
          }
 
          e.Item.BackColor = b;
@@ -484,7 +492,7 @@ namespace Bitmanager.BigFile
             fl = lineForm;
             if (fl == null || fl.IsClosed) fl = lineForm = new FormLine();
          }
-         fl.ShowLine(settingsSource.Settings, lf, listDatasource.Filter, m, lastQuery);
+         fl.ShowLine(settings, lf, listDatasource.Filter, m, lastQuery);
       }
 
       private enum WhatToExport { All, Selected, Matched};
@@ -506,7 +514,7 @@ namespace Bitmanager.BigFile
             default: what.ThrowUnexpected(); break;
             case WhatToExport.All: break;
             case WhatToExport.Selected:
-               toExport = getSelectedLineIndexes();
+               toExport = getSelectedLineIndexes(int.MaxValue, out var truncated);
                if (toExport == null) return; //Nothing to export
                break;
             case WhatToExport.Matched:
@@ -536,36 +544,40 @@ namespace Bitmanager.BigFile
 
 
       //Copy the selection to the clipboard
-      private void contextMenuCopy_Click(object sender, EventArgs e)
-      {
+      private void copyToClipboard() {
          if (lf == null) return;
-         var toExport = getSelectedLineIndexes();
-         if (toExport==null)
-         {
+         int copied = 0;
+         var toExport = getSelectedLineIndexes(settings.MultiSelectLimit, out var truncated);
+         if (toExport == null || toExport.Count == 0) {
             Clipboard.SetText(String.Empty);
-            return;
+            goto EXIT_RTN;
          }
 
-         int memLimit = Math.Min(settingsSource.MaxLineLength, 1024*1024);
-         memLimit = 2*Math.Max(memLimit, int.MaxValue / 2);
+         int memLimit = 64 * 1024 * 1024;
 
-         if (toExport.Count > settingsSource.MultiSelectLimit)
-         {
-            toExport.RemoveRange(settingsSource.MultiSelectLimit, toExport.Count - settingsSource.MultiSelectLimit);
-         }
-         StringBuilder sb = new StringBuilder(128 * (1+toExport.Count));
-         foreach (int lineIdx in toExport)
-         {
-            sb.AppendLine(lf.GetLine (lineIdx));
-            if (sb.Length > memLimit) break;
+         StringBuilder sb = new StringBuilder(128 * (1 + toExport.Count));
+         foreach (int lineIdx in toExport) {
+            ++copied;
+            sb.AppendLine(lf.GetLine(lineIdx));
+            if (sb.Length > memLimit) {
+               truncated = true;
+               break;
+            }
          }
          Clipboard.SetText(sb.ToString());
+
+         EXIT_RTN:
+         var fmt = truncated ? "Copied {0} lines (truncated!)" : "Copied {0} lines";
+         statusLabelSearch.Text = Invariant.Format(fmt, copied);
+      }
+      private void contextMenuCopy_Click(object sender, EventArgs e) {
+         copyToClipboard();
       }
 
 
       private void contextMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
       {
-         if (listLines.SelectedObjects.Count > this.settingsSource.MultiSelectLimit)
+         if (listLines.SelectedObjects.Count > this.settings.MultiSelectLimit)
          {
             contextMenuCopy.Enabled = false;
             exportSelectedToolStripMenuItem.Enabled = false;
@@ -678,6 +690,7 @@ namespace Bitmanager.BigFile
          {
             f.ShowDialog(this);
             checkWarnings();
+            settings = settingsSource.Settings;
          }
       }
 
@@ -914,10 +927,10 @@ namespace Bitmanager.BigFile
          }
          if (menuViewMatched.Checked)
          {
-            listDatasource.SetContent(lf.GetMatchedList(settingsSource.NumContextLines));
+            listDatasource.SetContent(lf.GetMatchedList(settings.NumContextLines));
             return;
          }
-         listDatasource.SetContent(lf.GetUnmatchedList(settingsSource.NumContextLines));
+         listDatasource.SetContent(lf.GetUnmatchedList(settings.NumContextLines));
          return;
       }
       private void menuView_Click(object sender, EventArgs e)
@@ -955,8 +968,13 @@ namespace Bitmanager.BigFile
       }
 
       private void gotoAndSelectLogicalLineIndex(int index)
-      {
-         if (index < 0 || index >= listLines.GetItemCount()) return;
+      {  
+         if (index < 0) index = 0;
+         int N = listLines.GetItemCount();
+         if (N == 0) return;
+         if (index >= N) index = N - 1;
+
+         //if (index < 0 || index >= listLines.GetItemCount()) return;
          listLines.SelectedIndex = index;
          listLines.EnsureVisible(index);
          listLines.Update();
@@ -969,6 +987,8 @@ namespace Bitmanager.BigFile
             switch (e.KeyCode)
             {
                default: return;
+               case Keys.C:
+                  copyToClipboard(); break;
                case Keys.F:
                   cbSearch.Focus(); break;
                case Keys.G:
@@ -1106,11 +1126,6 @@ namespace Bitmanager.BigFile
          if (lf != null) lf.SetEncoding (getCurrentEncoding());
       }
 
-      private void btnResplit_Click(object sender, EventArgs e)
-      {
-
-      }
-
       private void btnResetSearch_Click(object sender, EventArgs e)
       {
          searchboxDriver.Clear();
@@ -1218,6 +1233,11 @@ namespace Bitmanager.BigFile
             lf.UnselectAllNonMatched(); selectionHandler.NotifyExternalChange();
          }
       }
+
+      private void listLines_CellRightClick(object sender, CellRightClickEventArgs e) {
+         e.Handled = true;
+      }
+
 
       private void createRegEntries (RegistryKey key, String exe)
       {
