@@ -1,4 +1,4 @@
-# BigFile (V0.9.3)
+# BigFile (V0.9.4)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems.
 The following provides a brief help guide for the core operations of BigFile.
@@ -149,13 +149,21 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 
 ## Changes
 
+#### V0.94 (aug 2021)
+
+- Copy to clipboard wasn't always working
+- Lots of internal stuf. Some UI changes.
+- Bugfixes.
+
 #### V0.93 (may 2020)
+
 - Gzip saving of export files is supported.
 - More (de-)selection possibilities. Selections are now handled by the logfile itself, since the ListView was way too slow.
 - Line view supports expansion of json, if the json contained strings with encoded json. 
 - Bugfixes.
 
 #### V0.92 (feb 2020)
+
 - Gzip loading is now done via an internal zlib implementation.
 This shaves off some 10-20% of load times for big .gz files, and there is no need for searching for an gzip.exe.
 - Extra view-as mode: auto.

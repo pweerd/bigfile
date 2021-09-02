@@ -72,6 +72,7 @@
     <Compile Include="LineSplitter.cs" />
     <Compile Include="LogFileCallback.cs" />
     <Compile Include="LogFileResuls.cs" />
+    <Compile Include="MenuExtensions.cs" />
     <Compile Include="SearchHistory.cs" />
     <Compile Include="SelectionHandler.cs" />
     <Compile Include="Setting.cs" />

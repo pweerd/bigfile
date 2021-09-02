@@ -55,6 +55,8 @@ namespace Bitmanager.BigFile
          UCoreDllVersion = v == null ? null : v.ToString();
          CanCompress = BMVersion.HasMinimalVersion(v, 1, 2, 2019, 429);
          CanInternalGZip = BMVersion.HasMinimalVersion(v, 1, 2, 2020, 424);
+         MainLogger.Log();
+         MainLogger.Log("Cmdline=" + Environment.CommandLine);
          MainLogger.Log("UCore version: {0}, Can GZip: {1}", UCoreDllVersion, CanInternalGZip);
       }
 

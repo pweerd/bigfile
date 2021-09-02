@@ -127,6 +127,7 @@ namespace Bitmanager.BigFile
       {
          Bitmanager.Core.GlobalExceptionHandler.Hook();
          GCSettings.LatencyMode = GCLatencyMode.Batch;
+
          this.settingsSource = new SettingsSource(true);
          this.settings = this.settingsSource.Settings;
          this.settingsSource.Dump("initial load");
@@ -140,9 +141,9 @@ namespace Bitmanager.BigFile
 
          contextMenu.Items.Clear();
          contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripCopyMenuItem,
-            this.selectToolStripMenuItem,
-            this.exportToolStripMenuItem});
+            this.toolStripCopyMenuItem.Clone(),
+            this.selectToolStripMenuItem.Clone(),
+            this.exportToolStripMenuItem.Clone()});
 
          menuFileClose.Enabled = false;
          listLines.Dock = DockStyle.Fill;
@@ -188,7 +189,6 @@ namespace Bitmanager.BigFile
          if (width > 300) Width = width;
          if (height > 200) Height = height;
 
-         logger.Log("cmdline=" + Environment.CommandLine);
          var lexer = new Lexer(Environment.CommandLine);
          for (int i=0; i<2; i++)
          {
