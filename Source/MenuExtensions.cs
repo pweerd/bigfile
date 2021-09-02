@@ -31,12 +31,13 @@ namespace Bitmanager.BigFile {
             ToolStripMenuItem menuItem = new ToolStripMenuItem();
 
             var propInfoList = from p in typeof(ToolStripMenuItem).GetProperties()
-                               let attributes = p.GetCustomAttributes(true)
-                               let notBrowseable = (from a in attributes
-                                                    where a.GetType() == typeof(BrowsableAttribute)
-                                                    select !(a as BrowsableAttribute).Browsable).FirstOrDefault()
-                               where !notBrowseable && p.CanRead && p.CanWrite && p.Name != "DropDown"
-                               orderby p.Name
+                               where p.Name == "Text" || p.Name == "Size"
+                               //let attributes = p.GetCustomAttributes(true)
+                               //let notBrowseable = (from a in attributes
+                               //                     where a.GetType() == typeof(BrowsableAttribute)
+                               //                     select !(a as BrowsableAttribute).Browsable).FirstOrDefault()
+                               //where !notBrowseable && p.CanRead && p.CanWrite && p.Name != "DropDown"
+                               //orderby p.Name
                                select p;
 
             // Copy over using reflections
