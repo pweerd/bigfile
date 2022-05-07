@@ -61,7 +61,7 @@ namespace Bitmanager.BigFile
 
       public FormMain()
       {
-         InitializeComponent();
+         InitializeComponent ();
          this.Text = Globals.TITLE;
 
          synchronizationContext = SynchronizationContext.Current;
@@ -70,8 +70,8 @@ namespace Bitmanager.BigFile
          encodings[1] = Encoding.Default;
          encodings[2] = Encoding.Unicode;
          encodings[3] = Encoding.BigEndianUnicode;
-         encodings[4] = new Utf81();
-         encodings[5] = new Utf82(); 
+         //encodings[4] = new Utf81();
+         //encodings[5] = new Utf82(); 
 
          dropdownEncoding.Items.Clear();
          dropdownEncoding.Items.Add("Utf8");
@@ -133,7 +133,7 @@ namespace Bitmanager.BigFile
          this.settingsSource.Dump("initial load");
          this.fileHistory = new FileHistory("fh_");
          this.directoryHistory = new FileHistory("dh_");
-         createRecentItems();
+         createRecentItems ();
 
          this.olvcLineNumber.AspectGetter = getLineNumber;
          this.olvcText.AspectGetter = getLimitedLine;
@@ -180,7 +180,7 @@ namespace Bitmanager.BigFile
          tooltipHelper.ToolTipInterval = 20000;
          tooltipHelper.Tooltip.ReshowDelay = 4000;
 
-         checkWarnings();
+         checkWarnings ();
 
          int left, top, width, height;
          SettingsSource.LoadFormPosition(out left, out top, out width, out height);
@@ -189,6 +189,7 @@ namespace Bitmanager.BigFile
          if (width > 300) Width = width;
          if (height > 200) Height = height;
 
+         //PW repareren
          var lexer = new Lexer(Environment.CommandLine);
          for (int i=0; i<2; i++)
          {
@@ -311,7 +312,7 @@ namespace Bitmanager.BigFile
          foreach (var x in history)
          {
             if (x == null) break;
-            if (checker != null && !checker(x)) continue;
+            //PWif (checker != null && !checker(x)) continue;
 
             var subItem = new ToolStripMenuItem();
             subItem.Text = x;
