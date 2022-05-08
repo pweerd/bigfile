@@ -21,45 +21,39 @@ using Bitmanager.Core;
 using System;
 using System.Windows.Forms;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Let the user input a line number
    /// </summary>
-   public partial class FormGoToLine : Form
-   {
+   public partial class FormGoToLine : Form {
       static bool prevPartial = false;
       static String prevGoto = String.Empty;
 
-      public int LineNumber { get { return Invariant.ToInt32(prevGoto); } }
+      public int LineNumber { get { return Invariant.ToInt32 (prevGoto); } }
       public bool IsPartial { get { return prevPartial; } }
 
-      public FormGoToLine()
-      {
-         InitializeComponent();
-         Bitmanager.Core.GlobalExceptionHandler.Hook();
+      public FormGoToLine () {
+         InitializeComponent ();
+         Bitmanager.Core.GlobalExceptionHandler.Hook ();
          textLineNum.Text = prevGoto;
          chkPartial.Checked = prevPartial;
       }
 
-      public static void ResetGoto()
-      {
+      public static void ResetGoto () {
          prevGoto = String.Empty;
       }
 
-      private void buttonOK_Click(object sender, EventArgs e)
-      {
-         if (textLineNum.Text.Trim().Length == 0)
-            throw new Exception("The line number must be entered");
+      private void buttonOK_Click (object sender, EventArgs e) {
+         if (textLineNum.Text.Trim ().Length == 0)
+            throw new Exception ("The line number must be entered");
 
-         Invariant.ToInt32(textLineNum.Text);
+         Invariant.ToInt32 (textLineNum.Text);
          prevGoto = textLineNum.Text;
          prevPartial = chkPartial.Checked;
          this.DialogResult = DialogResult.OK;
       }
 
-      private void buttonCancel_Click(object sender, EventArgs e)
-      {
+      private void buttonCancel_Click (object sender, EventArgs e) {
          this.DialogResult = DialogResult.Cancel;
       }
 

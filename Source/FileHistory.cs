@@ -57,7 +57,7 @@ namespace Bitmanager.BigFile {
             String tmp = history[i];
             if (tmp == null) continue;
             int k;
-            for (k=j-1; k>=0; k--) {
+            for (k = j - 1; k >= 0; k--) {
                if (String.Equals (tmp, history[k], StringComparison.OrdinalIgnoreCase))
                   break;
             }
@@ -79,11 +79,11 @@ namespace Bitmanager.BigFile {
             for (j = 0; j < history.Length; j++) {
                if (!String.Equals (history[j], fn, StringComparison.OrdinalIgnoreCase)) continue;
                fn = history[j]; //reuse oldest string to prevent garbage collected
-               break; 
+               break;
             }
-            if (j>0) {
-               for (int i=j-1; i>0; i--) {
-                  history[i] = history[i-1];
+            if (j > 0) {
+               for (int i = j - 1; i > 0; i--) {
+                  history[i] = history[i - 1];
                }
                history[0] = fn;
             }

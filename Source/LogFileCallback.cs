@@ -23,19 +23,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Callback to post asynchronous request ready from the LogFile
    /// To be implemented by the caller
    /// </summary>
-   public interface ILogFileCallback
-   {
-      void OnSearchComplete(SearchResult result);
-      void OnSearchPartial(LogFile lf, int firstMatch);
-      void OnLoadComplete(Result result);
-      void OnLoadCompletePartial(LogFile cloned);
-      void OnExportComplete(ExportResult result);
-      void OnProgress(LogFile lf, int percent);
+   public interface ILogFileCallback {
+      void OnSearchComplete (SearchResult result);
+      void OnSearchPartial (LogFile lf, int firstMatch);
+      void OnLoadComplete (Result result);
+      void OnLoadCompletePartial (LogFile cloned);
+      void OnExportComplete (ExportResult result);
+      void OnProgress (LogFile lf, int percent);
    }
 }

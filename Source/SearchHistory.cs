@@ -27,10 +27,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Bitmanager.BigFile
-{
-   public class SearchHistory
-   {
+namespace Bitmanager.BigFile {
+   public class SearchHistory {
       private readonly ToolStripComboBox cb;
       private readonly List<String> history;
       private AutoCompleteStringCollection autoComplete;
@@ -38,14 +36,13 @@ namespace Bitmanager.BigFile
       private readonly Logger logger;
 
 
-      public SearchHistory (ToolStripComboBox cb)
-      {
-         logger = Globals.MainLogger.Clone("sb-driver");
+      public SearchHistory (ToolStripComboBox cb) {
+         logger = Globals.MainLogger.Clone ("sb-driver");
          this.cb = cb;
-         history = new List<string>();
-         autoComplete = new AutoCompleteStringCollection();
-         autoComplete.Add("piet");
-         searchNodes = new SearchNodes();
+         history = new List<string> ();
+         autoComplete = new AutoCompleteStringCollection ();
+         autoComplete.Add ("piet");
+         searchNodes = new SearchNodes ();
 
          cb.AutoCompleteCustomSource = autoComplete;
          cb.AutoCompleteSource = AutoCompleteSource.CustomSource;
@@ -54,66 +51,60 @@ namespace Bitmanager.BigFile
          //cb.TextUpdate += Cb_TextUpdate;
       }
 
-      public void Clear()
-      {
-         searchNodes.Clear();
+      public void Clear () {
+         searchNodes.Clear ();
       }
 
-      private void Cb_TextUpdate(object sender, EventArgs e)
-      {
+      private void Cb_TextUpdate (object sender, EventArgs e) {
          var cb = (ToolStripComboBox)sender;
          var txt = cb.Text;
-         logger.Log("Selected index: {0} len={1}", cb.SelectionStart, cb.SelectionLength);
+         logger.Log ("Selected index: {0} len={1}", cb.SelectionStart, cb.SelectionLength);
          //cb.AutoCompleteMode = AutoCompleteMode.Suggest;
          //cb.Select(cb.Text.Length, 0);
-         if (!txt.EndsWith(" ")) return;
+         if (!txt.EndsWith (" ")) return;
          return;
-         autoComplete = new AutoCompleteStringCollection();
-         autoComplete.Add("piet");
+         autoComplete = new AutoCompleteStringCollection ();
+         autoComplete.Add ("piet");
          //foreach (String x in history) autoComplete.Add(x);
-         foreach (String x in cb.Items) autoComplete.Add(x);
+         foreach (String x in cb.Items) autoComplete.Add (x);
 
-         if (txt.EndsWith("AND ") || txt.EndsWith("OR ") || txt.EndsWith("NOT "))
-         {
-            foreach (var n in searchNodes) autoComplete.Add(txt + n.ToString());
+         if (txt.EndsWith ("AND ") || txt.EndsWith ("OR ") || txt.EndsWith ("NOT ")) {
+            foreach (var n in searchNodes) autoComplete.Add (txt + n.ToString ());
             cb.AutoCompleteMode = AutoCompleteMode.Suggest;
-            dumpAutocomplete();
+            dumpAutocomplete ();
             return;
          }
-         foreach (var n in searchNodes)
-         {
-            String x = n.ToString();
-            autoComplete.Add(txt + "AND " + x);
-            autoComplete.Add(txt + "NOT " + x);
-            autoComplete.Add(txt + "OR " + x);
+         foreach (var n in searchNodes) {
+            String x = n.ToString ();
+            autoComplete.Add (txt + "AND " + x);
+            autoComplete.Add (txt + "NOT " + x);
+            autoComplete.Add (txt + "OR " + x);
          }
          cb.AutoCompleteCustomSource = autoComplete;
          cb.AutoCompleteMode = AutoCompleteMode.Suggest;
-         dumpAutocomplete();
+         dumpAutocomplete ();
       }
 
-      private void dumpAutocomplete()
-      {
-         logger.Log("Dumping AC:");
-         foreach (var x in autoComplete) logger.Log("-- [{0}]", x);
+      private void dumpAutocomplete () {
+         logger.Log ("Dumping AC:");
+         foreach (var x in autoComplete) logger.Log ("-- [{0}]", x);
       }
 
-      public ParserNode<SearchContext> GetParsedQuery()
-      {
+      public ParserNode<SearchContext> GetParsedQuery () {
          String s = cb.Text;
-         if (String.IsNullOrEmpty(s)) return null;
+         if (String.IsNullOrEmpty (s)) return null;
 
-         int idx = history.IndexOf(s);
-         if (idx >= 0) history.RemoveAt(idx);
-         history.Insert(0, s);
+         int idx = history.IndexOf (s);
+         if (idx >= 0) history.RemoveAt (idx);
+         history.Insert (0, s);
          if (history.Count > 20)
-            history.RemoveRange(20, history.Count - 20);
+            history.RemoveRange (20, history.Count - 20);
 
-         cb.Items.Clear();
-         foreach (var x in history) cb.Items.Add(x);
+         cb.Items.Clear ();
+         foreach (var x in history) cb.Items.Add (x);
 
          cb.Text = s;
-         return searchNodes.Parse(s);
+         return searchNodes.Parse (s);
       }
    }
 }

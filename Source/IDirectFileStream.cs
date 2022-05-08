@@ -25,16 +25,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bitmanager.IO
-{
-   public interface IDirectStream
-   {
-      int ReadByte(long offset);
-      int Read(long offset, byte[] buffer, int bufOffset, int count);
-      void Close();
-      void PrepareForNewInstance();
-      IDirectStream NewInstanceForThread();
-      void CloseInstance();
+namespace Bitmanager.IO {
+   public interface IDirectStream {
+      int ReadByte (long offset);
+      int Read (long offset, byte[] buffer, int bufOffset, int count);
+      void Close ();
+      void PrepareForNewInstance ();
+      IDirectStream NewInstanceForThread ();
+      void CloseInstance ();
    }
 
 
@@ -44,66 +42,55 @@ namespace Bitmanager.IO
    /// This is done by giving each instance its own FileStream
    /// (Needed for multithreaded support)
    /// </summary>
-   public class DirectFileStreamWrapper : IDirectStream
-   {
+   public class DirectFileStreamWrapper : IDirectStream {
       public readonly String FileName;
       public readonly FileStream BaseStream;
       public readonly int BufferSize;
 
-      public DirectFileStreamWrapper(String fileName, FileStream wrapped)
-      {
+      public DirectFileStreamWrapper (String fileName, FileStream wrapped) {
          FileName = fileName;
          BaseStream = wrapped;
          BufferSize = 128 * 64;
       }
-      public DirectFileStreamWrapper(String fileName, int bufsize=0)
-      {
+      public DirectFileStreamWrapper (String fileName, int bufsize = 0) {
          FileName = fileName;
          BufferSize = bufsize > 0 ? bufsize : 128 * 64;
-         BaseStream = createNewFileStream();
+         BaseStream = createNewFileStream ();
       }
 
-      private FileStream createNewFileStream()
-      {
-         return new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize);
+      private FileStream createNewFileStream () {
+         return new FileStream (FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize);
       }
-      public DirectFileStreamWrapper(DirectFileStreamWrapper other)
-      {
+      public DirectFileStreamWrapper (DirectFileStreamWrapper other) {
          FileName = other.FileName;
          BufferSize = other.BufferSize;
-         BaseStream = createNewFileStream();
+         BaseStream = createNewFileStream ();
       }
 
-      public virtual void PrepareForNewInstance()
-      {
+      public virtual void PrepareForNewInstance () {
       }
 
-      public virtual IDirectStream NewInstanceForThread()
-      {
-         return new DirectFileStreamWrapper(this);
+      public virtual IDirectStream NewInstanceForThread () {
+         return new DirectFileStreamWrapper (this);
       }
 
-      public virtual void CloseInstance()
-      {
-         BaseStream.Close();
+      public virtual void CloseInstance () {
+         BaseStream.Close ();
       }
 
-      public virtual int ReadByte(long offset)
-      {
-            BaseStream.Position = offset;
-            return BaseStream.ReadByte();
-      }
-
-      public virtual int Read(long offset, byte[] buffer, int bufOffset, int count)
-      {
+      public virtual int ReadByte (long offset) {
          BaseStream.Position = offset;
-         return BaseStream.Read(buffer, bufOffset, count);
+         return BaseStream.ReadByte ();
       }
 
-      public virtual void Close()
-      {
+      public virtual int Read (long offset, byte[] buffer, int bufOffset, int count) {
+         BaseStream.Position = offset;
+         return BaseStream.Read (buffer, bufOffset, count);
+      }
+
+      public virtual void Close () {
          //Logs.ErrorLog.Log("Closed at: {0}", Environment.StackTrace);
-         BaseStream.Close();
+         BaseStream.Close ();
       }
    }
 

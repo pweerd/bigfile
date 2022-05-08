@@ -26,10 +26,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bitmanager.BigFile
-{
-   public static class Globals
-   {
+namespace Bitmanager.BigFile {
+   public static class Globals {
       public const String TITLE = "BigFile";
       public static readonly Logger MainLogger;
       public static readonly Logger SettingsLogger;
@@ -41,23 +39,22 @@ namespace Bitmanager.BigFile
       public static readonly bool CanCompress;
       public static readonly bool CanInternalGZip;
 
-      static Globals()
-      {
-         MainLogger = Logs.CreateLogger("bigfile", "main");
-         MainLogger.Log();
-         SettingsLogger = MainLogger.Clone("settings");
+      static Globals () {
+         MainLogger = Logs.CreateLogger ("bigfile", "main");
+         MainLogger.Log ();
+         SettingsLogger = MainLogger.Clone ("settings");
 
-         LoadDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-         IsDebug = File.Exists(Path.Combine(LoadDir, "debug.txt"));
+         LoadDir = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
+         IsDebug = File.Exists (Path.Combine (LoadDir, "debug.txt"));
 
          UCoreDll = Environment.Is64BitProcess ? "bmucore102_64" : "bmucore102_32";
-         Version v = BMVersion.FromDll(UCoreDll);
-         UCoreDllVersion = v == null ? null : v.ToString();
-         CanCompress = BMVersion.HasMinimalVersion(v, 1, 2, 2019, 429);
-         CanInternalGZip = BMVersion.HasMinimalVersion(v, 1, 2, 2020, 424);
-         MainLogger.Log();
-         MainLogger.Log("Cmdline=" + Environment.CommandLine);
-         MainLogger.Log("UCore version: {0}, Can GZip: {1}", UCoreDllVersion, CanInternalGZip);
+         Version v = BMVersion.FromDll (UCoreDll);
+         UCoreDllVersion = v == null ? null : v.ToString ();
+         CanCompress = BMVersion.HasMinimalVersion (v, 1, 2, 2019, 429);
+         CanInternalGZip = BMVersion.HasMinimalVersion (v, 1, 2, 2020, 424);
+         MainLogger.Log ();
+         MainLogger.Log ("Cmdline=" + Environment.CommandLine);
+         MainLogger.Log ("UCore version: {0}, Can GZip: {1}", UCoreDllVersion, CanInternalGZip);
       }
 
    }

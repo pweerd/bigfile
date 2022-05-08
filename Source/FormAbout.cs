@@ -22,49 +22,40 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace Bitmanager.BigFile
-{
-   public partial class FormAbout : Form
-   {
+namespace Bitmanager.BigFile {
+   public partial class FormAbout : Form {
       static readonly string year;
-      static FormAbout()
-      {
-         var attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false);
-         if (attributes.Length > 0)
-         {
+      static FormAbout () {
+         var attributes = Assembly.GetExecutingAssembly ().GetCustomAttributes (typeof (AssemblyCopyrightAttribute), false);
+         if (attributes.Length > 0) {
             var copyRight = ((AssemblyCopyrightAttribute)attributes[0]).Copyright;
-            var match = Regex.Match(copyRight, @" (\d\d\d\d)");
-            if (match.Success) year = match.Groups[1].ToString();
+            var match = Regex.Match (copyRight, @" (\d\d\d\d)");
+            if (match.Success) year = match.Groups[1].ToString ();
          }
       }
-      public FormAbout()
-      {
-         InitializeComponent();
+      public FormAbout () {
+         InitializeComponent ();
 
          lblApp.Text = Application.ProductName + " v" + Application.ProductVersion;
       }
 
-      private void btnClose_Click(object sender, System.EventArgs e)
-      {
+      private void btnClose_Click (object sender, System.EventArgs e) {
          this.DialogResult = DialogResult.OK;
       }
 
-      private void FormAbout_Load(object sender, System.EventArgs e)
-      {
-         if (Globals.IsDebug)
-         {
-            var fn = IOUtils.FindFileToRoot(Globals.LoadDir + @"\about.txt", FindToTootFlags.Except);
-            richTextBox1.Text = IOUtils.LoadFromFile(fn);
+      private void FormAbout_Load (object sender, System.EventArgs e) {
+         if (Globals.IsDebug) {
+            var fn = IOUtils.FindFileToRoot (Globals.LoadDir + @"\about.txt", FindToTootFlags.Except);
+            richTextBox1.Text = IOUtils.LoadFromFile (fn);
          }
-         if (year != null) richTextBox1.Rtf = richTextBox1.Rtf.Replace("2019", year);
+         if (year != null) richTextBox1.Rtf = richTextBox1.Rtf.Replace ("2019", year);
          richTextBox1.ShowSelectionMargin = true;
          var m = richTextBox1.Margin;
          m.All = 10;
       }
 
-      private void richTextBox1_LinkClicked(object sender, LinkClickedEventArgs e)
-      {
-         System.Diagnostics.Process.Start(e.LinkText);
+      private void richTextBox1_LinkClicked (object sender, LinkClickedEventArgs e) {
+         System.Diagnostics.Process.Start (e.LinkText);
       }
    }
 }

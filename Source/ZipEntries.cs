@@ -25,13 +25,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Bitmanager.Core;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Holds a list of ZipEntries and the index of the currently selected item
    /// </summary>
-   public class ZipEntries : List<ZipEntry>
-   {
+   public class ZipEntries : List<ZipEntry> {
       public int SelectedEntry = -1;
    }
 
@@ -39,25 +37,22 @@ namespace Bitmanager.BigFile
    /// Standalone version of a ZipArchiveEntry, that holds relevant information, 
    /// without holding a reference to the ZipArchive
    /// </summary>
-   public class ZipEntry
-   {
+   public class ZipEntry {
       public readonly String Name;
       public readonly String FullName;
       public readonly long Length;
       public readonly String ArchiveName;
       private readonly String _tos;
 
-      public ZipEntry(String archiveName, ZipArchiveEntry e)
-      {
+      public ZipEntry (String archiveName, ZipArchiveEntry e) {
          Name = e.Name;
          FullName = e.FullName;
          Length = e.Length;
          ArchiveName = archiveName;
-         _tos = Invariant.Format("{0} ({1})", e.FullName, Pretty.PrintSize(e.Length));
+         _tos = Invariant.Format ("{0} ({1})", e.FullName, Pretty.PrintSize (e.Length));
       }
 
-      public override String ToString()
-      {
+      public override String ToString () {
          return _tos;
       }
    }

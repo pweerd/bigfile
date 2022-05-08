@@ -22,68 +22,60 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Displays the settings (stored in the registry)
    /// </summary>
-   public partial class FormSettings : Form
-   {
+   public partial class FormSettings : Form {
       private readonly SettingsSource settingsSource;
 
-      public FormSettings(SettingsSource settings)
-      {
-         InitializeComponent();
+      public FormSettings (SettingsSource settings) {
+         InitializeComponent ();
          this.settingsSource = settings;
          comboNumLines.SelectedIndex = this.settingsSource.NumContextLines;
-         txtHilight.Text = ColorTranslator.ToHtml(settings.HighlightColor);
-         txtContext.Text = ColorTranslator.ToHtml(settings.ContextColor);
+         txtHilight.Text = ColorTranslator.ToHtml (settings.HighlightColor);
+         txtContext.Text = ColorTranslator.ToHtml (settings.ContextColor);
          cbSearchThreads.Text = settings.SearchThreads.Value;
          cbCompress.Text = settings.CompressMemoryIfBigger.Value;
          cbInMemory.Text = settings.LoadMemoryIfBigger.Value;
          txtMaxCopyLines.Text = settingsSource.MaxCopyLines.Value;
          txtMaxCopySize.Text = settingsSource.MaxCopySize.Value;
-         label6.Text = Invariant.Format("(#cpu's: {0})", Environment.ProcessorCount);
+         label6.Text = Invariant.Format ("(#cpu's: {0})", Environment.ProcessorCount);
       }
 
-      private void buttonOK_Click(object sender, EventArgs e)
-      {
+      private void buttonOK_Click (object sender, EventArgs e) {
          settingsSource.HighlightColor.Set (txtHilight.Text);
          settingsSource.ContextColor.Set (txtContext.Text);
-         settingsSource.NumContextLines.Set (comboNumLines.SelectedIndex.ToString());
-         settingsSource.SearchThreads.Set(cbSearchThreads.Text);
-         settingsSource.CompressMemoryIfBigger.Set(cbCompress.Text);
-         settingsSource.LoadMemoryIfBigger.Set(cbInMemory.Text);
-         settingsSource.MaxLineLength.Set(cbLineLength.Text);
-         settingsSource.MaxCopyLines.Set(txtMaxCopyLines.Text);
-         settingsSource.MaxCopySize.Set(txtMaxCopySize.Text);
-         settingsSource.Save();
-         settingsSource.ActualizeDefaults();
-         settingsSource.Dump("settings changed");
+         settingsSource.NumContextLines.Set (comboNumLines.SelectedIndex.ToString ());
+         settingsSource.SearchThreads.Set (cbSearchThreads.Text);
+         settingsSource.CompressMemoryIfBigger.Set (cbCompress.Text);
+         settingsSource.LoadMemoryIfBigger.Set (cbInMemory.Text);
+         settingsSource.MaxLineLength.Set (cbLineLength.Text);
+         settingsSource.MaxCopyLines.Set (txtMaxCopyLines.Text);
+         settingsSource.MaxCopySize.Set (txtMaxCopySize.Text);
+         settingsSource.Save ();
+         settingsSource.ActualizeDefaults ();
+         settingsSource.Dump ("settings changed");
 
          this.DialogResult = DialogResult.OK;
       }
 
-      private void buttonCancel_Click(object sender, EventArgs e)
-      {
+      private void buttonCancel_Click (object sender, EventArgs e) {
          this.DialogResult = DialogResult.Cancel;
       }
 
-      private void colorBox_Click(object sender, EventArgs e)
-      {
+      private void colorBox_Click (object sender, EventArgs e) {
          var t = (TextBox)sender;
-         colorDialog1.Color = ColorTranslator.FromHtml(t.Text);
-         if (colorDialog1.ShowDialog() != DialogResult.OK) return;
-         t.Text = ColorTranslator.ToHtml(colorDialog1.Color);
+         colorDialog1.Color = ColorTranslator.FromHtml (t.Text);
+         if (colorDialog1.ShowDialog () != DialogResult.OK) return;
+         t.Text = ColorTranslator.ToHtml (colorDialog1.Color);
          t.Tag = colorDialog1.Color;
       }
 
 
-      private void FormSettings_Load(object sender, EventArgs e)
-      {
+      private void FormSettings_Load (object sender, EventArgs e) {
          label9.Text = "";
-         if (!Globals.CanCompress)
-         {
+         if (!Globals.CanCompress) {
             label9.Text = "No or old bmucore102_64.dll";
             cbCompress.Enabled = false;
          }

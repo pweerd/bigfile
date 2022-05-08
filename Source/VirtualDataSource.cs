@@ -26,102 +26,85 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Virtual datasource for the list view
    /// </summary>
-   public class VirtualDataSource : IVirtualListDataSource
-   {
+   public class VirtualDataSource : IVirtualListDataSource {
       private readonly BrightIdeasSoftware.VirtualObjectListView parent;
       private List<int> filter;
       private int count;
       public List<int> Filter { get { return filter; } }
       public int Count { get { return count; } }
 
-      public VirtualDataSource(BrightIdeasSoftware.VirtualObjectListView parent)
-      {
+      public VirtualDataSource (BrightIdeasSoftware.VirtualObjectListView parent) {
          this.parent = parent;
       }
 
-      public void SetContent(List<int> filtered)
-      {
+      public void SetContent (List<int> filtered) {
          this.filter = filtered;
          this.count = filtered.Count;
-         parent.UpdateVirtualListSize();
-         parent.ClearCachedInfo();
+         parent.UpdateVirtualListSize ();
+         parent.ClearCachedInfo ();
       }
-      public void SetContent(int count)
-      {
+      public void SetContent (int count) {
          this.count = count;
          this.filter = null;
-         parent.UpdateVirtualListSize();
-         parent.ClearCachedInfo();
+         parent.UpdateVirtualListSize ();
+         parent.ClearCachedInfo ();
       }
 
-      public void Clear()
-      {
+      public void Clear () {
          filter = null;
          count = 0;
-         parent.UpdateVirtualListSize();
-         parent.ClearCachedInfo();
+         parent.UpdateVirtualListSize ();
+         parent.ClearCachedInfo ();
       }
 
-      public void AddObjects(ICollection modelObjects)
-      {
-         throw new NotImplementedException();
+      public void AddObjects (ICollection modelObjects) {
+         throw new NotImplementedException ();
       }
 
-      public object GetNthObject(int n)
-      {
+      public object GetNthObject (int n) {
          if (filter != null) n = filter[n];
          return n;
       }
 
-      public int GetObjectCount()
-      {
+      public int GetObjectCount () {
          return count;
       }
 
-      public int GetObjectIndex(object model)
-      {
+      public int GetObjectIndex (object model) {
          return model == null ? -1 : (int)model;
       }
 
-      public void InsertObjects(int index, ICollection modelObjects)
-      {
-         throw new NotImplementedException();
+      public void InsertObjects (int index, ICollection modelObjects) {
+         throw new NotImplementedException ();
       }
 
-      public void PrepareCache(int first, int last)
-      {
+      public void PrepareCache (int first, int last) {
       }
 
-      public void RemoveObjects(ICollection modelObjects)
-      {
-         throw new NotImplementedException();
+      public void RemoveObjects (ICollection modelObjects) {
+         throw new NotImplementedException ();
       }
 
-      public int SearchText(string value, int first, int last, OLVColumn column)
-      {
+      public int SearchText (string value, int first, int last, OLVColumn column) {
          return -1;
       }
 
-      public void SetObjects(IEnumerable c)
-      {
+      public void SetObjects (IEnumerable c) {
          //For an empty collection, we know what to do. Other wise not impl.
-         if (c == null || !c.GetEnumerator().MoveNext()) return;
-         throw new NotImplementedException();
+         if (c == null || !c.GetEnumerator ().MoveNext ()) return;
+         throw new NotImplementedException ();
       }
 
-      public void Sort(OLVColumn column, SortOrder order)
-      {
-         throw new NotImplementedException();
+      public void Sort (OLVColumn column, SortOrder order) {
+         throw new NotImplementedException ();
       }
 
-      public void UpdateObject(int index, object modelObject)
-      {
-         throw new NotImplementedException();
+      public void UpdateObject (int index, object modelObject) {
+         throw new NotImplementedException ();
       }
    }
 }

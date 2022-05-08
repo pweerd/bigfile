@@ -26,47 +26,40 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Holds char information for a fixed font
    /// Used to determin the #chars for a number of pixels, or the #pixels for a number of chars
    /// </summary>
-   public class FixedFontMeasures
-   {
+   public class FixedFontMeasures {
       private readonly double perChar;
-      public FixedFontMeasures(Font f)
-      {
-         var sb = new StringBuilder();
+      public FixedFontMeasures (Font f) {
+         var sb = new StringBuilder ();
          for (int j = 0; j < 26; j++)
-            sb.Append((char)'a' + j).Append((char)'A' + j);
+            sb.Append ((char)'a' + j).Append ((char)'A' + j);
          for (int j = 0; j < 10; j++)
-            sb.Append((char)'0' + j);
-         sb.Append(" .,'");
-         String x = sb.ToString();
-         perChar = TextRenderer.MeasureText(x, f).Width / x.Length;
+            sb.Append ((char)'0' + j);
+         sb.Append (" .,'");
+         String x = sb.ToString ();
+         perChar = TextRenderer.MeasureText (x, f).Width / x.Length;
       }
 
-      public int GetTextPixels(String x, int add = 0)
-      {
-         return GetTextPixels(x == null ? 0 : x.Length, add);
+      public int GetTextPixels (String x, int add = 0) {
+         return GetTextPixels (x == null ? 0 : x.Length, add);
       }
 
-      public int GetTextPixels(int strlen, int add = 0)
-      {
+      public int GetTextPixels (int strlen, int add = 0) {
          const int MAX = 0x7FFF;  //short
          double ret = strlen * perChar + add; // * 1.01
 
          return ret > MAX ? MAX : (int)ret;
       }
 
-      public int GetTextPixels(String x, String y, int add = 0)
-      {
-         return Math.Max(GetTextPixels(x, add), GetTextPixels(y, add));
+      public int GetTextPixels (String x, String y, int add = 0) {
+         return Math.Max (GetTextPixels (x, add), GetTextPixels (y, add));
       }
 
-      public int GetTextLengthForPixels(int pixels)
-      {
+      public int GetTextLengthForPixels (int pixels) {
          if (pixels > 0xFFFF) pixels = 0xFFFF;
          else if (pixels < 0) return 0;
          return (int)(pixels / perChar);

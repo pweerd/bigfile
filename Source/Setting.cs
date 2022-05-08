@@ -40,55 +40,55 @@ namespace Bitmanager.BigFile {
       protected String value;
       public String Value => value;
 
-      public Setting(String name, String def, String initial) {
+      public Setting (String name, String def, String initial) {
          Name = name;
          Default = def;
-         value = initial==null ? def : initial;
+         value = initial == null ? def : initial;
       }
 
-      public void Set(String s) {
-         convert(s);
+      public void Set (String s) {
+         convert (s);
          value = s;
       }
 
-      public static String ColorToHtmlString(Color c) {
-         return ColorTranslator.ToHtml(c);
+      public static String ColorToHtmlString (Color c) {
+         return ColorTranslator.ToHtml (c);
       }
 
-      protected virtual T convert(String s) {
-         if (String.Equals(SettingsSource.AUTO, s, StringComparison.OrdinalIgnoreCase))
+      protected virtual T convert (String s) {
+         if (String.Equals (SettingsSource.AUTO, s, StringComparison.OrdinalIgnoreCase))
             s = Default;
          else {
-            s = s.TrimToNull();
+            s = s.TrimToNull ();
             if (s == null) s = Default;
          }
-         return convertStr(s);
+         return convertStr (s);
       }
-      protected abstract T convertStr(String s);
+      protected abstract T convertStr (String s);
 
-      public void Load(RegistryKey k) {
+      public void Load (RegistryKey k) {
          if (k == null) return;
-         String v = ReadVal(k);
+         String v = ReadVal (k);
          try {
-            convert(v);
+            convert (v);
          } catch (Exception e) {
-            Globals.SettingsLogger.Log(_LogType.ltError, "Setting [{0}] has an invalid value: [{1}]. Replaced by default [{2}].",
+            Globals.SettingsLogger.Log (_LogType.ltError, "Setting [{0}] has an invalid value: [{1}]. Replaced by default [{2}].",
                Name, v, Default);
             v = Default;
          }
          value = v;
       }
-      public void Save(RegistryKey k) {
+      public void Save (RegistryKey k) {
          if (k == null) return;
-         k.SetValue(Name, value == null ? String.Empty : value);
+         k.SetValue (Name, value == null ? String.Empty : value);
       }
 
-      protected String ReadVal(RegistryKey key) {
+      protected String ReadVal (RegistryKey key) {
          if (key == null) return Default;
-         var v = key.GetValue(Name, Default);
+         var v = key.GetValue (Name, Default);
          if (v == null) return Default;
 
-         String ret = v == null ? null : v.ToString().TrimToNull();
+         String ret = v == null ? null : v.ToString ().TrimToNull ();
          return ret == null ? Default : ret;
       }
 
@@ -99,16 +99,16 @@ namespace Bitmanager.BigFile {
    /// The converted actual value is an int
    /// </summary>
    public class IntSetting : Setting<int> {
-      public IntSetting(String name, String def, String initial = null) : base(name, def, initial) { }
+      public IntSetting (String name, String def, String initial = null) : base (name, def, initial) { }
 
-      protected override int convertStr(string s) {
-         return Invariant.ToInt32(s);
+      protected override int convertStr (string s) {
+         return Invariant.ToInt32 (s);
       }
-      public static implicit operator int(IntSetting x) {
-         return x.convert(x.value);
+      public static implicit operator int (IntSetting x) {
+         return x.convert (x.value);
       }
-      public override string ToString() {
-         return Invariant.Format("{0}: {1} ({2})", Name, value, Pretty.PrintNumber(convert(value)));
+      public override string ToString () {
+         return Invariant.Format ("{0}: {1} ({2})", Name, value, Pretty.PrintNumber (convert (value)));
       }
    }
 
@@ -118,10 +118,10 @@ namespace Bitmanager.BigFile {
    /// Otherwise it is the #threads itself
    /// </summary>
    public class ThreadsSetting : Setting<int> {
-      public ThreadsSetting(String name, String def, String initial = null) : base(name, def, initial) { }
+      public ThreadsSetting (String name, String def, String initial = null) : base (name, def, initial) { }
 
-      protected override int convertStr(string s) {
-         int ret = String.Equals(s, SettingsSource.AUTO, StringComparison.OrdinalIgnoreCase) ? 0: Invariant.ToInt32(s);
+      protected override int convertStr (string s) {
+         int ret = String.Equals (s, SettingsSource.AUTO, StringComparison.OrdinalIgnoreCase) ? 0 : Invariant.ToInt32 (s);
          var N = Environment.ProcessorCount;
          if (ret <= 0) ret += N;
 
@@ -129,11 +129,11 @@ namespace Bitmanager.BigFile {
          else if (ret > N) ret = N;
          return ret;
       }
-      public static implicit operator int(ThreadsSetting x) {
-         return x.convert(x.value);
+      public static implicit operator int (ThreadsSetting x) {
+         return x.convert (x.value);
       }
-      public override string ToString() {
-         return Invariant.Format("{0}: {1} ({2})", Name, value, Pretty.PrintNumber(convert(value)));
+      public override string ToString () {
+         return Invariant.Format ("{0}: {1} ({2})", Name, value, Pretty.PrintNumber (convert (value)));
       }
    }
 
@@ -142,22 +142,22 @@ namespace Bitmanager.BigFile {
    /// Sizes are converted into a long. Values can be specified like 0.5MB.
    /// </summary>
    public class SizeSetting : Setting<long> {
-      public SizeSetting(String name, String def, String initial = null) : base(name, def, initial) { }
+      public SizeSetting (String name, String def, String initial = null) : base (name, def, initial) { }
 
-      protected override long convertStr(string s) {
-         if (String.Equals(s, "off")) return long.MaxValue;
-         if (String.Equals(s, "on")) return -1;
-         return Pretty.ParseSize(s);
+      protected override long convertStr (string s) {
+         if (String.Equals (s, "off")) return long.MaxValue;
+         if (String.Equals (s, "on")) return -1;
+         return Pretty.ParseSize (s);
       }
 
-      public static implicit operator long(SizeSetting x) {
-         return x.convert(x.value);
+      public static implicit operator long (SizeSetting x) {
+         return x.convert (x.value);
       }
-      public static implicit operator int(SizeSetting x) {
-         return (int)x.convert(x.value);
+      public static implicit operator int (SizeSetting x) {
+         return (int)x.convert (x.value);
       }
-      public override string ToString() {
-         return Invariant.Format("{0}: {1} ({2})", Name, value, Pretty.PrintSize(convert(value)));
+      public override string ToString () {
+         return Invariant.Format ("{0}: {1} ({2})", Name, value, Pretty.PrintSize (convert (value)));
       }
    }
 
@@ -166,17 +166,17 @@ namespace Bitmanager.BigFile {
    /// Colors are stored in the registry as HtmlColors.
    /// </summary>
    public class ColorSetting : Setting<Color> {
-      public ColorSetting(String name, Color def, String initial = null) : base(name, ColorToHtmlString(def), initial) { }
+      public ColorSetting (String name, Color def, String initial = null) : base (name, ColorToHtmlString (def), initial) { }
 
-      protected override Color convertStr(string s) {
-         return ColorTranslator.FromHtml(s);
+      protected override Color convertStr (string s) {
+         return ColorTranslator.FromHtml (s);
       }
 
-      public static implicit operator Color(ColorSetting x) {
-         return x.convert(x.value);
+      public static implicit operator Color (ColorSetting x) {
+         return x.convert (x.value);
       }
-      public override string ToString() {
-         return Invariant.Format("{0}: {1}", Name, value);
+      public override string ToString () {
+         return Invariant.Format ("{0}: {1}", Name, value);
       }
    }
 }

@@ -24,52 +24,43 @@ using System.Text;
 using System.Threading.Tasks;
 using Bitmanager.Core;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Result to be returned when a Load() is completed
    /// </summary>
-   public class Result
-   {
+   public class Result {
       public readonly LogFile LogFile;
-      public Result(LogFile logfile, DateTime started, Exception err)
-      {
+      public Result (LogFile logfile, DateTime started, Exception err) {
          this.LogFile = logfile;
          this.Duration = DateTime.Now - started;
-         for (Exception x=err; x!=null; x=x.InnerException)
-         {
-            if (x is TaskCanceledException)
-            {
+         for (Exception x = err; x != null; x = x.InnerException) {
+            if (x is TaskCanceledException) {
                this.Cancelled = true;
                break;
             }
          }
-         if (!this.Cancelled)
-         {
+         if (!this.Cancelled) {
             this.Error = err;
-            if (err != null) Logs.ErrorLog.Log(err);
+            if (err != null) Logs.ErrorLog.Log (err);
          }
       }
       public readonly TimeSpan Duration;
       public readonly Exception Error;
       public readonly bool Cancelled;
 
-      public void ThrowIfError()
-      {
-         if (Error != null) throw new Exception(Error.Message, Error);
+      public void ThrowIfError () {
+         if (Error != null) throw new Exception (Error.Message, Error);
       }
    }
 
    /// <summary>
    /// Result to be returned when a Search() is completed
    /// </summary>
-   public class SearchResult : Result
-   {
+   public class SearchResult : Result {
       public readonly int NumMatches;
       public readonly int NumSearchTerms;
-      public SearchResult(LogFile logfile, DateTime started, Exception err, int matches, int numSearchTerms)
-          : base(logfile, started, err)
-      {
+      public SearchResult (LogFile logfile, DateTime started, Exception err, int matches, int numSearchTerms)
+          : base (logfile, started, err) {
          this.NumMatches = matches;
          this.NumSearchTerms = numSearchTerms;
       }
@@ -78,12 +69,10 @@ namespace Bitmanager.BigFile
    /// <summary>
    /// Result to be returned when an Export() is completed
    /// </summary>
-   public class ExportResult : Result
-   {
+   public class ExportResult : Result {
       public readonly int NumExported;
-      public ExportResult(LogFile logfile, DateTime started, Exception err, int exported)
-          : base(logfile, started, err)
-      {
+      public ExportResult (LogFile logfile, DateTime started, Exception err, int exported)
+          : base (logfile, started, err) {
          this.NumExported = exported;
       }
    }

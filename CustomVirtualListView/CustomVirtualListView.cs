@@ -27,21 +27,21 @@ using System.Windows.Forms;
 
 namespace Bitmanager.BigFile {
    public class CustomVirtualListView : BrightIdeasSoftware.VirtualObjectListView {
-      [DllImport("user32.dll")]
-      static extern IntPtr DefWindowProc(IntPtr hWnd, int uMsg, IntPtr wParam, IntPtr lParam);
+      [DllImport ("user32.dll")]
+      static extern IntPtr DefWindowProc (IntPtr hWnd, int uMsg, IntPtr wParam, IntPtr lParam);
       protected const int WM_RBUTTONDOWN = 0x0204;
       protected const int WM_RBUTTONUP = 0x0205;
       protected const int WM_CONTEXTMENU = 0x7B;
 
-      protected override void WndProc(ref Message m) {
+      protected override void WndProc (ref Message m) {
          switch (m.Msg) {
             case WM_RBUTTONDOWN: return;
             case WM_RBUTTONUP:
-               DefWindowProc(m.HWnd, m.Msg, m.WParam, m.LParam);
+               DefWindowProc (m.HWnd, m.Msg, m.WParam, m.LParam);
                //m.Msg = WM_CONTEXTMENU;
                return;
          }
-         base.WndProc(ref m);
+         base.WndProc (ref m);
       }
    }
 }
