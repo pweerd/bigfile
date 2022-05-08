@@ -9,6 +9,7 @@
     <Nullable>disable</Nullable>
     <ApplicationIcon>bigfile.ico</ApplicationIcon>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <RootNamespace>Bitmanager.BigFile</RootNamespace>
  <!--   <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>-->
@@ -41,6 +42,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CustomVirtualListView\CustomVirtualListView.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

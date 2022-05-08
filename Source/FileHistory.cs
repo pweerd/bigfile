@@ -23,45 +23,93 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bitmanager.BigFile
-{
+namespace Bitmanager.BigFile {
    /// <summary>
    /// Handles the file history for the open-menu
    /// </summary>
-   public class FileHistory
-   {
+   public class FileHistory {
       private readonly String[] history;
       private readonly String regPrefix;
 
-      public string[] Items { get { return history; } }
+      public String[] Items {
+         get {
+            lock (history) {
+               return (String[])history.Clone ();
+            }
+         }
+      }
+      public String MostRecent {
+         get {
+            lock (history) {
+               return history[0];
+            }
+         }
+      }
 
-      public FileHistory (String prefix="fh_")
-      {
+
+      public FileHistory (String prefix) {
          this.regPrefix = prefix;
-         history = SettingsSource.LoadFileHistory(prefix);
+         history = SettingsSource.LoadFileHistory (prefix);
+
+         //dedup entries (caused by a previous bug
+         int j = 0;
+         for (int i = 0; i < history.Length; i++) {
+            String tmp = history[i];
+            if (tmp == null) continue;
+            int k;
+            for (k=j-1; k>=0; k--) {
+               if (String.Equals (tmp, history[k], StringComparison.OrdinalIgnoreCase))
+                  break;
+            }
+            if (k >= 0) continue;
+            history[j++] = tmp;
+         }
+         for (; j < history.Length; j++) history[j] = null;
       }
 
-      public void Save()
-      {
-         SettingsSource.SaveFileHistory(history, regPrefix);
+      public void Save () {
+         lock (history) {
+            SettingsSource.SaveFileHistory (history, regPrefix);
+         }
       }
 
-      public void Add (String fn)
-      {
-         int j;
-         for (j=0; j<history.Length; j++)
-         {
-            if (history[j] == null) goto SHIFT_DOWN;
-            if (String.Equals(history[j], fn, StringComparison.OrdinalIgnoreCase)) goto SHIFT_DOWN;
+      public void Add (String fn) {
+         lock (history) {
+            int j;
+            for (j = 0; j < history.Length; j++) {
+               if (!String.Equals (history[j], fn, StringComparison.OrdinalIgnoreCase)) continue;
+               fn = history[j]; //reuse oldest string to prevent garbage collected
+               break; 
+            }
+            if (j>0) {
+               for (int i=j-1; i>0; i--) {
+                  history[i] = history[i-1];
+               }
+               history[0] = fn;
+            }
          }
-         j--;
+      }
 
-         SHIFT_DOWN:
-         for (; j>=1; j--)
-         {
-            history[j] = history[j - 1];
+      public void RemoveListed (List<String> list) {
+         lock (history) {
+            int j = 0;
+            for (int i = 0; i < history.Length; i++) {
+               String fn = history[i];
+               if (fn != null && list.Contains (fn)) continue;
+               history[j++] = fn;
+            }
+            for (; j < history.Length; j++) {
+               history[j] = null;
+            }
          }
-         history[0] = fn;
+      }
+      public void RemoveInvalid (Func<String, bool> checker) {
+         String[] h = Items;
+         var toRemove = new List<String> ();
+         foreach (var fn in h) {
+            if (fn != null && !checker (fn)) toRemove.Add (fn);
+         }
+         if (toRemove.Count > 0) RemoveListed (toRemove);
       }
    }
 }

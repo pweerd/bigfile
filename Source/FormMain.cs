@@ -70,8 +70,6 @@ namespace Bitmanager.BigFile
          encodings[1] = Encoding.Default;
          encodings[2] = Encoding.Unicode;
          encodings[3] = Encoding.BigEndianUnicode;
-         //encodings[4] = new Utf81();
-         //encodings[5] = new Utf82(); 
 
          dropdownEncoding.Items.Clear();
          dropdownEncoding.Items.Add("Utf8");
@@ -81,6 +79,8 @@ namespace Bitmanager.BigFile
 
          if (Globals.IsDebug)
          {
+            encodings[4] = new Utf81 ();
+            encodings[5] = new Utf82 ();
             dropdownEncoding.Items.Add("Utf8 with arr");
             dropdownEncoding.Items.Add("Utf8 with ptrs");
          }
@@ -126,15 +126,24 @@ namespace Bitmanager.BigFile
       private void FormMain_Load(object sender, EventArgs e)
       {
          Bitmanager.Core.GlobalExceptionHandler.Hook();
-         GCSettings.LatencyMode = GCLatencyMode.Batch;
+         //GCSettings.LatencyMode = GCLatencyMode.Batch;
 
          this.settingsSource = new SettingsSource(true);
          this.settings = this.settingsSource.Settings;
          this.settingsSource.Dump("initial load");
-         this.fileHistory = new FileHistory("fh_");
-         this.directoryHistory = new FileHistory("dh_");
-         createRecentItems ();
+         this.fileHistory = new FileHistory ("fh_");
+         this.directoryHistory = new FileHistory ("dh_");
 
+         //Async checking of valid history: this takes time in case of network drives
+         Task.Run (() => {
+            fileHistory.RemoveInvalid (File.Exists);
+            directoryHistory.RemoveInvalid (Directory.Exists);
+            synchronizationContext.Post (new SendOrPostCallback (o =>
+            {
+               createRecentItems ();
+            }), null);
+         });
+         
          this.olvcLineNumber.AspectGetter = getLineNumber;
          this.olvcText.AspectGetter = getLimitedLine;
          this.dropdownEncoding.SelectedIndex = 0;
@@ -189,19 +198,20 @@ namespace Bitmanager.BigFile
          if (width > 300) Width = width;
          if (height > 200) Height = height;
 
-         //PW repareren
+         //In NetCore the cmdline contains the dll as the first param
          var lexer = new Lexer(Environment.CommandLine);
-         for (int i=0; i<2; i++)
-         {
-            var x = lexer.NextToken();
-            if (x == null) break;
-            if (i==1 && x.Type== Lexer.TokenType.Value)
-            {
-               String startFile = x.Text;
-               if (File.Exists(startFile)) LoadFile(startFile);
-               else if (Directory.Exists(startFile)) ShowOpenDialogAndLoad(startFile);
+         int i = 1;
+         Lexer.Token t;
+         while (true) {
+            t = lexer.NextToken ();
+            if (t == null || t.Type == Lexer.TokenType.Eof) break;
+            if (t.Type != Lexer.TokenType.Value) continue;
+            if (--i < 0) {
+               String startFile = t.Text;
+               if (File.Exists (startFile)) LoadFile (startFile);
+               else if (Directory.Exists (startFile)) ShowOpenDialogAndLoad (startFile);
                break;
-            }
+            };
          }
       }
 
@@ -690,8 +700,12 @@ namespace Bitmanager.BigFile
       private void menuHelpHelp_Click(object sender, EventArgs e)
       {
          String fn = IOUtils.FindFileToRoot(Globals.LoadDir, "help.html", FindToTootFlags.ReturnNull);
-         if (fn != null)
-            Process.Start(fn);
+         if (fn != null) {
+            var psa = new ProcessStartInfo(fn);
+            psa.UseShellExecute = true;
+            psa.WorkingDirectory = Path.GetDirectoryName(fn);
+            Process.Start (psa);
+         }
       }
 
       private void menuHelpAbout_Click(object sender, EventArgs e)
@@ -1157,7 +1171,7 @@ namespace Bitmanager.BigFile
 
       private void registerShellExt()
       {
-         String exe = Assembly.GetExecutingAssembly().Location;
+         String exe = Path.ChangeExtension(Assembly.GetEntryAssembly().Location, ".exe");
          try
          {
             using (var rk = Registry.ClassesRoot.CreateSubKey(@"*\shell\BigFile", true))
