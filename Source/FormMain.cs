@@ -282,17 +282,16 @@ namespace Bitmanager.BigFile {
       }
 
       private void createRecentItems () {
-         createRecentItems (fileHistory, menuRecentFiles, File.Exists);
-         createRecentItems (directoryHistory, menuRecentFolders, Directory.Exists);
+         createRecentItems (fileHistory, menuRecentFiles);
+         createRecentItems (directoryHistory, menuRecentFolders);
       }
 
-      private void createRecentItems (FileHistory hist, ToolStripMenuItem menuItem, Func<String, bool> checker) {
+      private void createRecentItems (FileHistory hist, ToolStripMenuItem menuItem) {
          String[] history = hist.Items;
 
          var subItems = new List<ToolStripMenuItem> ();
          foreach (var x in history) {
-            if (x == null) break;
-            //PWif (checker != null && !checker(x)) continue;
+            if (x == null) continue;
 
             var subItem = new ToolStripMenuItem ();
             subItem.Text = x;
@@ -585,12 +584,9 @@ namespace Bitmanager.BigFile {
          if (initialDir != null)
             openFileDialog.InitialDirectory = initialDir;
          else {
-            var items = fileHistory.Items;
-            if (items.Length > 0) {
-               String top = items[0];
-               if (!String.IsNullOrEmpty (top))
-                  openFileDialog.InitialDirectory = Path.GetDirectoryName (top);
-            }
+            var top = fileHistory.Top;
+            if (!String.IsNullOrEmpty (top))
+               openFileDialog.InitialDirectory = Path.GetDirectoryName (top);
          }
 
          if (openFileDialog.ShowDialog (this) == System.Windows.Forms.DialogResult.OK)

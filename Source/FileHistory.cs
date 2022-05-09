@@ -38,7 +38,7 @@ namespace Bitmanager.BigFile {
             }
          }
       }
-      public String MostRecent {
+      public String Top {
          get {
             lock (history) {
                return history[0];
@@ -74,15 +74,16 @@ namespace Bitmanager.BigFile {
       }
 
       public void Add (String fn) {
+         if (String.IsNullOrEmpty (fn)) return;
          lock (history) {
             int j;
-            for (j = 0; j < history.Length; j++) {
+            for (j = 0; j < history.Length-1; j++) {
                if (!String.Equals (history[j], fn, StringComparison.OrdinalIgnoreCase)) continue;
                fn = history[j]; //reuse oldest string to prevent garbage collected
                break;
             }
             if (j > 0) {
-               for (int i = j - 1; i > 0; i--) {
+               for (int i = j; i > 0; i--) {
                   history[i] = history[i - 1];
                }
                history[0] = fn;
