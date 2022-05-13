@@ -17,7 +17,6 @@
  * under the License.
  */
 
-using Bitmanager.BigFile;
 using Bitmanager.Core;
 using Bitmanager.IO;
 using Bitmanager.Test;
@@ -26,7 +25,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace UnitTests {
+namespace Bitmanager.BigFile.Tests {
 
    [TestClass]
 

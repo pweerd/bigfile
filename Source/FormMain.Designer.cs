@@ -108,7 +108,11 @@ namespace Bitmanager.BigFile
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
          this.cbDbgLoad = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
-         this.listLines = new Bitmanager.BigFile.CustomVirtualListView();
+         this.listLines = new Bitmanager.BigFile.SubclassedVirtualListView ();
+         //this.listLines = new Bitmanager.BigFile.CustomVirtualListView ();
+         //this.listLines = new BrightIdeasSoftware.VirtualObjectListView ();
+
+
          this.olvcLineNumber = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.olvcText = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -768,7 +772,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem nonMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByNonMatchedToolStripMenuItem;
-      private CustomVirtualListView listLines;
+      private BrightIdeasSoftware.VirtualObjectListView listLines;
       private System.Windows.Forms.ToolStripMenuItem toolStripCopyMenuItem;
    }
 }

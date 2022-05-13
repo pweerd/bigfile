@@ -196,7 +196,7 @@ namespace Bitmanager.BigFile {
          return lf.GetMatchedList (0).Count;
       }
 
-      private int search (LogFile lf, String x, SearchNodes searchNodes = null) {
+      private int search (LogFile lf, String x, SearchNodes? searchNodes = null) {
          if (searchNodes == null) searchNodes = new SearchNodes ();
          lf.Search (searchNodes.Parse (x), CancellationToken.None).Wait ();
          return lf.GetMatchedList (0).Count;
@@ -209,7 +209,7 @@ namespace Bitmanager.BigFile {
          //Non partial
          var logFile = new LogFile (cb, settingsSource.ActualizeDefaults (), null, -1);
          logFile.Load (fn, CancellationToken.None).Wait ();
-         cb.Result.ThrowIfError ();
+         cb.Result?.ThrowIfError ();
 
          Assert.AreEqual (18, logFile.LineCount);
          Assert.AreEqual (0, logFile.GetLineOffset (0));
@@ -331,7 +331,7 @@ namespace Bitmanager.BigFile {
    }
 
    public class CB : ILogFileCallback {
-      public Result Result;
+      public Result? Result;
 
       public void OnExportComplete (ExportResult result) {
       }
