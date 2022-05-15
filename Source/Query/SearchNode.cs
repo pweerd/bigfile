@@ -43,7 +43,7 @@ namespace Bitmanager.BigFile.Query
           : base(field, value)
       {
          this.BitIndex = bitIndex;
-         this.BitMask = ((int)LineFlags.Mask0) << bitIndex;
+         this.BitMask = LineFlags.MASK0 << bitIndex;
          this.type = type;
          logger.Log("Create SearchNode [{0}] mask={1:X} bit={2}", base.fieldPlusValue, BitMask, BitIndex);
          this.cmp = LineComparer.Create (type, value);

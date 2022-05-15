@@ -18,12 +18,25 @@
  */
 
 using System;
+using System.IO;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Bitmanager.BigFile.Tests {
    [TestClass]
-   public class EncodingTests {
+   public class EncodingTests: TestBase {
+      private readonly String text;
+
+      public EncodingTests() {
+         var sb = new StringBuilder();
+         sb.AppendLine ("Line 1");
+         sb.Append ("Long line: ");
+         for (int i = 0; i < 100; i++) sb.Append ("0123456789 abcdefghijklmnopqrstuvwxyz ").Append ((char)0x0102).Append ((char)0x0153).Append ((char)0x0154);
+         sb.Append ('\n');
+         for (int i = 1; i < 100; i++) sb.AppendFormat ("Line {0}\n", i);
+         text = sb.ToString ();
+      }
+
       [TestMethod]
       public void TestLength () {
          var enc = new UTF8Encoding (); // Encoding.UTF8;
@@ -39,6 +52,22 @@ namespace Bitmanager.BigFile.Tests {
          Assert.AreEqual (2, enc.GetCharCount (b, 0, 3));
          Assert.AreEqual (2, enc.GetCharCount (b, 0, 2));
          Assert.AreEqual (1, enc.GetCharCount (b, 0, 1));
+      }
+
+
+      [TestMethod]
+      public void CreateEncodingSamples () {
+         createTextFile ("utf8.txt", Encoding.UTF8);
+         createTextFile ("utf16LE.txt", Encoding.Unicode);
+         createTextFile ("utf16BE.txt", Encoding.BigEndianUnicode);
+         createTextFile ("utf8-no-bom.txt", new UTF8Encoding (false));
+         createTextFile ("utf16LE-no-bom.txt", new UnicodeEncoding(false, false));
+         createTextFile ("utf16BE-no-bom.txt", new UnicodeEncoding (true, false));
+      }
+
+
+      private void createTextFile (String fn, Encoding enc) {
+         File.AppendAllText (Path.Combine(this.dataDir, fn), text, enc);
       }
    }
 }

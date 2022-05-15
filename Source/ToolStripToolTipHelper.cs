@@ -28,9 +28,39 @@ using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 
 namespace Bitmanager.BigFile {
+   public class ToolStripToolTipHelpers {
+      private List<ToolStripToolTipHelper> helpers;
+
+      public ToolStripToolTipHelpers () {
+         helpers = new List<ToolStripToolTipHelper> ();
+      }
+
+      public void Add (ToolStrip strip, Action<ToolStripToolTipHelper> customizer) {
+         foreach (ToolStripItem item in strip.Items) {
+            if (String.IsNullOrEmpty (item.ToolTipText)) continue;
+            if (isPresent (item)) continue;
+
+            var tth = new ToolStripToolTipHelper (strip, item);
+            if (customizer != null) customizer(tth);
+            helpers.Add (tth);
+         }
+      }
+      public void Add (ToolStripToolTipHelper helper) {
+         if (!isPresent (helper.targetItem)) helpers.Add (helper);
+      }
+
+      private bool isPresent (ToolStripItem item) {
+         foreach (var h in helpers) {
+            if (h.targetItem == item) return true;
+         }
+         return false;
+      }
+   }
+
+
    public class ToolStripToolTipHelper {
-      private readonly ToolStrip target;
-      private readonly ToolStripItem targetItem;
+      internal readonly ToolStrip target;
+      internal readonly ToolStripItem targetItem;
 
       ToolStripItem mouseOverItem = null;
       Point mouseOverPoint;
@@ -43,7 +73,7 @@ namespace Bitmanager.BigFile {
       private readonly Logger logger;
 
       public ToolStripToolTipHelper (ToolStrip target, ToolStripItem targetItem = null) {
-         logger = Globals.MainLogger.Clone ("tt");
+         logger = Globals.TooltipLogger;
          this.target = target;
          this.targetItem = targetItem;
 
@@ -61,7 +91,7 @@ namespace Bitmanager.BigFile {
 
          timer = new Timer ();
          timer.Enabled = false;
-         timer.Interval = SystemInformation.MouseHoverTime;
+         timer.Interval = 2000;// SystemInformation.MouseHoverTime;
          timer.Tick += new EventHandler (timer_Tick);
          Tooltip = new ToolTip ();
       }
@@ -161,16 +191,6 @@ namespace Bitmanager.BigFile {
 
          Tooltip.Show (txt, target, currentMouseOverPoint, ToolTipInterval);
       }
-
-      //protected override void Dispose(bool disposing)
-      //{
-      //   base.Dispose(disposing);
-      //   if (disposing)
-      //   {
-      //      timer.Dispose();
-      //      Tooltip.Dispose();
-      //   }
-      //}
 
    }
 }

@@ -108,13 +108,9 @@ namespace Bitmanager.BigFile
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
          this.cbDbgLoad = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
-         this.listLines = new Bitmanager.BigFile.SubclassedVirtualListView ();
-         //this.listLines = new Bitmanager.BigFile.CustomVirtualListView ();
-         //this.listLines = new BrightIdeasSoftware.VirtualObjectListView ();
-
-
-         this.olvcLineNumber = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-         this.olvcText = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+         this.listLines = new Bitmanager.BigFile.SubclassedVirtualListView();
+         this.olvcLineNumber = new BrightIdeasSoftware.OLVColumn();
+         this.olvcText = new BrightIdeasSoftware.OLVColumn();
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
@@ -135,9 +131,9 @@ namespace Bitmanager.BigFile
             this.menuHelp});
          this.menuStrip.Location = new System.Drawing.Point(0, 0);
          this.menuStrip.Name = "menuStrip";
-         this.menuStrip.Padding = new System.Windows.Forms.Padding(4, 1, 0, 1);
+         this.menuStrip.Padding = new System.Windows.Forms.Padding(5, 1, 0, 1);
          this.menuStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-         this.menuStrip.Size = new System.Drawing.Size(1114, 24);
+         this.menuStrip.Size = new System.Drawing.Size(1300, 24);
          this.menuStrip.TabIndex = 1;
          // 
          // menuFile
@@ -214,7 +210,7 @@ namespace Bitmanager.BigFile
          // gotoToolStripMenuItem
          // 
          this.gotoToolStripMenuItem.Name = "gotoToolStripMenuItem";
-         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.gotoToolStripMenuItem.Text = "Goto (Ctrl-G)";
          this.gotoToolStripMenuItem.Click += new System.EventHandler(this.gotoToolStripMenuItem_Click);
          // 
@@ -225,7 +221,7 @@ namespace Bitmanager.BigFile
             this.exportSelectedToolStripMenuItem,
             this.exportMatchedToolStripMenuItem});
          this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-         this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.exportToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.exportToolStripMenuItem.Text = "Export";
          // 
          // exportAllToolStripMenuItem
@@ -261,7 +257,7 @@ namespace Bitmanager.BigFile
             this.clearByMatchedToolStripMenuItem,
             this.clearByNonMatchedToolStripMenuItem});
          this.selectToolStripMenuItem.Name = "selectToolStripMenuItem";
-         this.selectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.selectToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.selectToolStripMenuItem.Text = "Select";
          // 
          // allToolStripMenuItem
@@ -321,26 +317,26 @@ namespace Bitmanager.BigFile
          // toolStripCopyMenuItem
          // 
          this.toolStripCopyMenuItem.Name = "toolStripCopyMenuItem";
-         this.toolStripCopyMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.toolStripCopyMenuItem.Size = new System.Drawing.Size(159, 22);
          this.toolStripCopyMenuItem.Text = "Copy (Ctrl-C)";
          this.toolStripCopyMenuItem.Click += new System.EventHandler(this.toolStripCopyMenuItem_Click);
          // 
          // toolStripMenuItem2
          // 
          this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-         this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
+         this.toolStripMenuItem2.Size = new System.Drawing.Size(156, 6);
          // 
          // menuToolsConfiguration
          // 
          this.menuToolsConfiguration.Name = "menuToolsConfiguration";
-         this.menuToolsConfiguration.Size = new System.Drawing.Size(180, 22);
+         this.menuToolsConfiguration.Size = new System.Drawing.Size(159, 22);
          this.menuToolsConfiguration.Text = "Options";
          this.menuToolsConfiguration.Click += new System.EventHandler(this.menuToolsConfiguration_Click);
          // 
          // registerShellextToolStripMenuItem
          // 
          this.registerShellextToolStripMenuItem.Name = "registerShellextToolStripMenuItem";
-         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.registerShellextToolStripMenuItem.Text = "Register shellext";
          this.registerShellextToolStripMenuItem.Click += new System.EventHandler(this.registerShellextToolStripMenuItem_Click);
          // 
@@ -414,35 +410,35 @@ namespace Bitmanager.BigFile
             this.statusLabelMain,
             this.statusSep1,
             this.statusLabelSearch});
-         this.statusStrip.Location = new System.Drawing.Point(0, 539);
+         this.statusStrip.Location = new System.Drawing.Point(0, 623);
          this.statusStrip.Name = "statusStrip";
-         this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 9, 0);
-         this.statusStrip.Size = new System.Drawing.Size(1114, 22);
+         this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 10, 0);
+         this.statusStrip.Size = new System.Drawing.Size(1300, 24);
          this.statusStrip.TabIndex = 2;
          this.statusStrip.Text = "statusStrip1";
          // 
          // statusProgress
          // 
          this.statusProgress.Name = "statusProgress";
-         this.statusProgress.Size = new System.Drawing.Size(67, 16);
+         this.statusProgress.Size = new System.Drawing.Size(78, 18);
          this.statusProgress.Click += new System.EventHandler(this.statusProgress_Click);
          // 
          // statusLabelMain
          // 
          this.statusLabelMain.Name = "statusLabelMain";
-         this.statusLabelMain.Size = new System.Drawing.Size(0, 17);
+         this.statusLabelMain.Size = new System.Drawing.Size(0, 19);
          // 
          // statusSep1
          // 
          this.statusSep1.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left;
          this.statusSep1.BorderStyle = System.Windows.Forms.Border3DStyle.Etched;
          this.statusSep1.Name = "statusSep1";
-         this.statusSep1.Size = new System.Drawing.Size(4, 17);
+         this.statusSep1.Size = new System.Drawing.Size(4, 19);
          // 
          // statusLabelSearch
          // 
          this.statusLabelSearch.Name = "statusLabelSearch";
-         this.statusLabelSearch.Size = new System.Drawing.Size(0, 17);
+         this.statusLabelSearch.Size = new System.Drawing.Size(0, 19);
          // 
          // toolStrip
          // 
@@ -465,7 +461,7 @@ namespace Bitmanager.BigFile
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
          this.toolStrip.Name = "toolStrip";
          this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-         this.toolStrip.Size = new System.Drawing.Size(1114, 31);
+         this.toolStrip.Size = new System.Drawing.Size(1300, 31);
          this.toolStrip.TabIndex = 4;
          this.toolStrip.Text = "toolStrip1";
          // 
@@ -496,7 +492,7 @@ namespace Bitmanager.BigFile
          this.cbSearch.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
          this.cbSearch.AutoToolTip = true;
          this.cbSearch.Name = "cbSearch";
-         this.cbSearch.Size = new System.Drawing.Size(350, 31);
+         this.cbSearch.Size = new System.Drawing.Size(408, 31);
          this.cbSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cbSearch_KeyPress);
          // 
          // btnSearch
@@ -528,7 +524,7 @@ namespace Bitmanager.BigFile
             "Utf16BE",
             "Windows"});
          this.dropdownEncoding.Name = "dropdownEncoding";
-         this.dropdownEncoding.Size = new System.Drawing.Size(80, 31);
+         this.dropdownEncoding.Size = new System.Drawing.Size(93, 31);
          this.dropdownEncoding.SelectedIndexChanged += new System.EventHandler(this.dropdownEncoding_SelectedIndexChanged);
          // 
          // toolStripButton2
@@ -549,7 +545,7 @@ namespace Bitmanager.BigFile
          // 
          this.cbZipEntries.DropDownWidth = 300;
          this.cbZipEntries.Name = "cbZipEntries";
-         this.cbZipEntries.Size = new System.Drawing.Size(158, 31);
+         this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
          this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
          // 
          // toolStripSeparator3
@@ -566,8 +562,9 @@ namespace Bitmanager.BigFile
          // cbSplit
          // 
          this.cbSplit.Name = "cbSplit";
-         this.cbSplit.Size = new System.Drawing.Size(121, 31);
+         this.cbSplit.Size = new System.Drawing.Size(140, 31);
          this.cbSplit.Text = "2048";
+         this.cbSplit.ToolTipText = "Automatic split lines larger than this value";
          // 
          // btnResplit
          // 
@@ -585,7 +582,7 @@ namespace Bitmanager.BigFile
             "zlib",
             "sharp"});
          this.cbDbgLoad.Name = "cbDbgLoad";
-         this.cbDbgLoad.Size = new System.Drawing.Size(75, 31);
+         this.cbDbgLoad.Size = new System.Drawing.Size(87, 31);
          this.cbDbgLoad.SelectedIndexChanged += new System.EventHandler(this.cbDbgLoad_SelectedIndexChanged);
          // 
          // panelMain
@@ -595,7 +592,7 @@ namespace Bitmanager.BigFile
          this.panelMain.Location = new System.Drawing.Point(0, 55);
          this.panelMain.Margin = new System.Windows.Forms.Padding(2);
          this.panelMain.Name = "panelMain";
-         this.panelMain.Size = new System.Drawing.Size(1114, 484);
+         this.panelMain.Size = new System.Drawing.Size(1300, 568);
          this.panelMain.TabIndex = 5;
          // 
          // listLines
@@ -610,13 +607,11 @@ namespace Bitmanager.BigFile
             this.olvcLineNumber,
             this.olvcText});
          this.listLines.ContextMenuStrip = this.contextMenu;
-         this.listLines.Cursor = System.Windows.Forms.Cursors.Default;
-         this.listLines.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+         this.listLines.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.listLines.FullRowSelect = true;
          this.listLines.GridLines = true;
          this.listLines.HasCollapsibleGroups = false;
-         this.listLines.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-         this.listLines.HideSelection = false;
+         this.listLines.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
          this.listLines.IsSearchOnSortColumn = false;
          this.listLines.Location = new System.Drawing.Point(0, 0);
          this.listLines.Margin = new System.Windows.Forms.Padding(2);
@@ -627,7 +622,7 @@ namespace Bitmanager.BigFile
          this.listLines.ShowFilterMenuOnRightClick = false;
          this.listLines.ShowGroups = false;
          this.listLines.ShowSortIndicators = false;
-         this.listLines.Size = new System.Drawing.Size(897, 67);
+         this.listLines.Size = new System.Drawing.Size(1046, 77);
          this.listLines.TabIndex = 0;
          this.listLines.TriggerCellOverEventsWhenOverHeader = false;
          this.listLines.UseCompatibleStateImageBehavior = false;
@@ -678,9 +673,9 @@ namespace Bitmanager.BigFile
          // FormMain
          // 
          this.AllowDrop = true;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+         this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(1114, 561);
+         this.ClientSize = new System.Drawing.Size(1300, 647);
          this.Controls.Add(this.panelMain);
          this.Controls.Add(this.toolStrip);
          this.Controls.Add(this.statusStrip);
@@ -772,8 +767,8 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem nonMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByNonMatchedToolStripMenuItem;
-      private BrightIdeasSoftware.VirtualObjectListView listLines;
       private System.Windows.Forms.ToolStripMenuItem toolStripCopyMenuItem;
+      private SubclassedVirtualListView listLines;
    }
 }
 

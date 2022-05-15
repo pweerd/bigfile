@@ -30,7 +30,6 @@ namespace Bitmanager.BigFile.Query
    public class SearchContext
    {
       static Logger logger = Globals.MainLogger.Clone("bits");
-      const long ALL_EVALUATED = (long)(int)LineFlags.AllEvaluated;
       public readonly List<SearchNode> ToCompute;
       public readonly List<ParserValueNode<SearchContext>> LeafNodes;
       public readonly ParserNode<SearchContext> Query;
@@ -47,7 +46,7 @@ namespace Bitmanager.BigFile.Query
          Query = query;
          ToCompute = new List<SearchNode>();
          NeedLine = false;
-         BitsToBeCleared = (int)(LineFlags.AllEvaluated | LineFlags.Match);
+         BitsToBeCleared = LineFlags.ALL_EVALUATED | LineFlags.MATCHED;
          LeafNodes = query.CollectValueNodes();
          for (int i = 0; i < LeafNodes.Count; i++)
          {

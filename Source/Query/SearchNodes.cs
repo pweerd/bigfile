@@ -30,7 +30,7 @@ namespace Bitmanager.BigFile.Query
 {
     public class SearchNodes: IEnumerable<SearchNode>
    {
-      const int MAX_NODES = LogFile.MAX_NUM_MASKS;
+      const int MAX_NODES = LineFlags.NUM_MASKS;
       private readonly List<SearchNode> nodes;
       private readonly bool[] usedBits;
       private int numCreated;

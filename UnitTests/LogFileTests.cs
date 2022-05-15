@@ -26,7 +26,7 @@ using Bitmanager.BigFile.Query;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Bitmanager.Core;
 
-namespace Bitmanager.BigFile {
+namespace Bitmanager.BigFile.Tests {
    [TestClass]
    public class LogFileTests : TestBase {
       private readonly SettingsSource settingsSource;
@@ -67,9 +67,9 @@ namespace Bitmanager.BigFile {
 
 
          int flagsMask = 0;
-         for (int i = 0; i < LogFile.MAX_NUM_MASKS; i++)
-            flagsMask |= ((int)LineFlags.Mask0) << i;
-         Console.WriteLine ("Flags={0:X}, const={1:X}", flagsMask, LogFile.FLAGS_MASK);
+         for (int i = 0; i < LineFlags.NUM_MASKS; i++)
+            flagsMask |= ((int)LineFlags.MASK0) << i;
+         Console.WriteLine ("Flags={0:X}, const={1:X}", flagsMask, LineFlags.FLAGS_MASK);
 
          List<long> offsets = new List<long> ();
          for (int i = 0; i < logFile.PartialLineCount; i++) offsets.Add (logFile.GetPartialLineOffset (i));

@@ -53,7 +53,6 @@ namespace Bitmanager.BigFile {
       private Settings settings;
       private FixedFontMeasures fontMeasures;
       private readonly VirtualDataSource listDatasource;
-      private readonly Encoding[] encodings;
       private ParserNode<SearchContext> lastQuery;
       private readonly SelectionHandler selectionHandler;
 
@@ -62,24 +61,19 @@ namespace Bitmanager.BigFile {
          this.Text = Globals.TITLE;
 
          synchronizationContext = SynchronizationContext.Current;
-         encodings = new Encoding[6];
-         encodings[0] = Encoding.UTF8;
-         encodings[1] = Encoding.Default;
-         encodings[2] = Encoding.Unicode;
-         encodings[3] = Encoding.BigEndianUnicode;
 
          dropdownEncoding.Items.Clear ();
          dropdownEncoding.Items.Add ("Utf8");
-         dropdownEncoding.Items.Add ("Windows");
+         dropdownEncoding.Items.Add ("Latin (extended)");
          dropdownEncoding.Items.Add ("Utf16");
          dropdownEncoding.Items.Add ("Utf16BE");
 
-         if (Globals.IsDebug) {
-            encodings[4] = new Utf81 ();
-            encodings[5] = new Utf82 ();
-            dropdownEncoding.Items.Add ("Utf8 with arr");
-            dropdownEncoding.Items.Add ("Utf8 with ptrs");
-         }
+         //if (Globals.IsDebug) {
+         //   encodings[4] = new Utf81 ();
+         //   encodings[5] = new Utf82 ();
+         //   dropdownEncoding.Items.Add ("Utf8 with arr");
+         //   dropdownEncoding.Items.Add ("Utf8 with ptrs");
+         //}
          dropdownEncoding.SelectedIndex = 0;
          listLines.VirtualListDataSource = listDatasource = new VirtualDataSource (listLines);
          listLines.MultiSelect = false;
@@ -107,16 +101,32 @@ namespace Bitmanager.BigFile {
          if (!visible) cbZipEntries.Items.Clear ();
       }
 
+      private void setEncodingComboFromEncoding(Encoding c) {
+         int ix = 0;
+         int cp = c.CodePage;
+         switch (c.CodePage) {
+            case FileEncoding.CP_EXTENDED_LATIN: ix = 1; break;
+            case FileEncoding.CP_UTF16: ix = 2; break;
+            case FileEncoding.CP_UTF16BE: ix = 3; break;
+         }
+         dropdownEncoding.SelectedIndex = ix;
+      }
       private Encoding getCurrentEncoding () {
          int sel = dropdownEncoding.SelectedIndex;
          //logger.Log("Selected encoding idx={0}", sel);
          if (sel < 0) sel = 0;
-         return encodings[sel];
+         switch (sel) {
+            case 0: return FileEncoding.Utf8;
+            case 1: return FileEncoding.ExtendedLatin;
+            case 2: return FileEncoding.Utf16;
+            case 3: return FileEncoding.Utf16BE;
+            default: throw new BMException("Unexpected encoding-index: {0}", sel);
+         }
       }
 
       FileHistory fileHistory, directoryHistory;
 
-      ToolStripToolTipHelper tooltipHelper;
+      ToolStripToolTipHelpers tooltipHelpers;
       private void FormMain_Load (object sender, EventArgs e) {
          Bitmanager.Core.GlobalExceptionHandler.Hook ();
          //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -174,9 +184,16 @@ namespace Bitmanager.BigFile {
          btnSearch.ToolTipText = sb.ToString ();
          cbSearch.ToolTipText = btnSearch.ToolTipText;
 
-         tooltipHelper = new ToolStripToolTipHelper (this.toolStrip, cbSearch);
-         tooltipHelper.ToolTipInterval = 20000;
-         tooltipHelper.Tooltip.ReshowDelay = 4000;
+         tooltipHelpers = new ToolStripToolTipHelpers ();
+         tooltipHelpers.Add (new ToolStripToolTipHelper (this.toolStrip, cbSplit));
+         //var tth = new ToolStripToolTipHelper (this.toolStrip, cbSearch);
+         //tth.ToolTipInterval = 20000;
+         //tth.Tooltip.ReshowDelay = 4000;
+         //tooltipHelpers.Add (tth);
+         tooltipHelpers.Add (this.toolStrip, (tth)=>{
+            tth.ToolTipInterval = 20000; 
+            tth.Tooltip.ReshowDelay = 4000;
+         });
 
          checkWarnings ();
 
@@ -398,13 +415,18 @@ namespace Bitmanager.BigFile {
       }
 
       private String getLimitedLine (Object model) {
-         String x = model == null ? String.Empty : lf.GetPartialLine ((int)model, neededTextLength, replaceTabs);
+         String x = model == null ? String.Empty : lf.GetPartialLine ((int)model, neededTextLength, TabsReplacer.INSTANCE);
          //logger.Log("{2}: Needed={0}, returned={1}, {3}", neededTextLength, x.Length, model, x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x);
          return x.Length > neededTextLength + 32 ? x.Substring (0, neededTextLength) : x;
       }
-      private static void replaceTabs (char[] arr, int len) {
-         for (int i = 0; i < len; i++) {
-            if (arr[i] == '\t') arr[i] = (char)0x279c; // 0x21e5;// 0xbb;
+
+      class TabsReplacer : ICharReplacer {
+         public static readonly TabsReplacer INSTANCE = new TabsReplacer ();
+
+         public unsafe void Replace (char* p, char* pEnd) {
+            for (; p < pEnd; p++) {
+               if (*p=='\t') *p = (char)0x279c; // 0x21e5;// 0xbb;
+            }
          }
       }
 
@@ -429,17 +451,17 @@ namespace Bitmanager.BigFile {
       private void listLines_FormatRow (object sender, BrightIdeasSoftware.FormatRowEventArgs e) {
          if (e.Model == null) return;
 
-         LineFlags flags = lf.GetLineFlags ((int)e.Model);
+         int flags = lf.GetLineFlags ((int)e.Model);
          Color f = listLines.ForeColor;
          Color b = listLines.BackColor;
 
-         if ((flags & LineFlags.Match) != 0) {
+         if ((flags & LineFlags.MATCHED) != 0) {
             b = settings.HighlightColor;
-            if ((flags & LineFlags.Selected) != 0) {
+            if ((flags & LineFlags.SELECTED) != 0) {
                b = settings.SelectedHighlightColor;
                f = listLines.SelectedForeColorOrDefault;
             }
-         } else if ((flags & LineFlags.Selected) != 0) {
+         } else if ((flags & LineFlags.SELECTED) != 0) {
             f = listLines.SelectedForeColorOrDefault;
             b = listLines.SelectedBackColorOrDefault;
          }
@@ -796,6 +818,8 @@ namespace Bitmanager.BigFile {
             indicateFinished ();
             setSearchStatus ("");
             menuFileClose.Enabled = true;
+            logger.Log ("Detected2: {0}", result.LogFile.DetectedEncoding.Current.CodePage);
+            setEncodingComboFromEncoding (result.LogFile.DetectedEncoding.Current);
 
             var lf = result.LogFile;
             String part1 = String.Format ("{0:n0} lines / {1}", lf.PartialLineCount, Pretty.PrintSize (lf.Size));
@@ -818,6 +842,8 @@ namespace Bitmanager.BigFile {
       void ILogFileCallback.OnLoadCompletePartial (LogFile cloned) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
             logger.Log (); //Separate by empty line
+            logger.Log ("Detected: {0}", cloned.DetectedEncoding.Current);
+            setEncodingComboFromEncoding (cloned.DetectedEncoding.Current);
             setLogFile (cloned);
             statusLabelMain.Text = String.Format ("Loading...  {0:n0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize (cloned.Size));
          }), null);

@@ -17,23 +17,8 @@
  * under the License.
  */
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("BigFile")]
-[assembly: AssemblyDescription("Viewer for (very) large text files")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("De Bitmanager")]
-[assembly: AssemblyProduct("BigFile")]
-[assembly: AssemblyCopyright("Copyright © 2022 De Bitmanager")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-
-[assembly: ComVisible(false)]
-
-[assembly: AssemblyVersion("1.0.2022.0515")]
-[assembly: AssemblyFileVersion("1.0.2022.0515")]
+namespace Bitmanager.BigFile {
+   public interface ICharReplacer {
+      public unsafe void Replace (char* p, char* pEnd);
+   }
+}

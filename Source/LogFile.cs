@@ -34,15 +34,29 @@ using System.Linq;
 using System.Collections.ObjectModel;
 
 namespace Bitmanager.BigFile {
-   [Flags]
-   public enum LineFlags {
-      None = 0,
-      Match = 1 << 0,
-      Continuation = 1 << 1,
-      AllEvaluated = 1 << 2,
-      Selected = 1 << 3,
-      Mask0 = 1 << 4,
-   };
+   /// <summary>
+   /// Constants for the flags and masks in the line offset field (long)
+   /// This long is build like [offset][search_mask][flags]
+   /// - The flags part is 4 bits
+   /// - There are 20 mask bits. Each mask-bit correspond to a search term hit
+   /// - The offset part is 64-24=40 bits
+   /// </summary>
+   public abstract class LineFlags {
+      public const int CONTINUATION = 0x01;
+      public const int MATCHED = 0x02;
+      public const int SELECTED = 0x04;
+      public const int ALL_EVALUATED = 0x08;
+      public const int RESETTABLE_FLAGS = MATCHED | SELECTED | ALL_EVALUATED;
+
+      public const int MASK0 = 0x10; //first mask: should be 1 bit further than the last flag
+
+      public const int NUM_FLAGS = 4;
+      public const int NUM_MASKS = 20;
+
+      public const int FLAGS_SHIFT = NUM_FLAGS + NUM_MASKS;
+      public const int FLAGS_MASK = (1 << FLAGS_SHIFT) - 1;
+   }
+
 
    /// <summary>
    /// LogFile is responsible for loading the data and splitting it into lines.
@@ -50,9 +64,6 @@ namespace Bitmanager.BigFile {
    public class LogFile {
       static public String DbgStr = "gzip";
       static readonly Logger logger = Globals.MainLogger.Clone ("logfile");
-      public const int FLAGS_SHIFT = 24; //Doublecheck with LineFlags!
-      public const int FLAGS_MASK = (1 << FLAGS_SHIFT) - 1;
-      public const int MAX_NUM_MASKS = 20;
 
       private ThreadContext threadCtx;
       private readonly List<long> partialLines;
@@ -62,9 +73,12 @@ namespace Bitmanager.BigFile {
       public int LongestPartialIndex { get; private set; }
       public int LongestLineIndex { get; private set; }
       public int PartialLineCount { get { return partialLines.Count - 1; } }
-      public long Size { get { return partialLines[partialLines.Count - 1] >> FLAGS_SHIFT; } }
+      public long Size { get { return partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT; } }
       public int LineCount { get { return lines == null ? partialLines.Count - 1 : lines.Count - 1; } }
       public String FileName { get { return fileName; } }
+      private FileEncoding detectedEncoding;
+      public FileEncoding DetectedEncoding => detectedEncoding;
+
       private Encoding encoding = Encoding.UTF8;
 
       public IDirectStream DirectStream { get { return threadCtx == null ? null : threadCtx.DirectStream; } }
@@ -127,6 +141,7 @@ namespace Bitmanager.BigFile {
          this.partialLines = new List<long> (other.partialLines);
          this.maxPartialSize = other.maxPartialSize;
          this.encoding = other.encoding;
+         this.detectedEncoding = other.detectedEncoding;
          this.zipEntries = other.zipEntries;
          int maxBufferSize = finalizeAdministration ();
 
@@ -271,13 +286,12 @@ namespace Bitmanager.BigFile {
          int maxLineLen = 0;
          int maxLineIdx = 0;
          int len;
-         const int CONTINUATION_FLAG = (int)LineFlags.Continuation;
          for (int i = 1; i < partialLines.Count; i++) {
             long offset = partialLines[i];
             int flags = (int)offset;
-            offset >>= FLAGS_SHIFT;
+            offset >>= LineFlags.FLAGS_SHIFT;
             if (lines != null) {
-               if ((flags & CONTINUATION_FLAG) == 0) {
+               if ((flags & LineFlags.CONTINUATION) == 0) {
                   len = (int)(offset - prevLine);
                   if (len > maxLineLen) {
                      maxLineIdx = lines.Count - 1;
@@ -302,7 +316,7 @@ namespace Bitmanager.BigFile {
 
       public int NextPartialHit (int idxPartial) {
          if (idxPartial < -1) idxPartial = -1;
-         long mask = (int)LineFlags.Match;
+         long mask = LineFlags.MATCHED;
          for (int i = idxPartial + 1; i < partialLines.Count - 1; i++) {
             if ((partialLines[i] & mask) != 0) return i;
          }
@@ -310,7 +324,7 @@ namespace Bitmanager.BigFile {
       }
       public int PrevPartialHit (int idxPartial) {
          if (idxPartial > PartialLineCount) idxPartial = PartialLineCount;
-         long mask = (int)LineFlags.Match;
+         long mask = LineFlags.MATCHED;
          for (int i = idxPartial - 1; i >= 0; i--) {
             if ((partialLines[i] & mask) != 0) return i;
          }
@@ -327,7 +341,7 @@ namespace Bitmanager.BigFile {
          if (contextLines > 0) {
             int prevMatch = -1;
             for (int i = 0; i < partialLines.Count - 1; i++) {
-               if ((GetLineFlags (i) & LineFlags.Match) == 0) continue;
+               if ((GetLineFlags (i) & LineFlags.MATCHED) == 0) continue;
                if (contextLines > 0) {
                   int endPrevContext = prevMatch + 1 + contextLines;
                   if (endPrevContext > i) endPrevContext = i;
@@ -353,7 +367,7 @@ namespace Bitmanager.BigFile {
 
          //No context lines
          for (int i = 0; i < partialLines.Count - 1; i++) {
-            if ((GetLineFlags (i) & LineFlags.Match) == 0) continue;
+            if ((GetLineFlags (i) & LineFlags.MATCHED) == 0) continue;
             ret.Add (i);
          }
          return ret;
@@ -365,7 +379,7 @@ namespace Bitmanager.BigFile {
          if (contextLines > 0) {
             int prevMatch = -1;
             for (int i = 0; i < partialLines.Count - 1; i++) {
-               if ((GetLineFlags (i) & LineFlags.Match) != 0) continue;
+               if ((GetLineFlags (i) & LineFlags.MATCHED) != 0) continue;
                if (contextLines > 0) {
                   int endPrevContext = prevMatch + 1 + contextLines;
                   if (endPrevContext > i) endPrevContext = i;
@@ -391,7 +405,7 @@ namespace Bitmanager.BigFile {
 
          //No context lines
          for (int i = 0; i < partialLines.Count - 1; i++) {
-            if ((GetLineFlags (i) & LineFlags.Match) != 0) continue;
+            if ((GetLineFlags (i) & LineFlags.MATCHED) != 0) continue;
             ret.Add (i);
          }
          return ret;
@@ -495,6 +509,10 @@ namespace Bitmanager.BigFile {
             if (buffer == null) break;
 
             mem.Write (buffer.Buffer, 0, buffer.Length);
+            if (detectedEncoding == null) {
+               detectedEncoding = new FileEncoding (buffer);
+               AddLine (detectedEncoding.PreambleBytes);
+            }
             position = addLinesForBuffer (buffer.Position, buffer.Buffer, buffer.Length);
             if (!loadProgress.HandleProgress (position)) continue;
 
@@ -538,6 +556,18 @@ namespace Bitmanager.BigFile {
          return false;
       }
 
+      private void dumpOffsets (int N) {
+         if (partialLines.Count < N) N = partialLines.Count;
+         logger.Log ();
+         logger.Log ("Dumping {0} of {1} partial lines. Shift={2}, mask={3:X}", N, partialLines.Count, LineFlags.FLAGS_SHIFT, LineFlags.FLAGS_MASK);
+         for (int i = 0; i < N; i++) dumpOffset (i, null);
+      }
+      private void dumpOffset (int i, String why) {
+         long x = partialLines[i];
+         long offs = x >> LineFlags.FLAGS_SHIFT;
+         long mask = x & LineFlags.FLAGS_MASK;
+         logger.Log ("-- {0}: o={1} (0x{1:X}), flags=0x{2:X}, rsn={3}", i, offs, mask, why);
+      }
       private void loadNormalFile (string fn, CancellationToken ct) {
          var directStream = new DirectFileStreamWrapper (fn, 4096);
          var fileStream = directStream.BaseStream;
@@ -565,19 +595,24 @@ namespace Bitmanager.BigFile {
          //This involves creating a directStream from it.
          this.threadCtx = new ThreadContext (encoding, directStream, partialLines);
          long position = fileStream.Position;
-         IOBlock buf = null;
+         IOBlock buffer = null;
          while (true) {
-            buf = rdr.GetNextBuffer (buf);
-            if (buf == null) break;
+            buffer = rdr.GetNextBuffer (buffer);
+            if (buffer == null) break;
 
-            position = addLinesForBuffer (buf.Position, buf.Buffer, buf.Length);
+            if (detectedEncoding == null) {
+               detectedEncoding = new FileEncoding (buffer);
+               AddLine (detectedEncoding.PreambleBytes);
+            }
+
+            position = addLinesForBuffer (buffer.Position, buffer.Buffer, buffer.Length);
             loadProgress.HandleProgress (position);
          }
          addSentinelForLastPartial (position);
       }
 
       private void addSentinelForLastPartial (long position) {
-         long o2 = partialLines[partialLines.Count - 1] >> FLAGS_SHIFT;
+         long o2 = partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT;
          if (o2 != position)
             AddLine (position);
       }
@@ -592,7 +627,7 @@ namespace Bitmanager.BigFile {
          return true;
       }
       private long addLinesForBuffer (long position, byte[] buf, int count) {
-         long prev = partialLines[partialLines.Count - 1] >> FLAGS_SHIFT;
+         long prev = partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT;
          int lenCorrection = (int)(position - prev);
          int lastDot = -100;
          int lastComma = -100;
@@ -644,7 +679,6 @@ namespace Bitmanager.BigFile {
             this.ct = ct;
             try {
                LongestPartialIndex = -1;
-               AddLine (0);
                if (String.Equals (".gz", Path.GetExtension (fileName), StringComparison.OrdinalIgnoreCase))
                   loadGZipFile (fileName, ct);
                else if (zipEntry != null || String.Equals (".zip", Path.GetExtension (fileName), StringComparison.OrdinalIgnoreCase))
@@ -676,6 +710,7 @@ namespace Bitmanager.BigFile {
                }
                if (!disposed)
                   cb.OnLoadComplete (new Result (this, startTime, err));
+               //dumpOffsets (100);
             }
          });
       }
@@ -692,10 +727,10 @@ namespace Bitmanager.BigFile {
 
 
       public void ResetMatches () {
-         resetFlags ((int)LineFlags.Match);
+         resetFlags (LineFlags.MATCHED);
       }
       public void ResetMatchesAndFlags () {
-         resetFlags (FLAGS_MASK & ~(int)LineFlags.Continuation);
+         resetFlags (LineFlags.RESETTABLE_FLAGS);
       }
       private void resetFlags (int mask) {
          long notmask = ~(long)mask;
@@ -707,10 +742,9 @@ namespace Bitmanager.BigFile {
 
       public List<int> GetSelectedPartialLines (int maxCount, out bool truncated) {
          var ret = new List<int> ();
-         long mask = (int)LineFlags.Selected;
          truncated = false;
          for (int i = 0; i < partialLines.Count; i++) {
-            if ((partialLines[i] & mask) == 0) continue;
+            if ((partialLines[i] & LineFlags.SELECTED) == 0) continue;
             if (ret.Count >= maxCount) {
                truncated = true; break;
             }
@@ -719,72 +753,49 @@ namespace Bitmanager.BigFile {
          return ret;
       }
 
-      public void MarkSelected (int row) {
-         long mask = (int)LineFlags.Selected;
-         partialLines[row] |= mask;
-      }
-
       public void MarkSelected (int from, int to) {
-         long mask = (int)LineFlags.Selected;
          for (int i = from; i < to; i++) {
-            partialLines[i] |= mask;
+            partialLines[i] |= LineFlags.SELECTED;
          }
       }
 
-      public void MarkUnselected () {
-         MarkUnselected (0, PartialLineCount);
-      }
       public void MarkUnselected (int from, int to) {
-         long mask = ~(int)LineFlags.Selected;
+         long mask = ~LineFlags.SELECTED;
          for (int i = from; i < to; i++) {
             partialLines[i] &= mask;
          }
       }
 
       public void ToggleSelected (int from, int to) {
-         long mask = (int)LineFlags.Selected;
+         long mask = LineFlags.SELECTED;
          for (int i = from; i < to; i++) {
             partialLines[i] ^= mask;
          }
       }
 
-      public int CountFlagged (LineFlags flags) {
-         int mask = (int)flags;
-         int cnt = 0;
-         for (int i = 0; i < PartialLineCount; i++) {
-            if ((mask & (int)partialLines[i]) != 0) ++cnt;
-         }
-         return cnt;
-      }
       public void SelectAllMatched () {
-         long mask = (int)LineFlags.Selected;
-         int check = (int)LineFlags.Match;
          for (int i = 0; i < PartialLineCount; i++) {
-            if ((check & (int)partialLines[i]) != 0)
-               partialLines[i] |= mask;
+            if ((LineFlags.MATCHED & (int)partialLines[i]) != 0)
+               partialLines[i] |= LineFlags.SELECTED;
          }
       }
       public void SelectAllNonMatched () {
-         long mask = (int)LineFlags.Selected;
-         int check = (int)LineFlags.Match;
          for (int i = 0; i < PartialLineCount; i++) {
-            if ((check & (int)partialLines[i]) == 0)
-               partialLines[i] |= mask;
+            if ((LineFlags.MATCHED & (int)partialLines[i]) == 0)
+               partialLines[i] |= LineFlags.SELECTED;
          }
       }
       public void UnselectAllMatched () {
-         long mask = ~(int)LineFlags.Selected;
-         int check = (int)LineFlags.Match;
+         long mask = ~(long)LineFlags.SELECTED;
          for (int i = 0; i < PartialLineCount; i++) {
-            if ((check & (int)partialLines[i]) != 0)
+            if ((LineFlags.MATCHED & (int)partialLines[i]) != 0)
                partialLines[i] &= mask;
          }
       }
       public void UnselectAllNonMatched () {
-         long mask = ~(int)LineFlags.Selected;
-         int check = (int)LineFlags.Match;
+         long mask = ~(long)LineFlags.SELECTED;
          for (int i = 0; i < PartialLineCount; i++) {
-            if ((check & (int)partialLines[i]) == 0)
+            if ((LineFlags.MATCHED & (int)partialLines[i]) == 0)
                partialLines[i] &= mask;
          }
       }
@@ -856,7 +867,7 @@ namespace Bitmanager.BigFile {
                continue;
             }
 
-            partialLines[ctx.Index] = ctx.OffsetAndFlags | (int)LineFlags.Match;
+            partialLines[ctx.Index] = ctx.OffsetAndFlags | LineFlags.MATCHED;
 
             if (++matches == 1 && !disposed && start == 0)
                cb.OnSearchPartial (this, ctx.Index);
@@ -881,7 +892,7 @@ namespace Bitmanager.BigFile {
                   continue;
                }
 
-               partialLines[ctx.Index] = ctx.OffsetAndFlags | (int)LineFlags.Match;
+               partialLines[ctx.Index] = ctx.OffsetAndFlags | LineFlags.MATCHED;
 
                if (++matches == 1 && !disposed && start == 0)
                   cb.OnSearchPartial (this, ctx.Index);
@@ -1042,133 +1053,35 @@ namespace Bitmanager.BigFile {
          strm.Close ();
       }
 
-      //private int exportCompleteLine (ThreadContext ctx, Stream fs, int partialLine, CancellationToken ct)
-      //{
-      //   int lineNo = this.PartialToLineNumber(partialLine);
-      //   int start = this.PartialFromLineNumber(lineNo);
-      //   int end = this.PartialFromLineNumber(lineNo+1);
-
-      //   for (int i=start; i<end; i++)
-      //   {
-      //      int len = ctx.ReadPartialLineBytesInBuffer(i, i + 1);
-      //      fs.Write(ctx.ByteBuffer, 0, len);
-      //      if (ct.IsCancellationRequested || disposed) break;
-      //   }
-      //   fs.Write(endLine, 0, 2);
-      //   return end;
-      //}
-
-      //private void _exportNoLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
-      //{
-      //   int N = PartialLineCount;
-      //   int perc = 0;
-      //   int nextPercAt = 0;
-
-      //   for (int i = 0; i < N; i++)
-      //   {
-      //      int len = ctx.ReadPartialLineBytesInBuffer(i, i+1);
-      //      fs.Write(ctx.ByteBuffer, 0, len);
-      //      // Add \r\n
-      //      fs.Write(endLine, 0, 2);
-
-      //      if (i < nextPercAt) continue;
-
-      //      if (ct.IsCancellationRequested || disposed) break;
-      //      cb.OnProgress(this, perc);
-      //      perc++;
-      //      nextPercAt = (int)(perc * N / 100.0);
-      //   }
-      //}
-      //private void _exportNoLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
-      //{
-      //   byte[] endLine = new byte[2] { 13, 10 };
-
-      //   int N = filter.Count;
-      //   int perc = 0;
-      //   int nextPercAt = 0;
-
-      //   for (int i = 0; i < N; i++)
-      //   {
-      //      int ix = filter[i];
-      //      int len = ctx.ReadPartialLineBytesInBuffer(ix, ix + 1);
-      //      fs.Write(ctx.ByteBuffer, 0, len);
-      //      // Add \r\n
-      //      fs.Write(endLine, 0, 2);
-
-      //      if (i < nextPercAt) continue;
-
-      //      if (ct.IsCancellationRequested || disposed) break;
-      //      cb.OnProgress(this, perc);
-      //      perc++;
-      //      nextPercAt = (int)(perc * N / 100.0);
-      //   }
-      //}
-      //private void _exportLinesNoFilter(ThreadContext ctx, Stream fs, CancellationToken ct)
-      //{
-      //   byte[] endLine = new byte[2] { 13, 10 };
-
-      //   int N = LineCount;
-      //   int perc = 0;
-      //   int nextPercAt = 0;
-
-      //   for (int i = 0; i < N; i++)
-      //   {
-      //      int len = ctx.ReadPartialLineBytesInBuffer(lines[i], lines[i + 1]);
-      //      fs.Write(ctx.ByteBuffer, 0, len);
-      //      // Add \r\n
-      //      fs.Write(endLine, 0, 2);
-
-      //      if (i < nextPercAt) continue;
-
-      //      if (ct.IsCancellationRequested || disposed) break;
-      //      cb.OnProgress(this, perc);
-      //      perc++;
-      //      nextPercAt = (int)(perc * N / 100.0);
-      //   }
-      //}
-      //private void _exportLinesFilter(ThreadContext ctx, List<int> filter, Stream fs, CancellationToken ct)
-      //{
-      //   byte[] endLine = new byte[2] { 13, 10 };
-
-      //   int N = filter.Count;
-      //   int perc = 0;
-      //   int nextPercAt = 0;
-
-      //   for (int i = 0; i < N; i++)
-      //   {
-      //      int ix = filter[i];
-      //      int len = ctx.ReadPartialLineBytesInBuffer(lines[ix], lines[ix + 1]);
-      //      fs.Write(ctx.ByteBuffer, 0, len);
-      //      // Add \r\n
-      //      fs.Write(endLine, 0, 2);
-
-      //      if (i < nextPercAt) continue;
-
-      //      if (ct.IsCancellationRequested || disposed) break;
-      //      cb.OnProgress(this, perc);
-      //      perc++;
-      //      nextPercAt = (int)(perc * N / 100.0);
-      //   }
-      //}
 
       private void AddLine (long offset) {
-         partialLines.Add (offset << FLAGS_SHIFT);
+         logger.Log ("AddLine({0}: {1} (0x{1:X})", partialLines.Count, offset);
+         partialLines.Add (offset << LineFlags.FLAGS_SHIFT);
+         long x = partialLines[partialLines.Count-1];
+         long offs = x >> LineFlags.FLAGS_SHIFT;
+         long mask = x & LineFlags.FLAGS_MASK;
+         logger.Log ("-- o={0} (0x{0:X}), flags=0x{1:X}", offs, mask);
       }
       private void AddPartialLine (long offset) {
-         partialLines.Add ((offset << FLAGS_SHIFT) | (int)LineFlags.Continuation);
+         logger.Log ("AddPartial({0}: {1} (0x{1:X})", partialLines.Count, offset);
+         partialLines.Add ((offset << LineFlags.FLAGS_SHIFT) | LineFlags.CONTINUATION);
          partialsEncountered = true;
+         long x = partialLines[partialLines.Count - 1];
+         long offs = x >> LineFlags.FLAGS_SHIFT;
+         long mask = x & LineFlags.FLAGS_MASK;
+         logger.Log ("-- o={0} (0x{0:X}), flags=0x{1:X}", offs, mask);
       }
 
       public long GetPartialLineOffset (int line) {
          //logger.Log("PartialLineOffset[{0}]: raw={1:X}, shift={2:X}", line, partialLines[line], (int)(partialLines[line] >> FLAGS_SHIFT));
-         return (partialLines[line] >> FLAGS_SHIFT);
+         return (partialLines[line] >> LineFlags.FLAGS_SHIFT);
       }
       public long GetPartialLineOffsetAndFlags (int line) {
          return partialLines[line];
       }
       public long GetLineOffset (int line) {
          if (lines != null) line = lines[line];
-         return (int)(partialLines[line] >> FLAGS_SHIFT);
+         return (int)(partialLines[line] >> LineFlags.FLAGS_SHIFT);
       }
       public int LineToPartialLineIndex (int line) {
          return lines == null ? line : lines[line];
@@ -1179,14 +1092,11 @@ namespace Bitmanager.BigFile {
       /// <summary>
       /// Get a partial line
       /// </summary>
-      public string GetPartialLine (int index, int maxChars = -1, Action<char[], int> replacer = null) {
+      public string GetPartialLine (int index, int maxChars = -1, ICharReplacer replacer = null) {
+         //dumpOffset (index, "GetPartialLine");
          //logger.Log("GetPartialLine: index={0}, count={1}", index, partialLines.Count - 1);
          if (index < 0 || index >= partialLines.Count - 1) return String.Empty;
          return threadCtx.GetPartialLine (index, index + 1, maxChars, replacer);
-      }
-
-      public int ReadPartialLineBytes (int from, int until, byte[] buf, int offset, int count) {
-         return threadCtx.ReadPartialLineBytes (from, until, buf, offset, count);
       }
 
       /// <summary>
@@ -1211,8 +1121,8 @@ namespace Bitmanager.BigFile {
          return GetLine (index, out truncated);
       }
 
-      public LineFlags GetLineFlags (int line) {
-         return (LineFlags)(FLAGS_MASK & (int)partialLines[line]);
+      public int GetLineFlags (int line) {
+         return (LineFlags.FLAGS_MASK & (int)partialLines[line]);
       }
 
 
@@ -1255,12 +1165,7 @@ namespace Bitmanager.BigFile {
       }
       public int GetOptRealLineNumber (int line) {
          if (lines == null) return line;
-         return ((int)partialLines[line] & (int)LineFlags.Continuation) == 0 ? PartialToLineNumber (line) : -1;
-      }
-
-      public String GetLineAndFlags (int line, out LineFlags flags) {
-         flags = (LineFlags)(FLAGS_MASK & (int)partialLines[line]);
-         return GetPartialLine (line);
+         return ((int)partialLines[line] & LineFlags.CONTINUATION) == 0 ? PartialToLineNumber (line) : -1;
       }
 
 
@@ -1322,55 +1227,5 @@ namespace Bitmanager.BigFile {
          }
 
       }
-      //   private class MemCheckingLoadProgress : LoadProgress
-      //   {
-      //      const int CHUNCK_MB = 100;
-      //      const int MB = 1024*1024;
-      //      private int cnt;
-      //      private bool shouldDegrade;
-      //      private readonly Logger logger;
-
-      //      private long nextCheckAtPos;
-      //      private MemoryFailPoint failpoint;
-
-      //      public MemCheckingLoadProgress(LogFile parent, long fileSize) :
-      //         base(parent, fileSize)
-      //      {
-      //         this.logger = LogFile.logger;
-      //         nextCheckAtPos = CHUNCK_MB * MB;
-      //      }
-
-      //      public override bool ShouldDegrade()
-      //      {
-      //         return shouldDegrade;
-      //      }
-
-      //      public override bool HandleProgress(long pos)
-      //      {
-      //         if (pos> nextCheckAtPos)
-      //         {
-      //            nextCheckAtPos += CHUNCK_MB * MB;
-      //            logger.Log(_LogType.ltTimerStart, "failpoint start, pos={0}mb, tot={1}mb", pos/MB, GC.GetTotalMemory(false)/MB);
-
-      //            if (failpoint != null) failpoint.Dispose();
-      //            failpoint = null;
-      //            try
-      //            {
-      //               // Check for available memory.
-      //               failpoint = new MemoryFailPoint(500);
-      //            }
-      //            catch (InsufficientMemoryException e)
-      //            {
-      //               logger.Log(_LogType.ltWarning, "Switching back to uncached loading, since there was not enough memory available.");
-      //               shouldDegrade = true;
-      //               return true;
-      //            }
-      //            logger.Log(_LogType.ltTimerStop, "failpoint done");
-      //            return base.HandleProgress(pos);
-      //         }
-      //         return false;
-      //      }
-      //   }
-
    }
 }

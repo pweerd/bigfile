@@ -29,7 +29,7 @@ namespace Bitmanager.BigFile {
          var attributes = Assembly.GetExecutingAssembly ().GetCustomAttributes (typeof (AssemblyCopyrightAttribute), false);
          if (attributes.Length > 0) {
             var copyRight = ((AssemblyCopyrightAttribute)attributes[0]).Copyright;
-            var match = Regex.Match (copyRight, @" (\d\d\d\d)");
+            var match = Regex.Match (copyRight, @"(\d\d\d\d)");
             if (match.Success) year = match.Groups[1].ToString ();
          }
       }
