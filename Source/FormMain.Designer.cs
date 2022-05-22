@@ -609,7 +609,6 @@ namespace Bitmanager.BigFile
          this.listLines.ContextMenuStrip = this.contextMenu;
          this.listLines.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.listLines.FullRowSelect = true;
-         this.listLines.GridLines = true;
          this.listLines.HasCollapsibleGroups = false;
          this.listLines.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
          this.listLines.IsSearchOnSortColumn = false;
