@@ -100,13 +100,7 @@ namespace Bitmanager.BigFile {
 
       #region reflected_settings
       private Settings settings;
-      //private readonly String gzipExe;
       private readonly int maxPartialSize;
-      //private readonly int maxLineLength;
-      //private int searchThreads;
-      //private long loadInMemoryIfBigger;
-      //private long compressIfBigger;
-      //private long availableMemory;
       #endregion
 
       private CancellationToken ct;
@@ -617,10 +611,6 @@ namespace Bitmanager.BigFile {
             AddLine (position);
       }
 
-      static int perc (long partial, long all) {
-         if (all == 0) return 0;
-         return (int)((100.0 * partial) / all);
-      }
       private bool onProgress (double perc) {
          if (disposed) return false;
          cb.OnProgress (this, (int)perc);
@@ -884,9 +874,7 @@ namespace Bitmanager.BigFile {
                   if (start == 0 && !onProgress ((100.0 * ctx.Index) / end)) break;
                }
 
-               int len = threadCtx.ReadPartialLineCharsInBuffer (ctx.Index, ctx.Index + 1);
-
-               ctx.SetLine (partialLines[ctx.Index], new String (threadCtx.CharBuffer, 0, len));
+               ctx.SetLine (partialLines[ctx.Index], threadCtx.ReadPartialLineInBuffer (ctx.Index, ctx.Index + 1));
                if (!query.EvaluateDeep (ctx)) {
                   partialLines[ctx.Index] = ctx.OffsetAndFlags; ;
                   continue;
