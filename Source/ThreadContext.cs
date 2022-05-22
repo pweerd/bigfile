@@ -173,7 +173,7 @@ namespace Bitmanager.BigFile {
       private int getMaxBytesForLimitedChars(int ll) {
          if (ll > 0) {
             switch (Encoding.CodePage) {
-               case 28591:
+               case FileEncoding.CP_EXTENDED_LATIN:
                   break;
                default:
                   ll = ll < int.MaxValue / 2 ? 2 * ll : int.MaxValue;
@@ -223,7 +223,6 @@ namespace Bitmanager.BigFile {
             len = (int)diff;
             truncated = false;
          }
-         Globals.MainLogger.Log ("-- o1={0}, o2={1}", o1, o2);
 
          if (byteBuffer.Length >= len) //Simple case: the line fits in the pre-allocated buffer
          {
@@ -236,7 +235,7 @@ namespace Bitmanager.BigFile {
          byte[] tmp = new byte[2 * len];
          int bytesRead = readPartialLineBytes (o1, o2, tmp, len, len);
 
-         fixed (byte* pBuf = &tmp[0]) {
+         fixed (byte* pBuf = tmp) {
             byte* pSrc = pBuf + len;
             char* pDst = (char*)pBuf;
             int chars = Encoding.GetChars (pSrc, bytesRead, pDst, tmp.Length / 2);
@@ -256,7 +255,10 @@ namespace Bitmanager.BigFile {
                break;
             }
             chars = (int)(pEnd - pDst);
-            if (maxLineLength > 0 && maxLineLength > chars) chars = maxLineLength;
+            if (maxLineLength > 0 && maxLineLength < chars) {
+               chars = maxLineLength;
+               truncated = true;
+            }
             if (replacer != null) replacer.Replace (pDst, pEnd);
 
             return new String (pDst, 0, chars);
