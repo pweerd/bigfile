@@ -477,6 +477,33 @@ namespace Bitmanager.BigFile {
          //}
       }
 
+      private void listLines_FormatCell (object sender, FormatCellEventArgs e) {
+         if (e.Model == null) return;
+         if (e.ColumnIndex == 0) {
+            e.SubItem.BackColor = this.BackColor;
+            e.SubItem.ForeColor = listLines.ForeColor;
+         } else {
+            int flags = lf.GetLineFlags ((int)e.Model);
+            Color f = listLines.ForeColor;
+            Color b = listLines.BackColor;
+
+            if ((flags & LineFlags.MATCHED) != 0) {
+               b = settings.HighlightColor;
+               if ((flags & LineFlags.SELECTED) != 0) {
+                  b = settings.SelectedHighlightColor;
+                  f = listLines.SelectedForeColorOrDefault;
+               }
+            } else if ((flags & LineFlags.SELECTED) != 0) {
+               f = listLines.SelectedForeColorOrDefault;
+               b = listLines.SelectedBackColorOrDefault;
+            }
+            e.SubItem.BackColor = b;
+            e.SubItem.ForeColor = f;
+         }
+
+      }
+
+
       FormLine lineForm;
       private void listLines_ItemActivate (object sender, EventArgs e) {
          if (listLines.SelectedObjects.Count != 1) return;

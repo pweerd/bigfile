@@ -608,7 +608,6 @@ namespace Bitmanager.BigFile
             this.olvcText});
          this.listLines.ContextMenuStrip = this.contextMenu;
          this.listLines.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.listLines.FullRowSelect = true;
          this.listLines.HasCollapsibleGroups = false;
          this.listLines.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
          this.listLines.IsSearchOnSortColumn = false;
@@ -624,11 +623,12 @@ namespace Bitmanager.BigFile
          this.listLines.Size = new System.Drawing.Size(1046, 77);
          this.listLines.TabIndex = 0;
          this.listLines.TriggerCellOverEventsWhenOverHeader = false;
+         this.listLines.UseCellFormatEvents = true;
          this.listLines.UseCompatibleStateImageBehavior = false;
          this.listLines.View = System.Windows.Forms.View.Details;
          this.listLines.VirtualMode = true;
          this.listLines.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.listLines_CellRightClick);
-         this.listLines.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.listLines_FormatRow);
+         this.listLines.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs>(this.listLines_FormatCell);
          this.listLines.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs>(this.listLines_Scroll);
          this.listLines.ItemActivate += new System.EventHandler(this.listLines_ItemActivate);
          this.listLines.DragDrop += new System.Windows.Forms.DragEventHandler(this.listLines_DragDrop);
