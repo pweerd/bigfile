@@ -65,6 +65,17 @@ namespace Bitmanager.BigFile {
          prevRow = -1;
       }
 
+      public bool SingleLineSelected {
+         get {
+            return low >=0 && !complex && (low + 1 == high);
+         }
+      }
+      public int SelectedIndex {
+         get {
+            return SingleLineSelected ? low : -1;
+         }
+      }
+
       private void Listview_KeyDown (object sender, System.Windows.Forms.KeyEventArgs e) {
          switch (e.KeyCode) {
             default: return;
@@ -123,6 +134,10 @@ namespace Bitmanager.BigFile {
          int row = ListView.SelectedIndex;
          logger.Log ("SelectedIndexChanged: row={0}, inducedBy={1}", row, inducedBy);
          if (row < 0) return;
+
+         //Force the selection not to be happen in the listview itself by deselecting immediately
+         //Reason: it is impossible to reliable select colors for selected items in the listview
+         ListView.SelectedIndex = -1;
 
          switch (inducedBy) {
             case InducedBy.Mouse: goto RESET; //Selection already handled in mouse-procedure 

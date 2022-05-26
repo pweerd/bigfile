@@ -45,16 +45,19 @@ namespace Bitmanager.BigFile {
    public partial class FormMain : Form, ILogFileCallback {
       private static readonly Logger logger = Globals.MainLogger;
       private LogFile lf;
+      public LogFile LogFile => lf;
       private readonly SynchronizationContext synchronizationContext;
       private readonly SearchHistory searchboxDriver;
       private CancellationTokenSource cancellationTokenSource;
       private bool processing;
       private SettingsSource settingsSource;
       private Settings settings;
+      public Settings Settings => settings;
       private FixedFontMeasures fontMeasures;
       private readonly VirtualDataSource listDatasource;
       private ParserNode<SearchContext> lastQuery;
       private readonly SelectionHandler selectionHandler;
+      private float initialFontSize;
 
       public FormMain () {
          InitializeComponent ();
@@ -62,11 +65,19 @@ namespace Bitmanager.BigFile {
 
          synchronizationContext = SynchronizationContext.Current;
 
-         dropdownEncoding.Items.Clear ();
-         dropdownEncoding.Items.Add ("Utf8");
-         dropdownEncoding.Items.Add ("Latin (extended)");
-         dropdownEncoding.Items.Add ("Utf16");
-         dropdownEncoding.Items.Add ("Utf16BE");
+         cbEncoding.Items.Clear ();
+         cbEncoding.Items.Add ("Utf8");
+         cbEncoding.Items.Add ("Latin (extended)");
+         cbEncoding.Items.Add ("Utf16");
+         cbEncoding.Items.Add ("Utf16BE");
+
+         cbFontSize.Items.Add ("A");
+         cbFontSize.Items.Add ("A+");
+         cbFontSize.Items.Add ("A++");
+         cbFontSize.Items.Add ("A+++");
+         cbFontSize.SelectedIndex = 0;
+         cbFontSize.SelectedIndexChanged += cbFontSize_SelectedIndexChanged;
+         initialFontSize = listLines.Font.SizeInPoints;
 
          //if (Globals.IsDebug) {
          //   encodings[4] = new Utf81 ();
@@ -74,12 +85,18 @@ namespace Bitmanager.BigFile {
          //   dropdownEncoding.Items.Add ("Utf8 with arr");
          //   dropdownEncoding.Items.Add ("Utf8 with ptrs");
          //}
-         dropdownEncoding.SelectedIndex = 0;
+         cbEncoding.SelectedIndex = 0;
          listLines.VirtualListDataSource = listDatasource = new VirtualDataSource (listLines);
          listLines.MultiSelect = false;
          listLines.SelectAllOnControlA = false;
          listLines.SelectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.None;
          listLines.CopySelectionOnControlC = false;
+         //listLines.DefaultRenderer = new ListViewRenderer (this, listLines);
+         selectedFore = listLines.SelectedForeColorOrDefault;
+         selectedBack = listLines.SelectedBackColorOrDefault;
+         olvcLineNumber.CellPadding = new Rectangle (0, 0, 2, 0);
+         listLines.OnFontTick += ListLines_OnFontTick;
+
 
          searchboxDriver = new SearchHistory (cbSearch);
          btnResetSearch.Visible = Globals.IsDebug;
@@ -95,6 +112,29 @@ namespace Bitmanager.BigFile {
          selectionHandler.OnToggleSelection += selectionHandler_Toggle;
       }
 
+      #region FONT_TICKERS
+      private void ListLines_OnFontTick (object sender, FontTickArgs e) {
+         float newSize = listLines.Font.SizeInPoints + (e.Delta < 0 ? -1f : 1f);
+         if (newSize < 6) newSize = 6;
+         float diff = newSize - initialFontSize;
+         int ix = (int)(diff+.5);
+         logger.Log ("FONT: size={3}, newSize={0}, diff={1}, ix={2}", newSize, diff, ix, listLines.Font.SizeInPoints);
+
+         if (diff > -.05f && ix >= 0 && ix < cbFontSize.Items.Count)
+            cbFontSize.SelectedIndex = ix;
+         listLines.SetFontSizePt (newSize);
+      }
+
+      private void cbFontSize_SelectedIndexChanged (object sender, EventArgs e) {
+         int ix = cbFontSize.SelectedIndex;
+         if (ix < 0) return;
+         listLines.SetFontSizePt (initialFontSize + ix);
+         listLines.Focus ();
+      }
+      #endregion
+
+      private Color selectedFore, selectedBack;
+
       private void showZipEntries (bool visible) {
          cbZipEntries.Visible = visible;
          toolStripSeparator3.Visible = visible;
@@ -109,10 +149,10 @@ namespace Bitmanager.BigFile {
             case FileEncoding.CP_UTF16: ix = 2; break;
             case FileEncoding.CP_UTF16BE: ix = 3; break;
          }
-         dropdownEncoding.SelectedIndex = ix;
+         cbEncoding.SelectedIndex = ix;
       }
       private Encoding getCurrentEncoding () {
-         int sel = dropdownEncoding.SelectedIndex;
+         int sel = cbEncoding.SelectedIndex;
          //logger.Log("Selected encoding idx={0}", sel);
          if (sel < 0) sel = 0;
          switch (sel) {
@@ -148,7 +188,7 @@ namespace Bitmanager.BigFile {
 
          this.olvcLineNumber.AspectGetter = getLineNumber;
          this.olvcText.AspectGetter = getLimitedLine;
-         this.dropdownEncoding.SelectedIndex = 0;
+         this.cbEncoding.SelectedIndex = 0;
 
          contextMenu.Items.Clear ();
          contextMenu.Items.AddRange (new System.Windows.Forms.ToolStripItem[] {
@@ -258,6 +298,7 @@ namespace Bitmanager.BigFile {
             SettingsSource.SaveFormPosition (Left, Top, Width, Height);
             fileHistory.Save ();
             directoryHistory.Save ();
+            clearAll ();
          }
       }
 
@@ -414,76 +455,22 @@ namespace Bitmanager.BigFile {
          //logger.Log("(Re)size... Needed pixels is {0}, chrs={1}, pixels for these chars is: {2}", needed, neededTextLength, pixels);
       }
 
-      private String getLimitedLine (Object model) {
-         String x = model == null ? String.Empty : lf.GetPartialLine ((int)model, neededTextLength, TabsReplacer.INSTANCE);
-         //logger.Log("{2}: Needed={0}, returned={1}, {3}", neededTextLength, x.Length, model, x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x);
-         return x.Length > neededTextLength + 32 ? x.Substring (0, neededTextLength) : x;
-      }
 
-      class TabsReplacer : ICharReplacer {
-         public static readonly TabsReplacer INSTANCE = new TabsReplacer ();
-
-         public unsafe void Replace (char* p, char* pEnd) {
-            for (; p < pEnd; p++) {
-               if (*p=='\t') *p = (char)0x279c; // 0x21e5;// 0xbb;
-            }
-         }
-      }
-
-      private String getLine (Object model) {
-         String x = model == null ? String.Empty : lf.GetPartialLine ((int)model);
-         return x;
-      }
-      private String getLineNumber (Object model) {
-         var str = String.Empty;
-         if (model != null) {
-            int ix = lf.GetOptRealLineNumber ((int)model);
-            if (ix >= 0) str = ix.ToString ();
-         }
-         return str;
-      }
-
-
-
+      #region display_logic_listview
       /// <summary>
-      /// Determines how a row(item) in the listview is formatted
+      /// Determines how an item in the listview is formatted
       /// </summary>
-      private void listLines_FormatRow (object sender, BrightIdeasSoftware.FormatRowEventArgs e) {
-         if (e.Model == null) return;
-
-         int flags = lf.GetLineFlags ((int)e.Model);
-         Color f = listLines.ForeColor;
-         Color b = listLines.BackColor;
-
-         if ((flags & LineFlags.MATCHED) != 0) {
-            b = settings.HighlightColor;
-            if ((flags & LineFlags.SELECTED) != 0) {
-               b = settings.SelectedHighlightColor;
-               f = listLines.SelectedForeColorOrDefault;
-            }
-         } else if ((flags & LineFlags.SELECTED) != 0) {
-            f = listLines.SelectedForeColorOrDefault;
-            b = listLines.SelectedBackColorOrDefault;
-         }
-
-         e.Item.BackColor = b;
-         e.Item.SelectedBackColor = b;
-         e.Item.ForeColor = f;
-         e.Item.SelectedForeColor = f;
-         //PW
-         //else if ((flags & LineFlags.Context) != 0)
-         //{
-         //   e.Item.BackColor = settings.ContextColor;
-         //}
-      }
-
       private void listLines_FormatCell (object sender, FormatCellEventArgs e) {
          if (e.Model == null) return;
+         int row = (int)e.Model;
+         if (row < 0 || row >= lf.PartialLineCount) return;
+
          if (e.ColumnIndex == 0) {
             e.SubItem.BackColor = this.BackColor;
             e.SubItem.ForeColor = listLines.ForeColor;
+            e.Item.SelectedBackColor = this.BackColor;
          } else {
-            int flags = lf.GetLineFlags ((int)e.Model);
+            int flags = lf.GetLineFlags (row);
             Color f = listLines.ForeColor;
             Color b = listLines.BackColor;
 
@@ -491,33 +478,56 @@ namespace Bitmanager.BigFile {
                b = settings.HighlightColor;
                if ((flags & LineFlags.SELECTED) != 0) {
                   b = settings.SelectedHighlightColor;
-                  f = listLines.SelectedForeColorOrDefault;
+                  f = selectedFore;
                }
             } else if ((flags & LineFlags.SELECTED) != 0) {
-               f = listLines.SelectedForeColorOrDefault;
-               b = listLines.SelectedBackColorOrDefault;
+               f = selectedFore;
+               b = selectedBack;
             }
             e.SubItem.BackColor = b;
             e.SubItem.ForeColor = f;
          }
-
       }
+      private String getLimitedLine (Object model) {
+         int row = model==null ? -1 : (int)model;
+         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;  
+
+         String x = lf.GetPartialLine (row, neededTextLength, TabsReplacer.INSTANCE);
+         //logger.Log("{2}: Needed={0}, returned={1}, {3}", neededTextLength, x.Length, model, x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x);
+         return x.Length > neededTextLength + 32 ? x.Substring (0, neededTextLength) : x;
+      }
+
+      private String getLine (Object model) {
+         int row = model == null ? -1 : (int)model;
+         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;
+         return lf.GetPartialLine (row);
+      }
+      private String getLineNumber (Object model) {
+         var str = String.Empty;
+         int row = model == null ? -1 : (int)model;
+         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;
+
+         int ix = lf.GetOptRealLineNumber (row);
+         if (ix >= 0) str = Invariant.Format ("{0}", ix);
+         return str;
+      }
+      #endregion
 
 
       FormLine lineForm;
       private void listLines_ItemActivate (object sender, EventArgs e) {
-         if (listLines.SelectedObjects.Count != 1) return;
 
-         int m = listLines.SelectedIndex;
-
-         FormLine fl;
-         if ((Control.ModifierKeys & Keys.Alt) != 0)
-            fl = new FormLine ();
-         else {
-            fl = lineForm;
-            if (fl == null || fl.IsClosed) fl = lineForm = new FormLine ();
+         int m = selectionHandler.SelectedIndex;
+         if (m >= 0) {
+            FormLine fl;
+            if ((Control.ModifierKeys & Keys.Alt) != 0)
+               fl = new FormLine ();
+            else {
+               fl = lineForm;
+               if (fl == null || fl.IsClosed) fl = lineForm = new FormLine ();
+            }
+            fl.ShowLine (settings, lf, listDatasource.Filter, m, lastQuery);
          }
-         fl.ShowLine (settings, lf, listDatasource.Filter, m, lastQuery);
       }
 
       private enum WhatToExport { All, Selected, Matched };
@@ -614,8 +624,8 @@ namespace Bitmanager.BigFile {
 
 
       private void toolButtonSearch_Click (object sender, EventArgs e) {
-         if (dropdownEncoding.SelectedIndex == -1) {
-            dropdownEncoding.Select ();
+         if (cbEncoding.SelectedIndex == -1) {
+            cbEncoding.Select ();
             throw new Exception ("The encoding is not selected");
          }
          SearchFile ();
@@ -644,6 +654,7 @@ namespace Bitmanager.BigFile {
 
       private void clearAll () {
          searchboxDriver.Clear ();
+         selectionHandler.Clear ();
          lastQuery = null;
          this.listDatasource.Clear ();
 

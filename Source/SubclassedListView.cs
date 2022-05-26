@@ -17,6 +17,7 @@
  * under the License.
  */
 
+using Bitmanager.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,15 +38,41 @@ namespace Bitmanager.BigFile {
       protected const int WM_RBUTTONDOWN = 0x0204;
       protected const int WM_RBUTTONUP = 0x0205;
       protected const int WM_CONTEXTMENU = 0x7B;
+      protected Logger logger = Globals.MainLogger;
+      private const int WM_MOUSEWHEEL = 0x20A;
+      private const int MK_CONTROL = 0x0008;
+      public delegate void FontTick (Object sender, FontTickArgs e);  // delegate
+      public event FontTick OnFontTick;
 
       protected override void WndProc (ref Message m) {
          switch (m.Msg) {
+            case WM_MOUSEWHEEL:
+               int wp = (int)(long)m.WParam;
+               if ((wp & MK_CONTROL) == 0) break;
+               if (OnFontTick != null) OnFontTick(this, new FontTickArgs(wp>>16));
+               return;
             case WM_RBUTTONDOWN: return;
             case WM_RBUTTONUP:
                DefWindowProc (m.HWnd, m.Msg, m.WParam, m.LParam);
                return;
          }
          base.WndProc (ref m);
+      }
+
+      public void SetFontSizePt (float size) {
+         Font f = Font;
+         if (Math.Abs(size-f.SizeInPoints) > .1f) Font = new Font (f.FontFamily, size, f.Style, GraphicsUnit.Point);
+      }
+      public void AddFontSizePt (float delta) {
+         SetFontSizePt (delta + Font.SizeInPoints);
+      }
+   }
+
+   public class FontTickArgs: EventArgs {
+      public int Delta;
+
+      public FontTickArgs (int delta) {
+         Delta = delta;
       }
    }
 }

@@ -98,7 +98,7 @@ namespace Bitmanager.BigFile
          this.cbSearch = new System.Windows.Forms.ToolStripComboBox();
          this.btnSearch = new System.Windows.Forms.ToolStripButton();
          this.btnResetSearch = new System.Windows.Forms.ToolStripButton();
-         this.dropdownEncoding = new System.Windows.Forms.ToolStripComboBox();
+         this.cbEncoding = new System.Windows.Forms.ToolStripComboBox();
          this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
          this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
          this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
@@ -113,6 +113,7 @@ namespace Bitmanager.BigFile
          this.olvcText = new BrightIdeasSoftware.OLVColumn();
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
+         this.cbFontSize = new System.Windows.Forms.ToolStripComboBox();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -449,7 +450,7 @@ namespace Bitmanager.BigFile
             this.cbSearch,
             this.btnSearch,
             this.btnResetSearch,
-            this.dropdownEncoding,
+            this.cbEncoding,
             this.toolStripButton2,
             this.toolStripSeparator2,
             this.cbZipEntries,
@@ -457,7 +458,9 @@ namespace Bitmanager.BigFile
             this.toolStripLabel1,
             this.cbSplit,
             this.btnResplit,
-            this.cbDbgLoad});
+            this.cbFontSize,
+            this.cbDbgLoad
+            });
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
          this.toolStrip.Name = "toolStrip";
          this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -515,17 +518,17 @@ namespace Bitmanager.BigFile
          this.btnResetSearch.Text = "toolStripButton3";
          this.btnResetSearch.Click += new System.EventHandler(this.btnResetSearch_Click);
          // 
-         // dropdownEncoding
+         // cbEncoding
          // 
-         this.dropdownEncoding.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-         this.dropdownEncoding.Items.AddRange(new object[] {
+         this.cbEncoding.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+         this.cbEncoding.Items.AddRange(new object[] {
             "Utf8",
             "Utf16LE",
             "Utf16BE",
             "Windows"});
-         this.dropdownEncoding.Name = "dropdownEncoding";
-         this.dropdownEncoding.Size = new System.Drawing.Size(93, 31);
-         this.dropdownEncoding.SelectedIndexChanged += new System.EventHandler(this.dropdownEncoding_SelectedIndexChanged);
+         this.cbEncoding.Name = "cbEncoding";
+         this.cbEncoding.Size = new System.Drawing.Size(93, 31);
+         this.cbEncoding.SelectedIndexChanged += new System.EventHandler(this.dropdownEncoding_SelectedIndexChanged);
          // 
          // toolStripButton2
          // 
@@ -562,7 +565,7 @@ namespace Bitmanager.BigFile
          // cbSplit
          // 
          this.cbSplit.Name = "cbSplit";
-         this.cbSplit.Size = new System.Drawing.Size(140, 31);
+         this.cbSplit.Size = new System.Drawing.Size(100, 31);
          this.cbSplit.Text = "2048";
          this.cbSplit.ToolTipText = "Automatic split lines larger than this value";
          // 
@@ -607,7 +610,8 @@ namespace Bitmanager.BigFile
             this.olvcLineNumber,
             this.olvcText});
          this.listLines.ContextMenuStrip = this.contextMenu;
-         this.listLines.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         this.listLines.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         this.listLines.FullRowSelect = true;
          this.listLines.HasCollapsibleGroups = false;
          this.listLines.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
          this.listLines.IsSearchOnSortColumn = false;
@@ -642,6 +646,7 @@ namespace Bitmanager.BigFile
          this.olvcLineNumber.Searchable = false;
          this.olvcLineNumber.Sortable = false;
          this.olvcLineNumber.Text = "Line No.";
+         this.olvcLineNumber.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
          this.olvcLineNumber.UseFiltering = false;
          this.olvcLineNumber.Width = 95;
          // 
@@ -668,6 +673,13 @@ namespace Bitmanager.BigFile
          this.contextMenuCopy.Size = new System.Drawing.Size(102, 22);
          this.contextMenuCopy.Text = "Copy";
          this.contextMenuCopy.Click += new System.EventHandler(this.contextMenuCopy_Click);
+         // 
+         // cbFontSize
+         // 
+         this.cbFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+         this.cbFontSize.Name = "cbFontSize";
+         this.cbFontSize.Size = new System.Drawing.Size(32, 23);
+         this.cbFontSize.ToolTipText = "Modify fontsize";
          // 
          // FormMain
          // 
@@ -727,7 +739,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripStatusLabel statusSep1;
       private System.Windows.Forms.ToolStripSeparator menuHelpSep1;
       private System.Windows.Forms.ContextMenuStrip contextMenu;
-      private System.Windows.Forms.ToolStripComboBox dropdownEncoding;
+      private System.Windows.Forms.ToolStripComboBox cbEncoding;
       private System.Windows.Forms.ToolStripStatusLabel statusLabelSearch;
       private System.Windows.Forms.ToolStripMenuItem contextMenuCopy;
       private System.Windows.Forms.ToolStripMenuItem menuTools;
@@ -768,6 +780,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem clearByNonMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem toolStripCopyMenuItem;
       private SubclassedVirtualListView listLines;
+      private ToolStripComboBox cbFontSize;
    }
 }
 

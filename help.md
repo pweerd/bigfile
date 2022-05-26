@@ -1,4 +1,4 @@
-﻿# BigFile (V1.0.2022.0515)
+﻿# BigFile (V1.0.2022.0526)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems.
 The following provides a brief help guide for the core operations of BigFile.
@@ -149,7 +149,7 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 
 ## Changes
 
-#### V1.0.2022.0515 (may 2022)
+#### V1.0.2022.0526 (may 2022)
 
 - Moved to NetCore
 - Fixed duplicate entries in file history.

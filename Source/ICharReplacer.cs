@@ -21,4 +21,16 @@ namespace Bitmanager.BigFile {
    public interface ICharReplacer {
       public unsafe void Replace (char* p, char* pEnd);
    }
+
+   public class TabsReplacer : ICharReplacer {
+      public static readonly TabsReplacer INSTANCE = new TabsReplacer ();
+
+      public unsafe void Replace (char* p, char* pEnd) {
+         for (; p < pEnd; p++) {
+            if (*p == '\t') *p = (char)0x279c; // 0x21e5;// 0xbb;
+         }
+      }
+   }
+
+
 }
