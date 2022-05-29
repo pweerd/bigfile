@@ -122,13 +122,19 @@ namespace Bitmanager.BigFile {
 
          if (diff > -.05f && ix >= 0 && ix < cbFontSize.Items.Count)
             cbFontSize.SelectedIndex = ix;
-         listLines.SetFontSizePt (newSize);
+         setListViewFontSize (newSize);
       }
 
       private void cbFontSize_SelectedIndexChanged (object sender, EventArgs e) {
          int ix = cbFontSize.SelectedIndex;
          if (ix < 0) return;
-         listLines.SetFontSizePt (initialFontSize + ix);
+         setListViewFontSize (initialFontSize + ix);
+      }
+
+      private void setListViewFontSize(float sizeInPt) {
+         listLines.SetFontSizePt (sizeInPt);
+         fontMeasures = new FixedFontMeasures (listLines.Font);
+         computeNeededTextLength ();
          listLines.Focus ();
       }
       #endregion

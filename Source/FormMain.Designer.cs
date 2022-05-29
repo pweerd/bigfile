@@ -106,6 +106,7 @@ namespace Bitmanager.BigFile
          this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
          this.cbSplit = new System.Windows.Forms.ToolStripComboBox();
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
+         this.cbFontSize = new System.Windows.Forms.ToolStripComboBox();
          this.cbDbgLoad = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
          this.listLines = new Bitmanager.BigFile.SubclassedVirtualListView();
@@ -113,7 +114,6 @@ namespace Bitmanager.BigFile
          this.olvcText = new BrightIdeasSoftware.OLVColumn();
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
-         this.cbFontSize = new System.Windows.Forms.ToolStripComboBox();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -459,8 +459,7 @@ namespace Bitmanager.BigFile
             this.cbSplit,
             this.btnResplit,
             this.cbFontSize,
-            this.cbDbgLoad
-            });
+            this.cbDbgLoad});
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
          this.toolStrip.Name = "toolStrip";
          this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -578,6 +577,13 @@ namespace Bitmanager.BigFile
          this.btnResplit.Size = new System.Drawing.Size(28, 28);
          this.btnResplit.Text = "Re-split";
          // 
+         // cbFontSize
+         // 
+         this.cbFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+         this.cbFontSize.Name = "cbFontSize";
+         this.cbFontSize.Size = new System.Drawing.Size(75, 31);
+         this.cbFontSize.ToolTipText = "Modify fontsize";
+         // 
          // cbDbgLoad
          // 
          this.cbDbgLoad.Items.AddRange(new object[] {
@@ -673,13 +679,6 @@ namespace Bitmanager.BigFile
          this.contextMenuCopy.Size = new System.Drawing.Size(102, 22);
          this.contextMenuCopy.Text = "Copy";
          this.contextMenuCopy.Click += new System.EventHandler(this.contextMenuCopy_Click);
-         // 
-         // cbFontSize
-         // 
-         this.cbFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-         this.cbFontSize.Name = "cbFontSize";
-         this.cbFontSize.Size = new System.Drawing.Size(32, 23);
-         this.cbFontSize.ToolTipText = "Modify fontsize";
          // 
          // FormMain
          // 
