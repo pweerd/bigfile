@@ -18,6 +18,7 @@
  */
 
 using Bitmanager.IO;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -55,7 +56,9 @@ namespace Bitmanager.BigFile {
       }
 
       private void richTextBox1_LinkClicked (object sender, LinkClickedEventArgs e) {
-         System.Diagnostics.Process.Start (e.LinkText);
+         var psi = new ProcessStartInfo (e.LinkText);
+         psi.UseShellExecute = true;
+         Process.Start (psi);
       }
    }
 }
