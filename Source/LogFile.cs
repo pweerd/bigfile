@@ -618,40 +618,37 @@ namespace Bitmanager.BigFile {
       }
       private long addLinesForBuffer (long position, byte[] buf, int count) {
          long prev = partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT;
-         int lenCorrection = (int)(position - prev);
-         int lastDot = -100;
-         int lastComma = -100;
+         int partialLimit = maxPartialSize - (int)(position - prev);  //limit from where to split
+         int lastOther = -100;
          int lastGT = -100;
          int lastSpace = -100;
          for (int i = 0; i < count; i++) {
             switch (buf[i]) {
-               case (byte)'.': lastDot = i; break;
-               case (byte)',': lastComma = i; break;
+               case (byte)'.': 
+               case (byte)',': lastOther = i; break;
                case (byte)'>': lastGT = i; break;
                case (byte)' ': lastSpace = i; break;
                case (byte)10:
                   AddLine (position + i + 1);
-                  lastDot = -100;
-                  lastComma = -100;
+                  lastOther = -100;
                   lastGT = -100;
                   lastSpace = -100;
-                  lenCorrection = -(i + 1);
+                  partialLimit = maxPartialSize + i + 1;
                   continue;
             }
-            if (i + lenCorrection < maxPartialSize) continue;
+            if (i < partialLimit) continue;
 
-            int end = i;
-            if (i - lastComma < 32) end = lastComma + 1;
-            else if (i - lastGT < 32) end = lastGT + 1;
-            else if (i - lastSpace < 32) end = lastSpace + 1;
-            else if (i - lastDot < 32) end = lastDot + 1;
+            int end = i-32;
+            if (end < lastGT) end = lastGT + 1;
+            else if (end < lastSpace) end = lastSpace + 1;
+            else if (end < lastOther) end = lastOther + 1;
+            else end = i;
 
             AddPartialLine (position + end);
-            lastDot = -100;
-            lastComma = -100;
+            partialLimit = maxPartialSize + end;
+            lastOther = -100;
             lastGT = -100;
             lastSpace = -100;
-            lenCorrection = -end;
          }
          return position + count;
       }
@@ -1043,21 +1040,21 @@ namespace Bitmanager.BigFile {
 
 
       private void AddLine (long offset) {
-         logger.Log ("AddLine({0}: {1} (0x{1:X})", partialLines.Count, offset);
+         //logger.Log ("AddLine({0}: {1} (0x{1:X})", partialLines.Count, offset);
          partialLines.Add (offset << LineFlags.FLAGS_SHIFT);
-         long x = partialLines[partialLines.Count-1];
-         long offs = x >> LineFlags.FLAGS_SHIFT;
-         long mask = x & LineFlags.FLAGS_MASK;
-         logger.Log ("-- o={0} (0x{0:X}), flags=0x{1:X}", offs, mask);
+         //long x = partialLines[partialLines.Count-1];
+         //long offs = x >> LineFlags.FLAGS_SHIFT;
+         //long mask = x & LineFlags.FLAGS_MASK;
+         //logger.Log ("-- o={0} (0x{0:X}), flags=0x{1:X}", offs, mask);
       }
       private void AddPartialLine (long offset) {
-         logger.Log ("AddPartial({0}: {1} (0x{1:X})", partialLines.Count, offset);
+         //logger.Log ("AddPartial({0}: {1} (0x{1:X})", partialLines.Count, offset);
          partialLines.Add ((offset << LineFlags.FLAGS_SHIFT) | LineFlags.CONTINUATION);
          partialsEncountered = true;
-         long x = partialLines[partialLines.Count - 1];
-         long offs = x >> LineFlags.FLAGS_SHIFT;
-         long mask = x & LineFlags.FLAGS_MASK;
-         logger.Log ("-- o={0} (0x{0:X}), flags=0x{1:X}", offs, mask);
+         //long x = partialLines[partialLines.Count - 1];
+         //long offs = x >> LineFlags.FLAGS_SHIFT;
+         //long mask = x & LineFlags.FLAGS_MASK;
+         //logger.Log ("-- o={0} (0x{0:X}), flags=0x{1:X}", offs, mask);
       }
 
       public long GetPartialLineOffset (int line) {
