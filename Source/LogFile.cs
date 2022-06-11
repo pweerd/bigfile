@@ -554,13 +554,19 @@ namespace Bitmanager.BigFile {
          if (partialLines.Count < N) N = partialLines.Count;
          logger.Log ();
          logger.Log ("Dumping {0} of {1} partial lines. Shift={2}, mask={3:X}", N, partialLines.Count, LineFlags.FLAGS_SHIFT, LineFlags.FLAGS_MASK);
-         for (int i = 0; i < N; i++) dumpOffset (i, null);
+         long prev = 0;
+         for (int i = 0; i < N; i++) prev = dumpOffset (prev, i, null);
       }
-      private void dumpOffset (int i, String why) {
+      private long dumpOffset (long prev, int i, String why) {
+         String data = GetPartialLine (i);
+         int N = Math.Min (32, data.Length);
+         String start = data.Substring (0, N);
+         String end = data.Substring (data.Length-N);
          long x = partialLines[i];
          long offs = x >> LineFlags.FLAGS_SHIFT;
          long mask = x & LineFlags.FLAGS_MASK;
-         logger.Log ("-- {0}: o={1} (0x{1:X}), flags=0x{2:X}, rsn={3}", i, offs, mask, why);
+         logger.Log ("-- {0}: o={1} (0x{1:X}), len={2}, flags=0x{3:X},    start={4},    end={5},    rsn={6}", i, offs, offs-prev, mask, start, end, why);
+         return offs;
       }
       private void loadNormalFile (string fn, CancellationToken ct) {
          var directStream = new DirectFileStreamWrapper (fn, 4096);
@@ -597,6 +603,7 @@ namespace Bitmanager.BigFile {
             if (detectedEncoding == null) {
                detectedEncoding = new FileEncoding (buffer);
                AddLine (detectedEncoding.PreambleBytes);
+              //pw buffer.Position = detectedEncoding.PreambleBytes;
             }
 
             position = addLinesForBuffer (buffer.Position, buffer.Buffer, buffer.Length);
@@ -616,42 +623,63 @@ namespace Bitmanager.BigFile {
          cb.OnProgress (this, (int)perc);
          return true;
       }
-      private long addLinesForBuffer (long position, byte[] buf, int count) {
+
+      static byte[] setLimiters (byte[] arr, int v, String seps) {
+         for (int i=0; i<seps.Length; i++) {
+            arr[(int)seps[i]] = (byte)v;   
+         }
+         return arr;
+      }
+      static byte[] seps = setLimiters (setLimiters (new byte[256], 1, ">:"), 2, " \t.,;");
+      
+      
+      //Optimized line splitter
+      //We use fixed to avoid array limit checking
+      //A separator byte[] is used to remove a switch statement
+      //The 1st chance limiters are important for json and xml. We don't use a comma or a dot here, since
+      //that would potentialy result in splitted numbers
+      private unsafe long addLinesForBuffer (long position, byte[] buf, int count) {
          long prev = partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT;
          int partialLimit = maxPartialSize - (int)(position - prev);  //limit from where to split
-         int lastOther = -100;
-         int lastGT = -100;
-         int lastSpace = -100;
-         for (int i = 0; i < count; i++) {
-            switch (buf[i]) {
-               case (byte)'.': 
-               case (byte)',': lastOther = i; break;
-               case (byte)'>': lastGT = i; break;
-               case (byte)' ': lastSpace = i; break;
-               case (byte)10:
+         fixed (byte* p = buf) {
+            int i=0;
+            int N;
+            while (true) {
+               N = Math.Min (partialLimit, count);
+               for (; i < N; i++) {
+                  if (p[i] != (byte)10) continue;
                   AddLine (position + i + 1);
-                  lastOther = -100;
-                  lastGT = -100;
-                  lastSpace = -100;
                   partialLimit = maxPartialSize + i + 1;
-                  continue;
+                  N = Math.Min (partialLimit, count);
+               }
+               if (i >= count) break; //Line too long and spans buffers: exit
+
+               //OK, we have an unvoluntary line break
+               int end = i;
+               int limit = i - 32;
+               if (limit < 0) limit = 0;
+               fixed (byte* q = seps) {
+                  //1st chance limiters
+                  for (; end >= limit; end--) {
+                     if (q[p[end]] == 1) goto PARTIAL_ADD;
+                  }
+                  //2nd chance limiters
+                  for (end=i; end >= limit; end--) {
+                     if (q[p[end]] == 2) goto PARTIAL_ADD;
+                  }
+               }
+               end = i-1; //compensate for the +1 in partial add
+
+            PARTIAL_ADD:
+               ++end;
+               AddPartialLine (position + end);
+               partialLimit = maxPartialSize + end;
+               i++;
             }
-            if (i < partialLimit) continue;
-
-            int end = i-32;
-            if (end < lastGT) end = lastGT + 1;
-            else if (end < lastSpace) end = lastSpace + 1;
-            else if (end < lastOther) end = lastOther + 1;
-            else end = i;
-
-            AddPartialLine (position + end);
-            partialLimit = maxPartialSize + end;
-            lastOther = -100;
-            lastGT = -100;
-            lastSpace = -100;
          }
          return position + count;
       }
+
 
       /// <summary>
       /// Load a (zip) file
