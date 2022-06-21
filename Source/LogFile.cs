@@ -664,7 +664,7 @@ namespace Bitmanager.BigFile {
                      if (q[p[end]] == 1) goto PARTIAL_ADD;
                   }
                   //2nd chance limiters
-                  for (end=i; end >= limit; end--) {
+                  for (end = i; end >= limit; end--) {
                      if (q[p[end]] == 2) goto PARTIAL_ADD;
                   }
                }
@@ -1110,6 +1110,14 @@ namespace Bitmanager.BigFile {
          //logger.Log("GetPartialLine: index={0}, count={1}", index, partialLines.Count - 1);
          if (index < 0 || index >= partialLines.Count - 1) return String.Empty;
          return threadCtx.GetPartialLine (index, index + 1, maxChars, replacer);
+      }
+
+      /// <summary>
+      /// Get length of a partial line
+      /// </summary>
+      public int GetPartialLineLength (int index) {
+         if (index < 0 || index >= partialLines.Count - 1) return 0;
+         return (int)((partialLines[index + 1] >> LineFlags.FLAGS_SHIFT) - (partialLines[index] >> LineFlags.FLAGS_SHIFT));
       }
 
       /// <summary>
