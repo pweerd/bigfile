@@ -2,20 +2,23 @@
 <html>
 <head>
 <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
-<title>help</title><link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; }
+
+<link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
+.mac-os-11 { --title-bar-height:28px; }
 html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-body { margin: 0px; padding: 0px; height: auto; bottom: 0px; top: 0px; left: 0px; right: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
+body { margin: 0px; padding: 0px; height: auto; inset: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
 iframe { margin: auto; }
 a.url { word-break: break-all; }
 a:active, a:hover { outline: 0px; }
 .in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
-#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; overflow-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 40px; }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; overflow-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 36px; }
 #write.first-line-indent p { text-indent: 2em; }
 #write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
 #write.first-line-indent li { margin-left: 2em; }
 .for-image #write { padding-left: 8px; padding-right: 8px; }
 body.typora-export { padding-left: 30px; padding-right: 30px; }
 .typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+.typora-export .task-list-item input { pointer-events: none; }
 @media screen and (max-width: 500px) {
   body.typora-export { padding-left: 0px; padding-right: 0px; }
   #write { padding-left: 20px; padding-right: 20px; }
@@ -24,14 +27,14 @@ body.typora-export { padding-left: 30px; padding-right: 30px; }
 }
 #write li > figure:last-child { margin-bottom: 0.5rem; }
 #write ol, #write ul { position: relative; }
-img { max-width: 100%; vertical-align: middle; }
+img { max-width: 100%; vertical-align: middle; image-orientation: from-image; }
 button, input, select, textarea { color: inherit; font: inherit; }
 input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
 *, ::after, ::before { box-sizing: border-box; }
 #write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; }
 #write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p { position: relative; }
 p { line-height: inherit; }
-h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 2; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 4; }
 p { orphans: 4; }
 h1 { font-size: 2rem; }
 h2 { font-size: 1.8rem; }
@@ -47,7 +50,7 @@ sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); 
 sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
 #write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
 figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
-figure > table { margin: 0px !important; }
+figure > table { margin: 0px; }
 tr { break-inside: avoid; break-after: auto; }
 thead { display: table-header-group; }
 table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
@@ -64,7 +67,7 @@ div.hr:focus { cursor: none; }
 #write pre.ty-contain-cm { white-space: normal; }
 .CodeMirror-gutters { margin-right: 4px; }
 .md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background: inherit; position: relative !important; }
-.md-diagram-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+.md-fences-adv-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
 #write .md-fences.mock-cm { white-space: pre-wrap; }
 .md-fences.md-fences-with-lineno { padding-left: 0px; }
 #write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
@@ -76,28 +79,32 @@ div.hr:focus { cursor: none; }
 li div { padding-top: 0px; }
 blockquote { margin: 1rem 0px; }
 li .mathjax-block, li p { margin: 0.5rem 0px; }
+li blockquote { margin: 1rem 0px; }
 li { margin: 0px; position: relative; }
 blockquote > :last-child { margin-bottom: 0px; }
 blockquote > :first-child, li > :first-child { margin-top: 0px; }
 .footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
 #write .footnote-line { white-space: pre-wrap; }
 @media print {
-  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; }
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; font-variant-ligatures: no-common-ligatures; }
   #write { margin-top: 0px; padding-top: 0px; border-color: transparent !important; }
   .typora-export * { -webkit-print-color-adjust: exact; }
-  html.blink-to-pdf { font-size: 13px; }
-  .typora-export #write { padding-left: 32px; padding-right: 32px; padding-bottom: 0px; break-after: avoid; }
+  .typora-export #write { break-after: avoid; }
   .typora-export #write::after { height: 0px; }
+  .is-mac table { break-inside: avoid; }
+  .typora-export-show-outline .typora-export-sidebar { display: none; }
 }
 .footnote-line { margin-top: 0.714em; font-size: 0.7em; }
 a img, img a { cursor: pointer; }
 pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background: rgb(204, 204, 204); display: block; overflow-x: hidden; }
 p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+#write.first-line-indent p > .md-image:only-child:not(.md-img-error) img { left: -2em; position: relative; }
 p > .md-image:only-child { display: inline-block; width: 100%; }
 #write .MathJax_Display { margin: 0.8em 0px 0px; }
 .md-math-block { width: 100%; }
 .md-math-block:not(:empty)::after { display: none; }
-[contenteditable="true"]:active, [contenteditable="true"]:focus { outline: 0px; box-shadow: none; }
+.MathJax_ref { fill: currentcolor; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus, [contenteditable="false"]:active, [contenteditable="false"]:focus { outline: 0px; box-shadow: none; }
 .md-task-list-item { position: relative; list-style-type: none; }
 .task-list-item.md-task-list-item { padding-left: 0px; }
 .md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
@@ -127,114 +134,484 @@ a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; 
 .md-fn-count::after { content: "."; }
 code, pre, samp, tt { font-family: var(--monospace); }
 kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; }
-.md-comment { color: rgb(162, 127, 3); opacity: 0.8; font-family: var(--monospace); }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.6; font-family: var(--monospace); }
 code { text-align: left; vertical-align: initial; }
 a.md-print-anchor { white-space: pre !important; border-width: initial !important; border-style: none !important; border-color: initial !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; background: 0px 0px !important; text-decoration: initial !important; text-shadow: initial !important; }
-.md-inline-math .MathJax_SVG .noError { display: none !important; }
-.html-for-mac .inline-math-svg .MathJax_SVG { vertical-align: 0.2px; }
-.md-math-block .MathJax_SVG_Display { text-align: center; margin: 0px; position: relative; text-indent: 0px; max-width: none; max-height: none; min-height: 0px; min-width: 100%; width: auto; overflow-y: hidden; display: block !important; }
-.MathJax_SVG_Display, .md-inline-math .MathJax_SVG_Display { width: auto; margin: inherit; display: inline-block !important; }
-.MathJax_SVG .MJX-monospace { font-family: var(--monospace); }
-.MathJax_SVG .MJX-sans-serif { font-family: sans-serif; }
-.MathJax_SVG { display: inline; font-style: normal; font-weight: 400; line-height: normal; zoom: 90%; text-indent: 0px; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; overflow-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0px; min-height: 0px; border: 0px; padding: 0px; margin: 0px; }
-.MathJax_SVG * { transition: none 0s ease 0s; }
-.MathJax_SVG_Display svg { vertical-align: middle !important; margin-bottom: 0px !important; margin-top: 0px !important; }
 .os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
 .md-diagram-panel > svg { max-width: 100%; }
-[lang="mermaid"] svg, [lang="flow"] svg { max-width: 100%; height: auto; }
+[lang="flow"] svg, [lang="mermaid"] svg { max-width: 100%; height: auto; }
 [lang="mermaid"] .node text { font-size: 1rem; }
 table tr th { border-bottom: 0px; }
 video { max-width: 100%; display: block; margin: 0px auto; }
 iframe { max-width: 100%; width: 100%; border: none; }
 .highlight td, .highlight tr { border: 0px; }
-svg[id^="mermaidChart"] { line-height: 1em; }
-
-
-:root { --side-bar-bg-color: #fafafa; --control-text-color: #777; }
-html { font-size: 16px; }
-body { font-family: "Open Sans", "Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; color: rgb(51, 51, 51); line-height: 1.6; }
-#write { max-width: 860px; margin: 0px auto; padding: 30px 30px 100px; }
-#write > ul:first-child, #write > ol:first-child { margin-top: 30px; }
-a { color: rgb(65, 131, 196); }
-h1, h2, h3, h4, h5, h6 { position: relative; margin-top: 1rem; margin-bottom: 1rem; font-weight: bold; line-height: 1.4; cursor: text; }
-h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor { text-decoration: none; }
-h1 tt, h1 code { font-size: inherit; }
-h2 tt, h2 code { font-size: inherit; }
-h3 tt, h3 code { font-size: inherit; }
-h4 tt, h4 code { font-size: inherit; }
-h5 tt, h5 code { font-size: inherit; }
-h6 tt, h6 code { font-size: inherit; }
-h1 { padding-bottom: 0.3em; font-size: 2.25em; line-height: 1.2; border-bottom: 1px solid rgb(238, 238, 238); }
-h2 { padding-bottom: 0.3em; font-size: 1.75em; line-height: 1.225; border-bottom: 1px solid rgb(238, 238, 238); }
-h3 { font-size: 1.5em; line-height: 1.43; }
-h4 { font-size: 1.25em; }
-h5 { font-size: 1em; }
-h6 { font-size: 1em; color: rgb(119, 119, 119); }
-p, blockquote, ul, ol, dl, table { margin: 0.8em 0px; }
-li > ol, li > ul { margin: 0px; }
-hr { height: 2px; padding: 0px; margin: 16px 0px; background-color: rgb(231, 231, 231); border: 0px none; overflow: hidden; box-sizing: content-box; }
-li p.first { display: inline-block; }
-ul, ol { padding-left: 30px; }
-ul:first-child, ol:first-child { margin-top: 0px; }
-ul:last-child, ol:last-child { margin-bottom: 0px; }
-blockquote { border-left: 4px solid rgb(223, 226, 229); padding: 0px 15px; color: rgb(119, 119, 119); }
-blockquote blockquote { padding-right: 0px; }
-table { padding: 0px; word-break: initial; }
-table tr { border-top: 1px solid rgb(223, 226, 229); margin: 0px; padding: 0px; }
-table tr:nth-child(2n), thead { background-color: rgb(248, 248, 248); }
-table tr th { font-weight: bold; border-width: 1px 1px 0px; border-top-style: solid; border-right-style: solid; border-left-style: solid; border-top-color: rgb(223, 226, 229); border-right-color: rgb(223, 226, 229); border-left-color: rgb(223, 226, 229); border-image: initial; border-bottom-style: initial; border-bottom-color: initial; margin: 0px; padding: 6px 13px; }
-table tr td { border: 1px solid rgb(223, 226, 229); margin: 0px; padding: 6px 13px; }
-table tr th:first-child, table tr td:first-child { margin-top: 0px; }
-table tr th:last-child, table tr td:last-child { margin-bottom: 0px; }
-.CodeMirror-lines { padding-left: 4px; }
-.code-tooltip { box-shadow: rgba(0, 28, 36, 0.3) 0px 1px 1px 0px; border-top: 1px solid rgb(238, 242, 242); }
-.md-fences, code, tt { border: 1px solid rgb(231, 234, 237); background-color: rgb(248, 248, 248); border-radius: 3px; padding: 2px 4px 0px; font-size: 0.9em; }
-code { background-color: rgb(243, 244, 244); padding: 0px 2px; }
-.md-fences { margin-bottom: 15px; margin-top: 15px; padding-top: 8px; padding-bottom: 6px; }
-.md-task-list-item > input { margin-left: -1.3em; }
+mark { background: rgb(255, 255, 0); color: rgb(0, 0, 0); }
+.md-html-inline .md-plain, .md-html-inline strong, mark .md-inline-math, mark strong { color: inherit; }
+.md-expand mark .md-meta { opacity: 0.3 !important; }
+mark .md-meta { color: rgb(0, 0, 0); }
 @media print {
-  html { font-size: 13px; }
-  table, pre { break-inside: avoid; }
-  pre { overflow-wrap: break-word; }
+  .typora-export h1, .typora-export h2, .typora-export h3, .typora-export h4, .typora-export h5, .typora-export h6 { break-inside: avoid; }
 }
-.md-fences { background-color: rgb(248, 248, 248); }
-#write pre.md-meta-block { padding: 1rem; font-size: 85%; line-height: 1.45; background-color: rgb(247, 247, 247); border: 0px; border-radius: 3px; color: rgb(119, 119, 119); margin-top: 0px !important; }
-.mathjax-block > .code-tooltip { bottom: 0.375rem; }
-.md-mathjax-midline { background: rgb(250, 250, 250); }
-#write > h3.md-focus::before { left: -1.5625rem; top: 0.375rem; }
-#write > h4.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
-#write > h5.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
-#write > h6.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
-.md-image > .md-meta { border-radius: 3px; padding: 2px 0px 0px 4px; font-size: 0.9em; color: inherit; }
-.md-tag { color: rgb(167, 167, 167); opacity: 1; }
-.md-toc { margin-top: 20px; padding-bottom: 20px; }
-.sidebar-tabs { border-bottom: none; }
-#typora-quick-open { border: 1px solid rgb(221, 221, 221); background-color: rgb(248, 248, 248); }
-#typora-quick-open-item { background-color: rgb(250, 250, 250); border-color: rgb(254, 254, 254) rgb(229, 229, 229) rgb(229, 229, 229) rgb(238, 238, 238); border-style: solid; border-width: 1px; }
-.on-focus-mode blockquote { border-left-color: rgba(85, 85, 85, 0.12); }
-header, .context-menu, .megamenu-content, footer { font-family: "Segoe UI", Arial, sans-serif; }
-.file-node-content:hover .file-node-icon, .file-node-content:hover .file-node-open-state { visibility: visible; }
-.mac-seamless-mode #typora-sidebar { background-color: var(--side-bar-bg-color); }
-.md-lang { color: rgb(180, 101, 77); }
-.html-for-mac .context-menu { --item-hover-bg-color: #E6F0FE; }
-#md-notification .btn { border: 0px; }
-.dropdown-menu .divider { border-color: rgb(229, 229, 229); }
-.ty-preferences .window-content { background-color: rgb(250, 250, 250); }
-.ty-preferences .nav-group-item.active { color: white; background: rgb(153, 153, 153); }
+.md-diagram-panel .messageText { stroke: none !important; }
+.md-diagram-panel .start-state { fill: var(--node-fill); }
+.md-diagram-panel .edgeLabel rect { opacity: 1 !important; }
+.md-fences.md-fences-math { font-size: 1em; }
+.md-fences-advanced:not(.md-focus) { padding: 0px; white-space: nowrap; border: 0px; }
+.md-fences-advanced:not(.md-focus) { background: inherit; }
+.typora-export-show-outline .typora-export-content { max-width: 1440px; margin: auto; display: flex; flex-direction: row; }
+.typora-export-sidebar { width: 300px; font-size: 0.8rem; margin-top: 80px; margin-right: 18px; }
+.typora-export-show-outline #write { --webkit-flex:2; flex: 2 1 0%; }
+.typora-export-sidebar .outline-content { position: fixed; top: 0px; max-height: 100%; overflow: hidden auto; padding-bottom: 30px; padding-top: 60px; width: 300px; }
+@media screen and (max-width: 1024px) {
+  .typora-export-sidebar, .typora-export-sidebar .outline-content { width: 240px; }
+}
+@media screen and (max-width: 800px) {
+  .typora-export-sidebar { display: none; }
+}
+.outline-content li, .outline-content ul { margin-left: 0px; margin-right: 0px; padding-left: 0px; padding-right: 0px; list-style: none; }
+.outline-content ul { margin-top: 0px; margin-bottom: 0px; }
+.outline-content strong { font-weight: 400; }
+.outline-expander { width: 1rem; height: 1.42857rem; position: relative; display: table-cell; vertical-align: middle; cursor: pointer; padding-left: 4px; }
+.outline-expander::before { content: ""; position: relative; font-family: Ionicons; display: inline-block; font-size: 8px; vertical-align: middle; }
+.outline-item { padding-top: 3px; padding-bottom: 3px; cursor: pointer; }
+.outline-expander:hover::before { content: ""; }
+.outline-h1 > .outline-item { padding-left: 0px; }
+.outline-h2 > .outline-item { padding-left: 1em; }
+.outline-h3 > .outline-item { padding-left: 2em; }
+.outline-h4 > .outline-item { padding-left: 3em; }
+.outline-h5 > .outline-item { padding-left: 4em; }
+.outline-h6 > .outline-item { padding-left: 5em; }
+.outline-label { cursor: pointer; display: table-cell; vertical-align: middle; text-decoration: none; color: inherit; }
+.outline-label:hover { text-decoration: underline; }
+.outline-item:hover { border-color: rgb(245, 245, 245); background-color: var(--item-hover-bg-color); }
+.outline-item:hover { margin-left: -28px; margin-right: -28px; border-left: 28px solid transparent; border-right: 28px solid transparent; }
+.outline-item-single .outline-expander::before, .outline-item-single .outline-expander:hover::before { display: none; }
+.outline-item-open > .outline-item > .outline-expander::before { content: ""; }
+.outline-children { display: none; }
+.info-panel-tab-wrapper { display: none; }
+.outline-item-open > .outline-children { display: block; }
+.typora-export .outline-item { padding-top: 1px; padding-bottom: 1px; }
+.typora-export .outline-item:hover { margin-right: -8px; border-right: 8px solid transparent; }
+.typora-export .outline-expander::before { content: "+"; font-family: inherit; top: -1px; }
+.typora-export .outline-expander:hover::before, .typora-export .outline-item-open > .outline-item > .outline-expander::before { content: "−"; }
+.typora-export-collapse-outline .outline-children { display: none; }
+.typora-export-collapse-outline .outline-item-open > .outline-children, .typora-export-no-collapse-outline .outline-children { display: block; }
+.typora-export-no-collapse-outline .outline-expander::before { content: "" !important; }
+.typora-export-show-outline .outline-item-active > .outline-item .outline-label { font-weight: 700; }
+.md-inline-math-container mjx-container { zoom: 0.95; }
 
 
-</style>
+:root {
+    --side-bar-bg-color: #fafafa;
+    --control-text-color: #777;
+}
+
+@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
+/* open-sans-regular - latin-ext_latin */
+  /* open-sans-italic - latin-ext_latin */
+    /* open-sans-700 - latin-ext_latin */
+    /* open-sans-700italic - latin-ext_latin */
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-family: "Open Sans","Clear Sans", "Helvetica Neue", Helvetica, Arial, 'Segoe UI Emoji', sans-serif;
+    color: rgb(51, 51, 51);
+    line-height: 1.6;
+}
+
+#write {
+    max-width: 860px;
+  	margin: 0 auto;
+  	padding: 30px;
+    padding-bottom: 100px;
+}
+
+@media only screen and (min-width: 1400px) {
+	#write {
+		max-width: 1024px;
+	}
+}
+
+@media only screen and (min-width: 1800px) {
+	#write {
+		max-width: 1200px;
+	}
+}
+
+#write > ul:first-child,
+#write > ol:first-child{
+    margin-top: 30px;
+}
+
+a {
+    color: #4183C4;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    position: relative;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    cursor: text;
+}
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+    text-decoration: none;
+}
+h1 tt,
+h1 code {
+    font-size: inherit;
+}
+h2 tt,
+h2 code {
+    font-size: inherit;
+}
+h3 tt,
+h3 code {
+    font-size: inherit;
+}
+h4 tt,
+h4 code {
+    font-size: inherit;
+}
+h5 tt,
+h5 code {
+    font-size: inherit;
+}
+h6 tt,
+h6 code {
+    font-size: inherit;
+}
+h1 {
+    font-size: 2.25em;
+    line-height: 1.2;
+    border-bottom: 1px solid #eee;
+}
+h2 {
+    font-size: 1.75em;
+    line-height: 1.225;
+    border-bottom: 1px solid #eee;
+}
+
+/*@media print {
+    .typora-export h1,
+    .typora-export h2 {
+        border-bottom: none;
+        padding-bottom: initial;
+    }
+
+    .typora-export h1::after,
+    .typora-export h2::after {
+        content: "";
+        display: block;
+        height: 100px;
+        margin-top: -96px;
+        border-top: 1px solid #eee;
+    }
+}*/
+
+h3 {
+    font-size: 1.5em;
+    line-height: 1.43;
+}
+h4 {
+    font-size: 1.25em;
+}
+h5 {
+    font-size: 1em;
+}
+h6 {
+   font-size: 1em;
+    color: #777;
+}
+p,
+blockquote,
+ul,
+ol,
+dl,
+table{
+    margin: 0.8em 0;
+}
+li>ol,
+li>ul {
+    margin: 0 0;
+}
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 16px 0;
+    background-color: #e7e7e7;
+    border: 0 none;
+    overflow: hidden;
+    box-sizing: content-box;
+}
+
+li p.first {
+    display: inline-block;
+}
+ul,
+ol {
+    padding-left: 30px;
+}
+ul:first-child,
+ol:first-child {
+    margin-top: 0;
+}
+ul:last-child,
+ol:last-child {
+    margin-bottom: 0;
+}
+blockquote {
+    border-left: 4px solid #dfe2e5;
+    padding: 0 15px;
+    color: #777777;
+}
+blockquote blockquote {
+    padding-right: 0;
+}
+table {
+    padding: 0;
+    word-break: initial;
+}
+table tr {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 0;
+}
+table tr:nth-child(2n),
+thead {
+    background-color: #f8f8f8;
+}
+table th {
+    font-weight: bold;
+    border: 1px solid #dfe2e5;
+    border-bottom: 0;
+    margin: 0;
+    padding: 6px 13px;
+}
+table td {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 6px 13px;
+}
+table th:first-child,
+table td:first-child {
+    margin-top: 0;
+}
+table th:last-child,
+table td:last-child {
+    margin-bottom: 0;
+}
+
+.CodeMirror-lines {
+    padding-left: 4px;
+}
+
+.code-tooltip {
+    box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);
+    border-top: 1px solid #eef2f2;
+}
+
+.md-fences,
+code,
+tt {
+    border: 1px solid #e7eaed;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    padding: 0;
+    padding: 2px 4px 0px 4px;
+    font-size: 0.9em;
+}
+
+code {
+    background-color: #f3f4f4;
+    padding: 0 2px 0 2px;
+}
+
+.md-fences {
+    margin-bottom: 15px;
+    margin-top: 15px;
+    padding-top: 8px;
+    padding-bottom: 6px;
+}
+
+
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+@media print {
+    html {
+        font-size: 13px;
+    }
+    table,
+    pre {
+        page-break-inside: avoid;
+    }
+    pre {
+        word-wrap: break-word;
+    }
+}
+
+.md-fences {
+	background-color: #f8f8f8;
+}
+#write pre.md-meta-block {
+	padding: 1rem;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f7f7f7;
+    border: 0;
+    border-radius: 3px;
+    color: #777777;
+    margin-top: 0 !important;
+}
+
+.mathjax-block>.code-tooltip {
+	bottom: .375rem;
+}
+
+.md-mathjax-midline {
+    background: #fafafa;
+}
+
+#write>h3.md-focus:before{
+	left: -1.5625rem;
+	top: .375rem;
+}
+#write>h4.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h5.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h6.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+.md-image>.md-meta {
+    /*border: 1px solid #ddd;*/
+    border-radius: 3px;
+    padding: 2px 0px 0px 4px;
+    font-size: 0.9em;
+    color: inherit;
+}
+
+.md-tag {
+    color: #a7a7a7;
+    opacity: 1;
+}
+
+.md-toc { 
+    margin-top:20px;
+    padding-bottom:20px;
+}
+
+.sidebar-tabs {
+    border-bottom: none;
+}
+
+#typora-quick-open {
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+#typora-quick-open-item {
+    background-color: #FAFAFA;
+    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;
+    border-style: solid;
+    border-width: 1px;
+}
+
+/** focus mode */
+.on-focus-mode blockquote {
+    border-left-color: rgba(85, 85, 85, 0.12);
+}
+
+header, .context-menu, .megamenu-content, footer{
+    font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state{
+    visibility: visible;
+}
+
+.mac-seamless-mode #typora-sidebar {
+    background-color: #fafafa;
+    background-color: var(--side-bar-bg-color);
+}
+
+.md-lang {
+    color: #b4654d;
+}
+
+/*.html-for-mac {
+    --item-hover-bg-color: #E6F0FE;
+}*/
+
+#md-notification .btn {
+    border: 0;
+}
+
+.dropdown-menu .divider {
+    border-color: #e5e5e5;
+    opacity: 0.4;
+}
+
+.ty-preferences .window-content {
+    background-color: #fafafa;
+}
+
+.ty-preferences .nav-group-item.active {
+    color: white;
+    background: #999;
+}
+
+.menu-item-container a.menu-style-btn {
+    background-color: #f5f8fa;
+    background-image: linear-gradient( 180deg , hsla(0, 0%, 100%, 0.8), hsla(0, 0%, 100%, 0)); 
+}
+
+
+
+</style><title>help</title>
 </head>
-<body class='typora-export os-windows' >
-<div  id='write'  class = 'is-node'><h1><a name="bigfile-v094" class="md-header-anchor"></a><span>BigFile (V0.9.4)</span></h1><p><span>BigFile is meant as a viewer for large files on Windows. Like &#39;less&#39; on Unix systems.</span>
-<span>The following provides a brief help guide for the core operations of BigFile.</span></p><h2><a name="history" class="md-header-anchor"></a><span>History</span></h2><p><span>BigFile is inspired by Woanware&#39;s LogViewer (</span><a href='https://github.com/woanware/LogViewer' target='_blank' class='url'>https://github.com/woanware/LogViewer</a><span>)</span>
-<span>Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.</span></p><h2><a name="opening-a-file" class="md-header-anchor"></a><span>Opening a file</span></h2><p><span>Either use the File-&gt;Open menu item or drag and drop a file onto the list</span></p><p><span>BigFile can open </span><strong><span>.zip</span></strong><span> and </span><strong><span>.gz</span></strong><span> files directly. The content will be loaded into memory and served from there. gz-files will be loaded via an internal zlib implementation if found, or via SharpZLib (slower!) .zip files will be loaded via the internal .Net zip-classes. </span></p><p><span>In case of a zip archive, the largest sub-file will be loaded. Also, a dropdown box with all entries from the zip file is shown. Selecting a different entry from that dropdown will load the associated zip entry from the archive.  </span></p><p><span>The load process is done in the background but regularly sends a partial loaded file to the user-interface, to make it possible to view the file before it is completely loaded.</span></p><p><span>All background processing can be cancelled by pressing the escape-key, or by clicking in the progress bar.</span></p><p><a name="search"></a></p><h2><a name="search-n12" class="md-header-anchor"></a><span>Search</span></h2><p><span>If the searchbox contains any of AND, OR, NOT, the search is considered to be a boolean search. Otherwise it is a 1-term search.</span>
+<body class='typora-export os-windows'><div class='typora-export-content'>
+<div id='write'  class=''><h1 id='bigfile-v1020220621'><span>BigFile (V1.0.2022.0621)</span></h1><p><span>BigFile is meant as a viewer for large files on Windows. Like &#39;less&#39; on Unix systems. Typical used as a viewer for:</span></p><ul><li><span>very large logfiles</span></li><li><span>very large json dumps</span></li><li><span>very large xml-dums</span></li><li><span>etc</span></li></ul><p><span>NB: If the interface shows a big yellow exclamation mark, you probably miss the Bitmanager Core Components. Bigfile will work, but much slower. The core components can be downloaded from (</span><a href='https://bitmanager.nl/distrib' target='_blank' class='url'>https://bitmanager.nl/distrib</a><span>).</span></p><p><span>The following provides a brief help guide for the core operations of BigFile.</span></p><p>&nbsp;</p><h2 id='history'><span>History</span></h2><p><span>BigFile is inspired by Woanware&#39;s LogViewer (</span><a href='https://github.com/woanware/LogViewer' target='_blank' class='url'>https://github.com/woanware/LogViewer</a><span>)</span>
+<span>Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.</span></p><h2 id='opening-a-file'><span>Opening a file</span></h2><p><span>Either use the File-&gt;Open menu item or drag and drop a file onto the list</span></p><p><span>BigFile can open </span><strong><span>.zip</span></strong><span> and </span><strong><span>.gz</span></strong><span> files directly. The content will be loaded into memory and served from there. gz-files will be loaded via an internal zlib implementation if found, or via SharpZLib (slower!) .zip files will be loaded via the internal .Net zip-classes.</span></p><p><span>In case of a zip archive, the largest sub-file will be loaded. Also, a dropdown box with all entries from the zip file is shown. Selecting a different entry from that dropdown will load the associated zip entry from the archive.</span></p><p><span>The load process is done in the background but regularly sends a partial loaded file to the user-interface, to make it possible to view the file before it is completely loaded.</span></p><p><span>All background processing can be cancelled by pressing the escape-key, or by clicking in the progress bar.</span></p><p><a name="search"></a></p><h2 id='search'><span>Search</span></h2><p><span>If the searchbox contains any of AND, OR, NOT, the search is considered to be a boolean search. Otherwise it is a 1-term search.</span>
 <span>Also, search types can be specified via a &#39;:&#39;.</span>
-<span>Following types are supported:</span></p><ul><li><span>no type: case </span><strong><em><span>in</span></em></strong><span>sensitive search</span></li><li><span>cs: case sensitive search</span></li><li><span>regex or r: case </span><strong><em><span>in</span></em></strong><span>sensitive search by a regex</span></li><li><span>rcs: case sensitive search by a regex</span></li></ul><h4><a name="example" class="md-header-anchor"></a><span>Example</span></h4><ul><li><span>(Paris AND r:on$) NOT cs:Amsterdam </span><br/><span>This will match &#39;paris londoN amsterdam&#39;, but not &#39;paris londoN Amsterdam&#39;</span></li><li><span>Paris</span><br/><span>This will do a case insensitive search with 1 term</span></li><li><span>&#39;windows app&#39; NOT unix </span></li></ul><h4><a name="caching" class="md-header-anchor"></a><span>Caching</span></h4><p><span>The last used 20 individual terms from a boolean expression are cached in a bitset. This makes subsequent searching for the same terms blazingly fast. </span></p><p><span>If you search for paris OR amsterdam, it may take a while. But if you search for paris AND amsterdam afterwards, it is only a bitset operation which is typically sub-second. </span></p><p><span>In very large files it might be a good trick to do a search for all terms you might want to search for, combined with OR. Afterwards, searching for any combination of these cched terms is really fast.</span></p><h4><a name="result" class="md-header-anchor"></a><span>Result</span></h4><p><span>When the first match is encountered, the view is positioned to the first hit, while the search proceeds in the background.</span></p><p><span>In the mean time you can navigate to the next search by pressing &#39;/&#39; or F3 in the view window.</span></p><h2><a name="navigation" class="md-header-anchor"></a><span>Navigation</span></h2><p><span>Bigfile mimics some of the less shortcuts. Shortcuts are:</span></p><ul><li><span>&lt; or CTRL-Home</span><br/><span>goto the top</span></li><li><span>&gt;</span><span> or CTRL-End</span><br/><span>goto the bottom</span></li><li><span>/ or F3</span><br/><span>goto the next hit </span></li><li><span>? or CTRL-F3</span><br/><span>goto the previous hit</span></li><li><span>CTRL-G</span><br/><span>Goto a line number</span></li></ul><h2><a name="filtering" class="md-header-anchor"></a><span>Filtering</span></h2><p><span>There are two modes for filtering; hide matched and show matched. Filtering and filter clearing is accessed via the list context menu.</span></p><ul><li><strong><span>Show matched</span></strong><span>: Hides all lines where there is not a search match; therefore only show the matched lines</span></li><li><strong><span>Hide matched</span></strong><span>: Hides the lines that matched the search; therefore only show the lines that don&#39;t match</span></li></ul><h2><a name="detail-view" class="md-header-anchor"></a><span>Detail view</span></h2><p><span>If you double click on a line, a new form is opened where the current line is viewed in a textbox. The form will be reused whenever a different line is opened, unless you you the alt-key. Using the alt-key makes sure that a new window is opened.</span></p><p><span>The formatting can be changed between auto (default), text, json, xml and csv.</span>
+<span>Following types are supported:</span></p><ul><li><span>no type: case </span><em><strong><span>in</span></strong></em><span>sensitive search</span></li><li><span>cs: case sensitive search</span></li><li><span>regex or r: case </span><em><strong><span>in</span></strong></em><span>sensitive search by a regex</span></li><li><span>rcs: case sensitive search by a regex</span></li></ul><h4 id='example'><span>Example</span></h4><ul><li><span>(Paris AND r:on$) NOT cs:Amsterdam</span>
+<span>This will match &#39;paris londoN amsterdam&#39;, but not &#39;paris londoN Amsterdam&#39;</span></li><li><span>Paris</span>
+<span>This will do a case insensitive search with 1 term</span></li><li><span>&#39;windows app&#39; NOT unix</span></li></ul><h4 id='caching'><span>Caching</span></h4><p><span>The last used 20 individual terms from a boolean expression are cached in a bitset. This makes subsequent searching for the same terms blazingly fast.</span></p><p><span>If you search for paris OR amsterdam, it may take a while. But if you search for paris AND amsterdam afterwards, it is only a bitset operation which is typically sub-second.</span></p><p><span>In very large files it might be a good trick to do a search for all terms you might want to search for, combined with OR. Afterwards, searching for any combination of these cched terms is really fast.</span></p><h4 id='result'><span>Result</span></h4><p><span>When the first match is encountered, the view is positioned to the first hit, while the search proceeds in the background.</span></p><p><span>In the mean time you can navigate to the next search by pressing &#39;/&#39; or F3 in the view window.</span></p><h2 id='navigation'><span>Navigation</span></h2><p><span>Bigfile mimics some of the less shortcuts. Shortcuts are:</span></p><ul><li><span>&lt; or CTRL-Home</span>
+<span>goto the top</span></li><li><span>&gt;</span><span> or CTRL-End</span>
+<span>goto the bottom</span></li><li><span>/ or F3</span>
+<span>goto the next hit</span></li><li><span>? or CTRL-F3</span>
+<span>goto the previous hit</span></li><li><span>CTRL-G</span>
+<span>Goto a line number</span></li></ul><h2 id='filtering'><span>Filtering</span></h2><p><span>There are two modes for filtering; hide matched and show matched. Filtering and filter clearing is accessed via the list context menu.</span></p><ul><li><strong><span>Show matched</span></strong><span>: Hides all lines where there is not a search match; therefore only show the matched lines</span></li><li><strong><span>Hide matched</span></strong><span>: Hides the lines that matched the search; therefore only show the lines that don&#39;t match</span></li></ul><h2 id='detail-view'><span>Detail view</span></h2><p><span>If you double click on a line, a new form is opened where the current line is viewed in a textbox. The form will be reused whenever a different line is opened, unless you you the alt-key. Using the alt-key makes sure that a new window is opened.</span></p><p><span>The formatting can be changed between auto (default), text, json, xml and csv.</span>
 <span>In auto-mode, a quick check is done for the content type and the text is formatted in that content type. In case of errors, it is shown as text.</span>
-<span>Some formatters support a &#39;normalized&#39; mode (click the wrench button). For instance, when normalize mode, all keys in a json object will be sorted.  </span></p><p><span>Eventual hits (after a search) are highlighted, and one can navigate between the hits via the same navigation keys as in the main window.</span></p><h4><a name="searching-in-detail-view" class="md-header-anchor"></a><span>Searching in detail view</span></h4><p><span>By default the search terms from the main form are used in the detail view. However, you can enter more or other terms in the searchbox. Pressing enter or click &#39;search&#39; will navigate to the highlighted hit in the record.</span></p><p><span>Search terms follow the same </span><a href='#search'><span>syntax</span></a><span> as in the main window, with the exception that boolean expressions (AND, OR, NOT) are not supported. Matching is done by simply searching in the complete text.</span></p><h4><a name="navigation-in-detail-view" class="md-header-anchor"></a><span>Navigation in detail view</span></h4><ul><li><span>/ or F3</span><br/><span>goto the next hit in the record </span></li><li><span>? or CTRL-F3</span><br/><span>goto the previous hit in the record</span></li><li><span>CTRL-up</span><br/><span>goto the previous line. </span></li><li><span>CTRL-down</span><br/><span>goto the next line. </span></li></ul><h2><a name="memory" class="md-header-anchor"></a><span>Memory</span></h2><p><span>Non zip/gz files can be served from disk or from memory. Compressed files are always served from memory.</span></p><p><span>Because the content is splitted into lines, the content needs to be read completely for non compressed files as well. So using a memory buffer makes sense there as well.</span></p><p><span>For very large files it is difficult to keep them in memory. Bigfile uses LZW compression to compress large chunks of memory. Because LZW is extremely fast, this combination is typically faster when the system would need to swap memory.</span></p><p><span>On my laptop Bigfile loads a 2GB gz json file in ~1 minute into memory (raw: 15GB, LZW compressed ~3GB).</span></p><p><span>The exact behavior can be configured via tools-&gt;settings.</span></p><h2><a name="copy-line" class="md-header-anchor"></a><span>Copy Line</span></h2><p><span>The selected line&#39;s contents can be copied to the clipboard via the list context menu. There is a maximum limit of 10000 lines. Also, big lines (&gt; 10MB) will be truncated to prevent an out-of-memory </span></p><h2><a name="export" class="md-header-anchor"></a><span>Export</span></h2><p><span>The export function can export </span></p><ul><li><span>all lines</span></li><li><span>selected lines</span></li><li><span>matched lines</span></li></ul><p><span>The export is always line based. Meaning that if splitting of large lines is active, and one selects only a part of the line, the complete line will be exported.</span>
-<span>GZip compression of the export file is possible by selecting a .gz extension. </span></p><p><span>Currently, exported lines are terminated by a windows crlf. </span></p><p><span>The export functionality is accessed via the &#39;tools&#39; menu.</span></p><h2><a name="command-line" class="md-header-anchor"></a><span>Command line</span></h2><p><span>The 1st parameter is the file or directory to be opened. If the parameter indicates a directory, an open file dialog box is shown with the supplied directory as initial directory.</span></p><h2><a name="credits" class="md-header-anchor"></a><span>Credits</span></h2><ul><li><span>Mark Woan (</span><a href='https://www.woanware.co.uk' target='_blank' class='url'>https://www.woanware.co.uk</a><span>)</span></li><li><span>SharpZipLib (</span><a href='https://github.com/icsharpcode/SharpZipLib' target='_blank' class='url'>https://github.com/icsharpcode/SharpZipLib</a><span>)</span></li><li><span>ObjectListView (</span><a href='http://objectlistview.sourceforge.net/cs/index.html' target='_blank' class='url'>http://objectlistview.sourceforge.net/cs/index.html</a><span>)</span></li><li><span>LZ4 - Fast LZ compression algorithm (</span><a href='http://fastcompression.blogspot.com/p/lz4.html' target='_blank' class='url'>http://fastcompression.blogspot.com/p/lz4.html</a><span>)</span></li><li><span>ZLib (</span><a href='https://github.com/madler/zlib' target='_blank' class='url'>https://github.com/madler/zlib</a><span>)</span></li><li><span>Icons8 (</span><a href='https://icons8.com' target='_blank' class='url'>https://icons8.com</a><span>)</span></li></ul><p>&nbsp;</p><h2><a name="changes" class="md-header-anchor"></a><span>Changes</span></h2><h4><a name="v094-aug-2021" class="md-header-anchor"></a><span>V0.94 (aug 2021)</span></h4><ul><li><span>Copy to clipboard wasn&#39;t always working</span></li><li><span>Lots of internal stuf. Some UI changes.</span></li><li><span>Bugfixes.</span></li></ul><h4><a name="v093-may-2020" class="md-header-anchor"></a><span>V0.93 (may 2020)</span></h4><ul><li><span>Gzip saving of export files is supported.</span></li><li><span>More (de-)selection possibilities. Selections are now handled by the logfile itself, since the ListView was way too slow.</span></li><li><span>Line view supports expansion of json, if the json contained strings with encoded json. </span></li><li><span>Bugfixes.</span></li></ul><h4><a name="v092-feb-2020" class="md-header-anchor"></a><span>V0.92 (feb 2020)</span></h4><ul><li><span>Gzip loading is now done via an internal zlib implementation.</span>
+<span>Some formatters support a &#39;normalized&#39; mode (click the wrench button). For instance, when normalize mode, all keys in a json object will be sorted.</span></p><p><span>Eventual hits (after a search) are highlighted, and one can navigate between the hits via the same navigation keys as in the main window.</span></p><h4 id='searching-in-detail-view'><span>Searching in detail view</span></h4><p><span>By default the search terms from the main form are used in the detail view. However, you can enter more or other terms in the searchbox. Pressing enter or click &#39;search&#39; will navigate to the highlighted hit in the record.</span></p><p><span>Search terms follow the same </span><a href='#search'><span>syntax</span></a><span> as in the main window, with the exception that boolean expressions (AND, OR, NOT) are not supported. Matching is done by simply searching in the complete text.</span></p><h4 id='navigation-in-detail-view'><span>Navigation in detail view</span></h4><ul><li><span>/ or F3</span>
+<span>goto the next hit in the record</span></li><li><span>? or CTRL-F3</span>
+<span>goto the previous hit in the record</span></li><li><span>CTRL-up</span>
+<span>goto the previous line.</span></li><li><span>CTRL-down</span>
+<span>goto the next line.</span></li></ul><h2 id='memory'><span>Memory</span></h2><p><span>Non zip/gz files can be served from disk or from memory. Compressed files are always served from memory.</span></p><p><span>Because the content is splitted into lines, the content needs to be read completely for non compressed files as well. So using a memory buffer makes sense there as well.</span></p><p><span>For very large files it is difficult to keep them in memory. Bigfile uses LZW compression to compress large chunks of memory. Because LZW is extremely fast, this combination is typically faster when the system would need to swap memory.</span></p><p><span>On my laptop Bigfile loads a 2GB gz json file in ~1 minute into memory (raw: 15GB, LZW compressed ~3GB).</span></p><p><span>The exact behavior can be configured via tools-&gt;settings.</span></p><h2 id='copy-line'><span>Copy Line</span></h2><p><span>The selected line&#39;s contents can be copied to the clipboard via the list context menu. There is a maximum limit of 10000 lines. Also, big lines (&gt; 10MB) will be truncated to prevent an out-of-memory</span></p><h2 id='export'><span>Export</span></h2><p><span>The export function can export</span></p><ul><li><span>all lines</span></li><li><span>selected lines</span></li><li><span>matched lines</span></li></ul><p><span>The export is always line based. Meaning that if splitting of large lines is active, and one selects only a part of the line, the complete line will be exported.</span>
+<span>GZip compression of the export file is possible by selecting a .gz extension.</span></p><p><span>Currently, exported lines are terminated by a windows crlf.</span></p><p><span>The export functionality is accessed via the &#39;tools&#39; menu.</span></p><h2 id='command-line'><span>Command line</span></h2><p><span>The 1st parameter is the file or directory to be opened. If the parameter indicates a directory, an open file dialog box is shown with the supplied directory as initial directory.</span></p><h2 id='credits'><span>Credits</span></h2><ul><li><span>Mark Woan (</span><a href='https://www.woanware.co.uk' target='_blank' class='url'>https://www.woanware.co.uk</a><span>)</span></li><li><span>SharpZipLib (</span><a href='https://github.com/icsharpcode/SharpZipLib' target='_blank' class='url'>https://github.com/icsharpcode/SharpZipLib</a><span>)</span></li><li><span>ObjectListView (</span><a href='http://objectlistview.sourceforge.net/cs/index.html' target='_blank' class='url'>http://objectlistview.sourceforge.net/cs/index.html</a><span>)</span></li><li><span>LZ4 - Fast LZ compression algorithm (</span><a href='http://fastcompression.blogspot.com/p/lz4.html' target='_blank' class='url'>http://fastcompression.blogspot.com/p/lz4.html</a><span>)</span></li><li><span>ZLib (</span><a href='https://github.com/madler/zlib' target='_blank' class='url'>https://github.com/madler/zlib</a><span>)</span></li><li><span>Icons8 (</span><a href='https://icons8.com' target='_blank' class='url'>https://icons8.com</a><span>)</span></li></ul><p>&nbsp;</p><h2 id='changes'><span>Changes</span></h2><h4 id='v1020220621-june-2022'><span>V1.0.2022.0621 (June 2022)</span></h4><ul><li><span>Moved to NetCore</span></li><li><span>Fixed duplicate entries in file history.</span></li><li><span>Better UTF16 support, BOM detecting</span></li><li><span>Much faster line splitting</span></li></ul><h4 id='v094-aug-2021'><span>V0.94 (aug 2021)</span></h4><ul><li><span>Copy to clipboard wasn&#39;t always working</span></li><li><span>Lots of internal stuf. Some UI changes.</span></li><li><span>Bugfixes.</span></li></ul><h4 id='v093-may-2020'><span>V0.93 (may 2020)</span></h4><ul><li><span>Gzip saving of export files is supported.</span></li><li><span>More (de-)selection possibilities. Selections are now handled by the logfile itself, since the ListView was way too slow.</span></li><li><span>Line view supports expansion of json, if the json contained strings with encoded json.</span></li><li><span>Bugfixes.</span></li></ul><h4 id='v092-feb-2020'><span>V0.92 (feb 2020)</span></h4><ul><li><span>Gzip loading is now done via an internal zlib implementation.</span>
 <span>This shaves off some 10-20% of load times for big .gz files, and there is no need for searching for an gzip.exe.</span></li><li><span>Extra view-as mode: auto.</span>
-<span>Content type of a line will be detected and the line will be formatted using this content type.</span></li><li><span>Searching of terms in the detail view</span></li><li><span>Revamp of the detail view UI</span></li><li><span>Bugfixes</span></li></ul><h4><a name="v0914-jun-2019" class="md-header-anchor"></a><span>V0.914 (jun 2019)</span></h4><ul><li><span>When loading files with big lines, the lines are splitted in smaller, partial lines. By default, the size of a partial line is 2048.</span></li><li><span>Very big lines (above currently 10MB) will be truncated in the detail view.</span></li><li><span>Detail view is more stable during loading of a file. Partial loads are propagated to the detail view and a view disconnects itself when the logfile is closed</span></li><li><span>Bugfixes</span></li></ul><h4><a name="v0913" class="md-header-anchor"></a><span>V0.913</span></h4><ul><li><span>Loading of zip entries is implemented</span></li><li><span>Export functionality implemented</span></li><li><span>Bugfixes</span></li></ul><h4><a name="v0912" class="md-header-anchor"></a><span>V0.912</span></h4><ul><li><span>Bugfixes</span></li><li><span>Limited support for loading zip files</span></li><li><span>The detail view for a line is reusing the window. Also csv-view.</span></li><li><span>Recent files/folders are administrated</span></li><li><span>Faster startup</span></li><li><span>Shell extensions</span></li></ul></div>
+<span>Content type of a line will be detected and the line will be formatted using this content type.</span></li><li><span>Searching of terms in the detail view</span></li><li><span>Revamp of the detail view UI</span></li><li><span>Bugfixes</span></li></ul><h4 id='v0914-jun-2019'><span>V0.914 (jun 2019)</span></h4><ul><li><span>When loading files with big lines, the lines are splitted in smaller, partial lines. By default, the size of a partial line is 2048.</span></li><li><span>Very big lines (above currently 10MB) will be truncated in the detail view.</span></li><li><span>Detail view is more stable during loading of a file. Partial loads are propagated to the detail view and a view disconnects itself when the logfile is closed</span></li><li><span>Bugfixes</span></li></ul><h4 id='v0913'><span>V0.913</span></h4><ul><li><span>Loading of zip entries is implemented</span></li><li><span>Export functionality implemented</span></li><li><span>Bugfixes</span></li></ul><h4 id='v0912'><span>V0.912</span></h4><ul><li><span>Bugfixes</span></li><li><span>Limited support for loading zip files</span></li><li><span>The detail view for a line is reusing the window. Also csv-view.</span></li><li><span>Recent files/folders are administrated</span></li><li><span>Faster startup</span></li><li><span>Shell extensions</span></li></ul></div></div>
 </body>
 </html>

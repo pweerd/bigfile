@@ -1,7 +1,17 @@
-﻿# BigFile (V1.0.2022.0526)
+# BigFile (V1.0.2022.0621)
 
-BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems.
+BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems. Typical used as a viewer for:
+
+- very large logfiles
+- very large json dumps
+- very large xml-dums
+- etc
+
+NB: If the interface shows a big yellow exclamation mark, you probably miss the Bitmanager Core Components. Bigfile will work, but much slower. The core components can be downloaded from (https://bitmanager.nl/distrib).
+
 The following provides a brief help guide for the core operations of BigFile.
+
+
 
 ## History
 
@@ -149,11 +159,12 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 
 ## Changes
 
-#### V1.0.2022.0526 (may 2022)
+#### V1.0.2022.0621 (June 2022)
 
 - Moved to NetCore
 - Fixed duplicate entries in file history.
-- Better UTF16 support
+- Better UTF16 support, BOM detecting
+- Much faster line splitting
 
 #### V0.94 (aug 2021)
 

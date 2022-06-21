@@ -1,6 +1,6 @@
-# BigFile (viewer for very large files)
+# BigFile (viewer for very large logfiles)
 
-Bigfile is designed to view and search in very large text files.
+Bigfile is designed to view and search in very large text files like logfiles, json-dumps, xml-dumps, etc.
 
 I needed something like 'less' on unix systems, but easier and for Windows. Stumbled across the logviewer from Mark Woan, which did a lot of good things, but not everything. So I took his approach as an example and created Bigfile.
 
