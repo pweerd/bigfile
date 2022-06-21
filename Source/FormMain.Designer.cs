@@ -413,7 +413,6 @@ namespace Bitmanager.BigFile
             this.statusLabelSearch});
          this.statusStrip.Location = new System.Drawing.Point(0, 623);
          this.statusStrip.Name = "statusStrip";
-         this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 10, 0);
          this.statusStrip.Size = new System.Drawing.Size(1300, 24);
          this.statusStrip.TabIndex = 2;
          this.statusStrip.Text = "statusStrip1";
@@ -476,6 +475,7 @@ namespace Bitmanager.BigFile
          this.btnWarning.Name = "btnWarning";
          this.btnWarning.Size = new System.Drawing.Size(28, 28);
          this.btnWarning.Text = "toolStripButton1";
+         this.btnWarning.ToolTipText = "Important warnings detected. Click to view.";
          this.btnWarning.Click += new System.EventHandler(this.btnWarning_Click);
          // 
          // toolLabelSearch
@@ -527,6 +527,7 @@ namespace Bitmanager.BigFile
             "Windows"});
          this.cbEncoding.Name = "cbEncoding";
          this.cbEncoding.Size = new System.Drawing.Size(93, 31);
+         this.cbEncoding.ToolTipText = "Codepage selection";
          this.cbEncoding.SelectedIndexChanged += new System.EventHandler(this.dropdownEncoding_SelectedIndexChanged);
          // 
          // toolStripButton2

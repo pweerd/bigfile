@@ -75,9 +75,9 @@ namespace Bitmanager.BigFile
          // 
          this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1});
-         this.statusStrip1.Location = new System.Drawing.Point(0, 509);
+         this.statusStrip1.Location = new System.Drawing.Point(0, 591);
          this.statusStrip1.Name = "statusStrip1";
-         this.statusStrip1.Size = new System.Drawing.Size(1014, 22);
+         this.statusStrip1.Size = new System.Drawing.Size(1183, 22);
          this.statusStrip1.TabIndex = 2;
          this.statusStrip1.Text = "statusStrip1";
          // 
@@ -111,7 +111,7 @@ namespace Bitmanager.BigFile
             this.btnNext});
          this.toolStrip1.Location = new System.Drawing.Point(0, 0);
          this.toolStrip1.Name = "toolStrip1";
-         this.toolStrip1.Size = new System.Drawing.Size(1014, 31);
+         this.toolStrip1.Size = new System.Drawing.Size(1183, 31);
          this.toolStrip1.TabIndex = 5;
          this.toolStrip1.Text = "toolStrip1";
          // 
@@ -124,7 +124,7 @@ namespace Bitmanager.BigFile
          // cbViewAs
          // 
          this.cbViewAs.Name = "cbViewAs";
-         this.cbViewAs.Size = new System.Drawing.Size(121, 31);
+         this.cbViewAs.Size = new System.Drawing.Size(140, 31);
          this.cbViewAs.SelectedIndexChanged += new System.EventHandler(this.cbViewAs_SelectedIndexChanged);
          // 
          // toolStripSeparator3
@@ -183,7 +183,7 @@ namespace Bitmanager.BigFile
          this.cbSearch.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
          this.cbSearch.AutoToolTip = true;
          this.cbSearch.Name = "cbSearch";
-         this.cbSearch.Size = new System.Drawing.Size(350, 31);
+         this.cbSearch.Size = new System.Drawing.Size(408, 31);
          this.cbSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtSearch_KeyUp);
          // 
          // btnSearch
@@ -229,36 +229,36 @@ namespace Bitmanager.BigFile
          // textLine
          // 
          this.textLine.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-         this.textLine.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+         this.textLine.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.textLine.HideSelection = false;
-         this.textLine.Location = new System.Drawing.Point(170, 177);
-         this.textLine.Margin = new System.Windows.Forms.Padding(20);
+         this.textLine.Location = new System.Drawing.Point(198, 204);
+         this.textLine.Margin = new System.Windows.Forms.Padding(23, 23, 23, 23);
          this.textLine.Name = "textLine";
          this.textLine.ReadOnly = true;
-         this.textLine.Size = new System.Drawing.Size(490, 90);
+         this.textLine.Size = new System.Drawing.Size(571, 103);
          this.textLine.TabIndex = 6;
          this.textLine.Text = "boe";
          // 
          // FormLine
          // 
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+         this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(1014, 531);
+         this.ClientSize = new System.Drawing.Size(1183, 613);
          this.Controls.Add(this.textLine);
          this.Controls.Add(this.toolStrip1);
          this.Controls.Add(this.statusStrip1);
          this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
          this.KeyPreview = true;
          this.Margin = new System.Windows.Forms.Padding(2);
-         this.MinimumSize = new System.Drawing.Size(405, 306);
+         this.MinimumSize = new System.Drawing.Size(470, 347);
          this.Name = "FormLine";
          this.ShowInTaskbar = false;
          this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
          this.Text = "Line";
          this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormLine_FormClosed);
          this.Load += new System.EventHandler(this.FormLine_Load);
-         this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.form_KeyPress);
          this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.form_KeyDown);
+         this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.form_KeyPress);
          this.statusStrip1.ResumeLayout(false);
          this.statusStrip1.PerformLayout();
          this.toolStrip1.ResumeLayout(false);
