@@ -44,19 +44,11 @@ namespace Bitmanager.BigFile {
          perChar = TextRenderer.MeasureText (x, f).Width / x.Length;
       }
 
-      public int GetTextPixels (String x, int add = 0) {
-         return GetTextPixels (x == null ? 0 : x.Length, add);
-      }
-
       public int GetTextPixels (int strlen, int add = 0) {
          const int MAX = 0x7FFF;  //short
          double ret = strlen * perChar + add; // * 1.01
 
          return ret > MAX ? MAX : (int)ret;
-      }
-
-      public int GetTextPixels (String x, String y, int add = 0) {
-         return Math.Max (GetTextPixels (x, add), GetTextPixels (y, add));
       }
 
       public int GetTextLengthForPixels (int pixels) {

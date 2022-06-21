@@ -91,7 +91,6 @@ namespace Bitmanager.BigFile {
          listLines.SelectAllOnControlA = false;
          listLines.SelectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.None;
          listLines.CopySelectionOnControlC = false;
-         //listLines.DefaultRenderer = new ListViewRenderer (this, listLines);
          selectedFore = listLines.SelectedForeColorOrDefault;
          selectedBack = listLines.SelectedBackColorOrDefault;
          olvcLineNumber.CellPadding = new Rectangle (0, 0, 2, 0);
@@ -134,7 +133,7 @@ namespace Bitmanager.BigFile {
       private void setListViewFontSize(float sizeInPt) {
          listLines.SetFontSizePt (sizeInPt);
          fontMeasures = new FixedFontMeasures (listLines.Font);
-         computeNeededTextLength ();
+         computeListViewDimensions (lf);
          listLines.Focus ();
       }
       #endregion
@@ -182,6 +181,9 @@ namespace Bitmanager.BigFile {
          this.settingsSource.Dump ("initial load");
          this.fileHistory = new FileHistory ("fh_");
          this.directoryHistory = new FileHistory ("dh_");
+
+         //this.statusStrip.Padding = new System.Windows.Forms.Padding (1, 0, 10, 0);
+
 
          //Async checking of valid history: this takes time in case of network drives
          Task.Run (() => {
@@ -270,12 +272,11 @@ namespace Bitmanager.BigFile {
       private void checkWarnings () {
          var sb = new StringBuilder ();
          if (!Globals.CanCompress) {
-            sb.Append ("\n\nMemory compression is disabled because bmucore_XX.dll is not found or too old.");
-            sb.AppendFormat ("\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion);
+            sb.Append ("Memory compression is disabled because bmucore_XX.dll is not found or too old.");
          }
          if (!Globals.CanInternalGZip) {
-            sb.Append ("\n\nInternal gUnzipping is disabled because bmcore_102.dll is too old.");
-            sb.AppendFormat ("\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion);
+            if (sb.Length > 0) sb.Append ("\n\n");
+            sb.Append ("Internal gUnzipping is done via sharpZipLib (much slower) because bmucore_XX.dll is not found or too old.");
          }
 
          if (sb.Length == 0) {
@@ -283,7 +284,9 @@ namespace Bitmanager.BigFile {
             return;
          }
 
-         String msg = sb.ToString (2, sb.Length - 2);
+         sb.AppendFormat ("\n\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion);
+         sb.Append ("\nYou can install Bitmanager's core components from https://bitmanager.nl/distrib");
+         String msg = sb.ToString ();
          btnWarning.ToolTipText = msg;
          btnWarning.Visible = true;
          btnWarning.AutoToolTip = false;
@@ -454,11 +457,9 @@ namespace Bitmanager.BigFile {
 
       private void computeNeededTextLength () {
          if (fontMeasures == null) return;
-         int needed = listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width;
+         int needed = listLines.LowLevelScrollPosition.X + (int)(1.2*(listLines.Width-olvcLineNumber.Width));
 
-         neededTextLength = fontMeasures.GetTextLengthForPixels (needed);
-         //int pixels = fontMeasures.GetTextPixels(neededTextLength);
-         //logger.Log("(Re)size... Needed pixels is {0}, chrs={1}, pixels for these chars is: {2}", needed, neededTextLength, pixels);
+         neededTextLength = (int)(1.2 * fontMeasures.GetTextLengthForPixels (needed));
       }
 
 
@@ -822,25 +823,7 @@ namespace Bitmanager.BigFile {
             return;
          }
 
-         if (newLF.PartialLineCount > 0) {
-            olvcLineNumber.Width = 20 + fontMeasures.GetTextPixels (newLF.PartialLineCount.ToString (), olvcLineNumber.Text);
-
-            int largestIndex = newLF.LongestPartialIndex;
-            String largestLine = getLine (largestIndex);
-            int w = fontMeasures.GetTextPixels (largestLine, 20);
-            int min = listLines.Width - olvcLineNumber.Width - 20 - listLines.Margin.Horizontal;
-            logger.Log ("-- w={0}, min={1}", w, min);
-            if (w < min) w = min;
-            olvcText.Width = w;
-
-            logger.Log ("-- new width={0}", olvcText.Width);
-            computeNeededTextLength ();
-            logger.Log ("-- largest partial: {0} at {1}, largest line at {2}",
-               largestLine.Length,
-               largestIndex,
-               newLF.LongestLineIndex);
-            logger.Log ("-- Max width is {0} pixels, pixels in screen is {1}", w, listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width);
-         }
+         computeListViewDimensions (newLF);
          listDatasource.SetContent (newLF.PartialLineCount);
          if (lineForm != null && !lineForm.IsClosed)
             lineForm.UpdateLogFile (newLF);
@@ -857,7 +840,30 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      void ILogFileCallback.OnLoadComplete (Result result) {
+      void computeListViewDimensions (LogFile newLF) {
+         if (newLF.PartialLineCount > 0) {
+            int col0 = Math.Max (newLF.PartialLineCount.ToString ().Length, olvcLineNumber.Text.Length);
+            olvcLineNumber.Width = 20 + fontMeasures.GetTextPixels (col0);
+
+            int largestIndex = newLF.LongestPartialIndex;
+            int lineLength = newLF.GetPartialLineLength (largestIndex);
+            int w = fontMeasures.GetTextPixels (lineLength);
+            int min = listLines.Width - olvcLineNumber.Width - listLines.Margin.Horizontal;
+            logger.Log ("-- w={0}, min={1}", w, min);
+            if (w < min) w = min;
+            olvcText.Width = w;
+
+            logger.Log ("-- new width={0}", olvcText.Width);
+            computeNeededTextLength ();
+            logger.Log ("-- largest partial: {0} at {1}, largest line at {2}",
+                     lineLength,
+                     largestIndex,
+                     newLF.LongestLineIndex);
+            logger.Log ("-- Max width is {0} pixels, pixels in screen is {1}", w, listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width);
+         }
+      }
+
+   void ILogFileCallback.OnLoadComplete (Result result) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
             indicateFinished ();
             setSearchStatus ("");
