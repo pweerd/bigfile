@@ -129,20 +129,31 @@ namespace Bitmanager.BigFile {
 
       public String ReadPartialLineInBuffer (int from, int until) {
          int bytes = ReadPartialLineBytesInBuffer (from, until);
-         return byteBufferViaCharBufferToString (bytes);
+         return byteBufferViaCharBufferToString (bytes, null);
       }
-      private String readPartialLineInBuffer (long from, long until) {
+      private String readPartialLineInBuffer (long from, long until, ICharReplacer replacer) {
          int bytes = readPartialLineBytesInBuffer (from, until);
-         return byteBufferViaCharBufferToString (bytes);
+         return byteBufferViaCharBufferToString (bytes, replacer);
       }
 
-      private String byteBufferViaCharBufferToString (int bytes) {
+      private unsafe String byteBufferViaCharBufferToString (int bytes, ICharReplacer replacer) {
          int N = Encoding.GetChars (byteBuffer, 0, bytes, charBuffer, 0);
          int j = 0;
 
-         for (; j < N; j++) if (charBuffer[j] != '\r' && charBuffer[j] != '\n') break;
-         for (; j < N; N--) if (charBuffer[N-1] != '\r' && charBuffer[N-1] != '\n') break;
-         return new string (charBuffer, j, N-j);
+         //Strip the cr/lf at the beginning/end, and eventual replace some chars
+         fixed (char* pBuf = charBuffer) {
+            char* pEnd = pBuf + N;
+            char* p = pBuf;
+
+            for (; p < pEnd; p++) if (*p != '\r' && *p != '\n') break;
+            for (; p < pEnd; pEnd--) if (pEnd[-1] != '\r' && pEnd[-1] != '\n') break;
+
+            if (replacer != null)
+               replacer.Replace (p, pEnd);
+
+            //return the formatted string
+            return new string (pBuf, (int)(p-pBuf), (int)(pEnd-p));
+         }
       }
 
       private int getMaxBytesForLimitedChars(int ll) {
@@ -200,7 +211,7 @@ namespace Bitmanager.BigFile {
          }
 
          if (byteBuffer.Length >= len) { //Simple case: the line fits in the pre-allocated buffer
-            return readPartialLineInBuffer (o1, o2);
+            return readPartialLineInBuffer (o1, o2, replacer);
          }
 
          //Didn't fit. We allocate a 2 times larger byte buffer, to be able to contains the chars as well.
