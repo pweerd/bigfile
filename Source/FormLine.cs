@@ -52,8 +52,9 @@ namespace Bitmanager.BigFile {
       private int lineIndex;
       private int partialIndex;
       private int matchIdx;
+      private Point initialParentLocation;
 
-      public FormLine () {
+      public FormLine (FormLine other) {
          InitializeComponent ();
          menuNormalized.Checked = lastCanonicalState;
          menuExpandJson.Checked = lastExpandEncodedState;
@@ -66,6 +67,9 @@ namespace Bitmanager.BigFile {
 
          cbViewAs.Items.AddRange (ViewAsItems);
          cbViewAs.SelectedIndex = lastViewAsIndex;
+         if (other != null) initialParentLocation = other.initialParentLocation;
+         StartPosition = FormStartPosition.Manual;
+
       }
 
       /// <summary>
@@ -80,8 +84,12 @@ namespace Bitmanager.BigFile {
       /// <summary>
       /// Shows the requested line in this form
       /// </summary>
-      public void ShowLine (Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)//, String lastQueryText)
+      public void ShowLine (Point location, Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)//, String lastQueryText)
       {
+         if (location != initialParentLocation) {
+            initialParentLocation = location;
+            DesktopLocation = new Point (location.X + 100, location.Y + 100);
+         }
          this.settings = c;
          if (lastQuery == null)
             searchNodes = new List<SearchNode> ();
@@ -103,6 +111,7 @@ namespace Bitmanager.BigFile {
          enableAll (true);
          setLine (partialLineNo);
          Show ();
+         Activate ();
       }
 
       private void setIndexes (int partial, int line) {

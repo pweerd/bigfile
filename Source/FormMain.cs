@@ -528,12 +528,12 @@ namespace Bitmanager.BigFile {
          if (m >= 0) {
             FormLine fl;
             if ((Control.ModifierKeys & Keys.Alt) != 0)
-               fl = new FormLine ();
+               fl = new FormLine (null);
             else {
                fl = lineForm;
-               if (fl == null || fl.IsClosed) fl = lineForm = new FormLine ();
+               if (fl == null || fl.IsClosed) fl = lineForm = new FormLine (fl);
             }
-            fl.ShowLine (settings, lf, listDatasource.Filter, m, lastQuery);
+            fl.ShowLine (DesktopLocation, settings, lf, listDatasource.Filter, m, lastQuery);
          }
       }
 
