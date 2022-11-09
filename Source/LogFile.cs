@@ -103,6 +103,7 @@ namespace Bitmanager.BigFile {
       private readonly int maxPartialSize;
       #endregion
 
+      private long maxLoadSize;
       private CancellationToken ct;
       private bool disposed;
       public bool Disposed { get { return disposed; } }
@@ -111,9 +112,15 @@ namespace Bitmanager.BigFile {
          if (disposed || ct.IsCancellationRequested)
             throw new TaskCanceledException ();
       }
+      private void checkCancelled (long pos) {
+         if (disposed || ct.IsCancellationRequested || pos >= maxLoadSize)
+            throw new TaskCanceledException ();
+      }
 
       public int Checked;
-      public LogFile (ILogFileCallback cb, Settings settings, Encoding enc, int maxPartialSize) {
+      public LogFile (ILogFileCallback cb, Settings settings, Encoding enc, int maxPartialSize, long maxLoadSize=0) {
+         this.maxLoadSize = maxLoadSize > 0 ? maxLoadSize : long.MaxValue;
+
          if (maxPartialSize <= 0) this.maxPartialSize = int.MaxValue;
          else if (maxPartialSize < 256) this.maxPartialSize = 256;
          else if (maxPartialSize > 4096) this.maxPartialSize = 4096;
@@ -137,6 +144,7 @@ namespace Bitmanager.BigFile {
          this.encoding = other.encoding;
          this.detectedEncoding = other.detectedEncoding;
          this.zipEntries = other.zipEntries;
+         this.maxLoadSize = other.maxLoadSize;
          int maxBufferSize = finalizeAdministration ();
 
          threadCtx = other.threadCtx.NewInstanceForThread (maxBufferSize);
@@ -919,10 +927,6 @@ namespace Bitmanager.BigFile {
          logger.Log ("Search: thread end: from {0} to {1}: {2} out of {3}", start, end, matches, end - start);
          return matches;
       }
-      private bool progressAndCheck (int index, CancellationToken ct) {
-         if (!onProgress ((100.0 * index) / partialLines.Count)) return false;
-         return !ct.IsCancellationRequested;
-      }
 
       /// <summary>
       /// Convert a list of indexes to partial lines into a list of lines-indexes
@@ -1218,7 +1222,7 @@ namespace Bitmanager.BigFile {
             return false;
          }
          public virtual bool HandleProgress (long pos) {
-            parent.checkCancelled ();
+            parent.checkCancelled (pos);
             long ticks = DateTime.UtcNow.Ticks;
             int cur;
             if (FileSize > 0)

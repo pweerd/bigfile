@@ -98,16 +98,18 @@ namespace Bitmanager.BigFile
          this.cbSearch = new System.Windows.Forms.ToolStripComboBox();
          this.btnSearch = new System.Windows.Forms.ToolStripButton();
          this.btnResetSearch = new System.Windows.Forms.ToolStripButton();
-         this.cbEncoding = new System.Windows.Forms.ToolStripComboBox();
-         this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
          this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-         this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
+         this.cbEncoding = new System.Windows.Forms.ToolStripComboBox();
+         this.cbFontSize = new System.Windows.Forms.ToolStripComboBox();
          this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
          this.cbSplit = new System.Windows.Forms.ToolStripComboBox();
+         this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
+         this.txtMaxLoad = new System.Windows.Forms.ToolStripTextBox();
+         this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
-         this.cbFontSize = new System.Windows.Forms.ToolStripComboBox();
-         this.cbDbgLoad = new System.Windows.Forms.ToolStripComboBox();
+         this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
+         this.cbZipEngine = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
          this.listLines = new Bitmanager.BigFile.SubclassedVirtualListView();
          this.olvcLineNumber = new BrightIdeasSoftware.OLVColumn();
@@ -449,16 +451,18 @@ namespace Bitmanager.BigFile
             this.cbSearch,
             this.btnSearch,
             this.btnResetSearch,
-            this.cbEncoding,
-            this.toolStripButton2,
             this.toolStripSeparator2,
-            this.cbZipEntries,
+            this.cbEncoding,
+            this.cbFontSize,
             this.toolStripSeparator3,
             this.toolStripLabel1,
             this.cbSplit,
+            this.toolStripLabel2,
+            this.txtMaxLoad,
+            this.toolStripSeparator4,
             this.btnResplit,
-            this.cbFontSize,
-            this.cbDbgLoad});
+            this.cbZipEntries,
+            this.cbZipEngine});
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
          this.toolStrip.Name = "toolStrip";
          this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -517,6 +521,12 @@ namespace Bitmanager.BigFile
          this.btnResetSearch.Text = "toolStripButton3";
          this.btnResetSearch.Click += new System.EventHandler(this.btnResetSearch_Click);
          // 
+         // toolStripSeparator2
+         // 
+         this.toolStripSeparator2.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+         this.toolStripSeparator2.Name = "toolStripSeparator2";
+         this.toolStripSeparator2.Size = new System.Drawing.Size(6, 31);
+         // 
          // cbEncoding
          // 
          this.cbEncoding.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -530,29 +540,16 @@ namespace Bitmanager.BigFile
          this.cbEncoding.ToolTipText = "Codepage selection";
          this.cbEncoding.SelectedIndexChanged += new System.EventHandler(this.dropdownEncoding_SelectedIndexChanged);
          // 
-         // toolStripButton2
+         // cbFontSize
          // 
-         this.toolStripButton2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton2.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
-         this.toolStripButton2.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton2.Name = "toolStripButton2";
-         this.toolStripButton2.Size = new System.Drawing.Size(28, 28);
-         this.toolStripButton2.Text = "toolStripButton2";
-         // 
-         // toolStripSeparator2
-         // 
-         this.toolStripSeparator2.Name = "toolStripSeparator2";
-         this.toolStripSeparator2.Size = new System.Drawing.Size(6, 31);
-         // 
-         // cbZipEntries
-         // 
-         this.cbZipEntries.DropDownWidth = 300;
-         this.cbZipEntries.Name = "cbZipEntries";
-         this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
-         this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
+         this.cbFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+         this.cbFontSize.Name = "cbFontSize";
+         this.cbFontSize.Size = new System.Drawing.Size(75, 31);
+         this.cbFontSize.ToolTipText = "Modify fontsize";
          // 
          // toolStripSeparator3
          // 
+         this.toolStripSeparator3.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
          this.toolStripSeparator3.Name = "toolStripSeparator3";
          this.toolStripSeparator3.Size = new System.Drawing.Size(6, 31);
          // 
@@ -569,6 +566,24 @@ namespace Bitmanager.BigFile
          this.cbSplit.Text = "2048";
          this.cbSplit.ToolTipText = "Automatic split lines larger than this value";
          // 
+         // toolStripLabel2
+         // 
+         this.toolStripLabel2.Name = "toolStripLabel2";
+         this.toolStripLabel2.Size = new System.Drawing.Size(56, 28);
+         this.toolStripLabel2.Text = "Max load";
+         // 
+         // txtMaxLoad
+         // 
+         this.txtMaxLoad.Name = "txtMaxLoad";
+         this.txtMaxLoad.Size = new System.Drawing.Size(100, 31);
+         this.txtMaxLoad.ToolTipText = "Maximum size to load. For instance 1GB.";
+         // 
+         // toolStripSeparator4
+         // 
+         this.toolStripSeparator4.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+         this.toolStripSeparator4.Name = "toolStripSeparator4";
+         this.toolStripSeparator4.Size = new System.Drawing.Size(6, 31);
+         // 
          // btnResplit
          // 
          this.btnResplit.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -578,22 +593,23 @@ namespace Bitmanager.BigFile
          this.btnResplit.Size = new System.Drawing.Size(28, 28);
          this.btnResplit.Text = "Re-split";
          // 
-         // cbFontSize
+         // cbZipEntries
          // 
-         this.cbFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-         this.cbFontSize.Name = "cbFontSize";
-         this.cbFontSize.Size = new System.Drawing.Size(75, 31);
-         this.cbFontSize.ToolTipText = "Modify fontsize";
+         this.cbZipEntries.DropDownWidth = 300;
+         this.cbZipEntries.Name = "cbZipEntries";
+         this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
+         this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
          // 
-         // cbDbgLoad
+         // cbZipEngine
          // 
-         this.cbDbgLoad.Items.AddRange(new object[] {
+         this.cbZipEngine.Items.AddRange(new object[] {
             "intern",
             "zlib",
             "sharp"});
-         this.cbDbgLoad.Name = "cbDbgLoad";
-         this.cbDbgLoad.Size = new System.Drawing.Size(87, 31);
-         this.cbDbgLoad.SelectedIndexChanged += new System.EventHandler(this.cbDbgLoad_SelectedIndexChanged);
+         this.cbZipEngine.Name = "cbZipEngine";
+         this.cbZipEngine.Size = new System.Drawing.Size(87, 23);
+         this.cbZipEngine.ToolTipText = "Which compression engine to use";
+         this.cbZipEngine.SelectedIndexChanged += new System.EventHandler(this.cbZipEngine_SelectedIndexChanged);
          // 
          // panelMain
          // 
@@ -758,7 +774,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem exportAllToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem exportSelectedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem exportMatchedToolStripMenuItem;
-      private System.Windows.Forms.ToolStripButton toolStripButton2;
       private System.Windows.Forms.ToolStripButton btnWarning;
       private System.Windows.Forms.ToolStripButton btnResetSearch;
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
@@ -768,7 +783,7 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripComboBox cbSplit;
       private System.Windows.Forms.ToolStripButton btnResplit;
       private System.Windows.Forms.ToolStripMenuItem registerShellextToolStripMenuItem;
-      private System.Windows.Forms.ToolStripComboBox cbDbgLoad;
+      private System.Windows.Forms.ToolStripComboBox cbZipEngine;
       private System.Windows.Forms.ToolStripMenuItem selectToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearAllToolStripMenuItem;
@@ -781,6 +796,9 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem toolStripCopyMenuItem;
       private SubclassedVirtualListView listLines;
       private ToolStripComboBox cbFontSize;
+      private ToolStripLabel toolStripLabel2;
+      private ToolStripTextBox txtMaxLoad;
+      private ToolStripSeparator toolStripSeparator4;
    }
 }
 

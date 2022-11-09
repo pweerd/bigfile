@@ -67,7 +67,7 @@ namespace Bitmanager.BigFile {
 
          cbEncoding.Items.Clear ();
          cbEncoding.Items.Add ("Utf8");
-         cbEncoding.Items.Add ("Latin (extended)");
+         cbEncoding.Items.Add ("Latin (ext)");
          cbEncoding.Items.Add ("Utf16");
          cbEncoding.Items.Add ("Utf16BE");
 
@@ -208,14 +208,14 @@ namespace Bitmanager.BigFile {
          listLines.Dock = DockStyle.Fill;
          listLines.Visible = true;
          fontMeasures = new FixedFontMeasures (listLines.Font);
-         cbDbgLoad.SelectedIndex = 0;
+         cbZipEngine.SelectedIndex = 0;
          if (Globals.IsDebug) {
             String fn = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
             fn = IOUtils.FindFileToRoot (fn, @"UnitTests\data\test.txt", FindToTootFlags.Except);
             LoadFile (fn);
          } else {
-            toolStripButton2.Visible = false;
-            cbDbgLoad.Visible = false;
+            toolStripSeparator4.Visible = false;
+            cbZipEngine.Visible = false;
          }
 
          var sb = new StringBuilder ();
@@ -240,7 +240,7 @@ namespace Bitmanager.BigFile {
          //tooltipHelpers.Add (tth);
          tooltipHelpers.Add (this.toolStrip, (tth)=>{
             tth.ToolTipInterval = 20000; 
-            tth.Tooltip.ReshowDelay = 4000;
+            tth.Tooltip.ReshowDelay = 3000;
          });
 
          checkWarnings ();
@@ -398,6 +398,12 @@ namespace Bitmanager.BigFile {
       /// Creates a LogFile object and let it asynchronously load the file
       /// </summary>
       private void LoadFile (string filePath, String zipEntry = null) {
+         long maxLoadSize = long.MaxValue;
+         String tmp = txtMaxLoad.Text;
+         if (!String.IsNullOrEmpty (tmp)) {
+            tmp = tmp.Trim ();
+            if (!String.IsNullOrEmpty (tmp)) maxLoadSize = Pretty.ParseSize (tmp);
+         }
          int maxPartial = Invariant.ToInt32 (cbSplit.Text);
          if (maxPartial < 0) maxPartial = 10 * 1024 * 1024;
 
@@ -414,7 +420,7 @@ namespace Bitmanager.BigFile {
 
          statusLabelMain.Text = "Loading...";
          setSearchStatus (String.Empty);
-         new LogFile (this, settings, getCurrentEncoding (), maxPartial).Load (filePath, cancellationTokenSource.Token, zipEntry);
+         new LogFile (this, settings, getCurrentEncoding (), maxPartial, maxLoadSize).Load (filePath, cancellationTokenSource.Token, zipEntry);
       }
 
       private void setSearchStatus (String txt, int count = 1) {
@@ -878,7 +884,7 @@ namespace Bitmanager.BigFile {
                statusLabelMain.Text = part1 + " [ERROR]";
                result.ThrowIfError ();
             } else if (result.Cancelled) {
-               statusLabelMain.Text = part1 + " [CANCELLED]";
+               statusLabelMain.Text = part1 + " [PARTIAL LOADED]";
             } else {
                String duration = Pretty.PrintElapsedMs ((int)result.Duration.TotalMilliseconds);
                statusLabelMain.Text = part1 + ", # Duration: " + duration;
@@ -1126,7 +1132,7 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      private void cbDbgLoad_SelectedIndexChanged (object sender, EventArgs e) {
+      private void cbZipEngine_SelectedIndexChanged (object sender, EventArgs e) {
          var cb = sender as ToolStripComboBox;
          int ix = cb.SelectedIndex;
          if (ix < 0) return;
