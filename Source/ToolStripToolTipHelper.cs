@@ -161,13 +161,15 @@ namespace Bitmanager.BigFile {
       void timer_Tick (object sender, EventArgs e) {
          timer.Stop ();
          timer.Interval = Tooltip.ReshowDelay;
+         Cursor cursor = Cursor.Current;
+         if (cursor == null) return; //cursor is null if the mouse is invisible
          try {
             //logger.Log("Timer: {0}", tos(mouseOverItem));
             Point currentMouseOverPoint;
             if (ToolTipShowUp)
-               currentMouseOverPoint = target.PointToClient (new Point (Control.MousePosition.X, Control.MousePosition.Y - Cursor.Current.Size.Height + Cursor.Current.HotSpot.Y));
+               currentMouseOverPoint = target.PointToClient (new Point (Control.MousePosition.X, Control.MousePosition.Y - cursor.Size.Height + cursor.HotSpot.Y));
             else
-               currentMouseOverPoint = target.PointToClient (new Point (Control.MousePosition.X, Control.MousePosition.Y + Cursor.Current.Size.Height - Cursor.Current.HotSpot.Y));
+               currentMouseOverPoint = target.PointToClient (new Point (Control.MousePosition.X, Control.MousePosition.Y + cursor.Size.Height - cursor.HotSpot.Y));
 
             showToolTip (currentMouseOverPoint);
          } catch { }
