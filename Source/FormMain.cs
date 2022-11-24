@@ -831,6 +831,7 @@ namespace Bitmanager.BigFile {
 
          computeListViewDimensions (newLF);
          listDatasource.SetContent (newLF.PartialLineCount);
+         logger.Log ("set count: {0}, ds={1}, ll={2}", newLF.PartialLineCount, listDatasource.Count, listLines.GetItemCount ());
          if (lineForm != null && !lineForm.IsClosed)
             lineForm.UpdateLogFile (newLF);
 
@@ -969,7 +970,7 @@ namespace Bitmanager.BigFile {
       }
 
       private void gotoAndSelectLogicalLineIndex (int index) {
-         if (index < 0) index = 0;
+         if (index < 0) return; // index = 0;  //pw need to check, 
          int N = listLines.GetItemCount ();
          if (N == 0) return;
          if (index >= N) index = N - 1;
@@ -1017,7 +1018,7 @@ namespace Bitmanager.BigFile {
 
          listLines.TopItemIndex = 0;
          var filter = listDatasource.Filter;
-         int index = listLines.SelectedIndex;
+         int index = selectionHandler.SelectedIndex;
          logger.Log ("gotoNextHit (index={0}, filter={1})", index, filter == null ? 0 : 1);
          if (index >= 0) {
             if (filter != null) index = listDatasource.Filter[index];
@@ -1042,7 +1043,7 @@ namespace Bitmanager.BigFile {
 
          listLines.TopItemIndex = 0;
          var filter = listDatasource.Filter;
-         int index = listLines.SelectedIndex;
+         int index = selectionHandler.SelectedIndex;
          if (index >= 0) {
             if (filter != null) index = listDatasource.Filter[index];
          }
