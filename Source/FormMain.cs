@@ -172,6 +172,10 @@ namespace Bitmanager.BigFile {
       FileHistory fileHistory, directoryHistory;
 
       ToolStripToolTipHelpers tooltipHelpers;
+      LinesGrid linesGrid;
+      HScrollBar hScrollBar;
+      VScrollBar vScrollBar;
+
       private void FormMain_Load (object sender, EventArgs e) {
          Bitmanager.Core.GlobalExceptionHandler.Hook ();
          //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -205,8 +209,74 @@ namespace Bitmanager.BigFile {
             this.exportToolStripMenuItem.Clone()});
 
          menuFileClose.Enabled = false;
+
+
          listLines.Dock = DockStyle.Fill;
          listLines.Visible = true;
+         listLines.Visible = false;
+
+         SuspendLayout ();
+         linesGrid = new LinesGrid ();
+         linesGrid.AllowDrop = true;
+         linesGrid.CausesValidation = false;
+         linesGrid.Columns = new List<int> { 100, 200};
+
+         hScrollBar = new HScrollBar ();
+         vScrollBar = new VScrollBar ();
+         hScrollBar.Dock = DockStyle.Bottom;
+         vScrollBar.Dock = DockStyle.Right;
+         vScrollBar.Minimum = 0;
+         vScrollBar.Maximum = int.MaxValue -1;
+
+         //panelMain.Controls.Add (hScrollBar);
+         //panelMain.Controls.Add (vScrollBar);
+         panelMain.Controls.Add (linesGrid);
+         linesGrid.Dock = DockStyle.Fill;
+         ResumeLayout ();
+         linesGrid.RowCount = 100000000;
+         //vScrollBar.ValueChanged += VScrollBar_ValueChanged;
+         //vScrollBar.Scroll += VScrollBar_Scroll;
+         //hScrollBar.ValueChanged += VScrollBar_ValueChanged;
+         //hScrollBar.Scroll += VScrollBar_Scroll;
+
+
+         //var cols = new List<SectorPlacement> ();
+         //linesGrid.Columns = cols;
+         //linesGrid.ContextMenuStrip = this.contextMenu;
+         //linesGrid.Font = new System.Drawing.Font ("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         //linesGrid.FullRowSelect = true;
+         //linesGrid.HasCollapsibleGroups = false;
+         //linesGrid.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
+         //this.listLines.IsSearchOnSortColumn = false;
+         //this.listLines.Location = new System.Drawing.Point (0, 0);
+         //this.listLines.Margin = new System.Windows.Forms.Padding (2);
+         //this.listLines.Name = "listLines";
+         //this.listLines.SelectColumnsMenuStaysOpen = false;
+         //this.listLines.SelectColumnsOnRightClick = false;
+         //this.listLines.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.None;
+         //this.listLines.ShowFilterMenuOnRightClick = false;
+         //this.listLines.ShowGroups = false;
+         //this.listLines.ShowSortIndicators = false;
+         //this.listLines.Size = new System.Drawing.Size (1046, 77);
+         //this.listLines.TabIndex = 0;
+         //this.listLines.TriggerCellOverEventsWhenOverHeader = false;
+         //this.listLines.UseCellFormatEvents = true;
+         //this.listLines.UseCompatibleStateImageBehavior = false;
+         //this.listLines.View = System.Windows.Forms.View.Details;
+         //this.listLines.VirtualMode = true;
+         //this.listLines.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs> (this.listLines_CellRightClick);
+         //this.listLines.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs> (this.listLines_FormatCell);
+         //this.listLines.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs> (this.listLines_Scroll);
+         //this.listLines.ItemActivate += new System.EventHandler (this.listLines_ItemActivate);
+         //this.listLines.DragDrop += new System.Windows.Forms.DragEventHandler (this.listLines_DragDrop);
+         //this.listLines.DragEnter += new System.Windows.Forms.DragEventHandler (this.listLines_DragEnter);
+         //this.listLines.KeyDown += new System.Windows.Forms.KeyEventHandler (this.FormMain_KeyDown);
+         //this.listLines.KeyPress += new System.Windows.Forms.KeyPressEventHandler (this.FormMain_KeyPress);
+         //this.listLines.Resize += new System.EventHandler (this.listLines_Resize);
+
+
+
+
          fontMeasures = new FixedFontMeasures (listLines.Font);
          cbZipEngine.SelectedIndex = 0;
          if (Globals.IsDebug) {
@@ -267,6 +337,16 @@ namespace Bitmanager.BigFile {
                break;
             };
          }
+      }
+
+      private void VScrollBar_Scroll (object sender, ScrollEventArgs e) {
+         logger.Log ("VScroll track: {0}", e.NewValue);
+         linesGrid.VerticalOffset = e.NewValue;
+      }
+
+      private void VScrollBar_ValueChanged (object sender, EventArgs e) {
+         logger.Log ("VScroll end: {0}", vScrollBar.Value);
+         linesGrid.VerticalOffset = vScrollBar.Value;
       }
 
       private void checkWarnings () {
