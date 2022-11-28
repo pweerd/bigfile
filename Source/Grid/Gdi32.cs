@@ -39,25 +39,30 @@ namespace DynamicGrid.Interop
 			SetTextAlign(hdc, value);
 		}
 
-		public static void PrintText(IntPtr hdc, Rectangle rectangle, HorizontalAlignment alignment, string text)
-		{
-			text ??= string.Empty;
+      public static void PrintText (IntPtr hdc, Rectangle rectangle, HorizontalAlignment alignment, string text) {
+         int txtLen = text == null ? 0 : text.Length;
 
-			var rect = new RECT(rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
-			var position = alignment switch
-			{
-				HorizontalAlignment.Left => new Point(2, 0),
-				HorizontalAlignment.Right => new Point(rectangle.Width - 2, 0),
-				HorizontalAlignment.Center => new Point(rectangle.Width / 2, 0),
-				_ => throw new InvalidEnumArgumentException(nameof(alignment), (int)alignment, typeof(HorizontalAlignment))
-			};
+         var rect = new RECT (rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
+         var position = alignment switch {
+            HorizontalAlignment.Left => new Point (2, 0),
+            HorizontalAlignment.Right => new Point (rectangle.Width - 2, 0),
+            HorizontalAlignment.Center => new Point (rectangle.Width / 2, 0),
+            _ => throw new InvalidEnumArgumentException (nameof (alignment), (int)alignment, typeof (HorizontalAlignment))
+         };
 
-			ExtTextOut(hdc, rectangle.X + position.X, rectangle.Y + position.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)text.Length, IntPtr.Zero);
-		}
+         ExtTextOut (hdc, rectangle.X + position.X, rectangle.Y + position.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)txtLen, IntPtr.Zero);
+      }
 
+      public static void PrintText (IntPtr hdc, Rectangle rectangle, int xPos, string text) {
+			int txtLen = text==null?0 : text.Length;
+         var gdiRect = new RECT (rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
+         ExtTextOut (hdc, xPos, rectangle.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref gdiRect, text, (uint)txtLen, IntPtr.Zero);
+      }
+      
 		public static void Fill(IntPtr hdc, Rectangle rectangle)
 		{
-			PrintText(hdc, rectangle, HorizontalAlignment.Center, string.Empty);
+         var gdiRect = new RECT (rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
+         ExtTextOut (hdc, rectangle.X, rectangle.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref gdiRect, null, 0, IntPtr.Zero);
 		}
 
 		public static void Delete(IntPtr hdc)
@@ -90,7 +95,7 @@ namespace DynamicGrid.Interop
 
 		[DllImport("gdi32.dll", EntryPoint = "BitBlt", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool BitBlt([In] IntPtr hdc, int nXDest, int nYDest, int nWidth, int nHeight, [In] IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
+		internal static extern bool BitBlt([In] IntPtr hdc, int nXDest, int nYDest, int nWidth, int nHeight, [In] IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
 
 		[DllImport("gdi32.dll")]
 		private static extern uint SetTextAlign(IntPtr hdc, Alignment fMode);
@@ -105,7 +110,7 @@ namespace DynamicGrid.Interop
 		[DllImport("gdi32.dll")]
 		static extern bool GetTextExtentPoint32(IntPtr hdc, string lpString, int cbString, out SIZE lpSize);
 
-		private enum TernaryRasterOperations : uint
+		internal enum TernaryRasterOperations : uint
 		{
 			NONE = 0x0,
 			SRCCOPY = 0x00CC0020,
@@ -127,7 +132,7 @@ namespace DynamicGrid.Interop
 		}
 
 		[Flags]
-		private enum ETOOptions : uint
+		internal enum ETOOptions : uint
 		{
 			CLIPPED = 0x4,
 			GLYPH_INDEX = 0x10,

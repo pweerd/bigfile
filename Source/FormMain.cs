@@ -219,7 +219,9 @@ namespace Bitmanager.BigFile {
          linesGrid = new LinesGrid ();
          linesGrid.AllowDrop = true;
          linesGrid.CausesValidation = false;
-         linesGrid.Columns = new List<int> { 100, 200};
+         linesGrid.Columns = new List<int> { 100, 100000};
+         linesGrid.BackColor = Color.Red;
+         linesGrid.ForeColor = Color.Black;
 
          hScrollBar = new HScrollBar ();
          vScrollBar = new VScrollBar ();

@@ -52,9 +52,9 @@ namespace DynamicGrid {
          vScrollBar.Dock = DockStyle.Right;
          _graphics = CreateGraphics ();
          _graphicsHdc = _graphics.GetHdc ();
-         _cellBuffer = new CellBuffer ();
-         _displayBuffer = new DisplayBuffer (_graphicsHdc);
          _fontManager = new FontManager ();
+         _cellBuffer = new CellBuffer ();
+         _displayBuffer = new DisplayBuffer (_graphicsHdc, _fontManager);
 
          Font = new Font ("Microsoft Sans Serif", 12);
          BackColor = Color.LightGray;
@@ -76,7 +76,6 @@ namespace DynamicGrid {
       }
 
       private void handleScroll_Scroll (object sender, ScrollEventArgs e) {
-
          if (e.ScrollOrientation == ScrollOrientation.VerticalScroll) {
             this.VerticalOffset = (long)(e.NewValue * vScrollBarMultiplier);
          } else {
@@ -137,8 +136,25 @@ namespace DynamicGrid {
             ProcessMouseEvents ();
 
             ColumnsChanged?.Invoke (this, EventArgs.Empty);
+
+            DumpColumns ();
          }
       }
+
+      private void DumpColumns () {
+         logger.Log ("Dumping sectors:");
+         for (int i = 0; i < _sectors.Count; i++) {
+            var sector = _sectors[i];
+            logger.Log ("-- [{0}]: w={1}, offs={2}", i, sector.Width, sector.Offset);
+         }
+         logger.Log ("Dumping columns:");
+         for (int i = 0; i < _columns.Count; i++) {
+            var c = _columns[i];
+            logger.Log ("-- [{0}]: w={1}, offs={2}, sect={3}, sectIx={4}, sectOffs={5}", i, c.Width, c.GlobalOffset, c.Sector, c.SectorIndex, c.SectorOffset);
+         }
+
+      }
+
 
       private long _horizontalOffset;
       /// <summary>
@@ -173,6 +189,7 @@ namespace DynamicGrid {
 
             UpdateVisibleRows ();
             UpdateData ();
+            Invalidate ();
             Refresh ();
             ProcessMouseEvents ();
 
@@ -222,12 +239,12 @@ namespace DynamicGrid {
 
          for (int c = newMinColumn; c <= newMaxColumn && c < oldMinColumn; c++) {
             _cellBuffer.ClearColumn (_cellBuffer.CropRow (c));
-            _displayBuffer.ClearColumn (_columns[c].SectorOffset + _sectors[_columns[c].Sector].Offset, _columns[c].Width, BackColor);
+            _displayBuffer.ClearColumn (BackColor, _columns[c].SectorOffset + _sectors[_columns[c].Sector].Offset, _columns[c].Width);
             InvalidateColumnData (c);
          }
          for (int c = newMaxColumn; c >= newMinColumn && c > oldMaxColumn; c--) {
             _cellBuffer.ClearColumn (_cellBuffer.CropRow (c));
-            _displayBuffer.ClearColumn (_columns[c].SectorOffset + _sectors[_columns[c].Sector].Offset, _columns[c].Width, BackColor);
+            _displayBuffer.ClearColumn (BackColor,_columns[c].SectorOffset + _sectors[_columns[c].Sector].Offset, _columns[c].Width);
             InvalidateColumnData (c);
          }
       }
@@ -281,13 +298,8 @@ namespace DynamicGrid {
 
          var rows = Height / RowHeight + 2;
 
-         _cellBuffer.Size = new Size (
-            _columns.Max (p => p.SectorIndex + 1),
-            rows);
-         _displayBuffer.Size = new Size (
-            _sectors.Max (p => p.Offset + p.Width),
-            rows * RowHeight);
-
+         _cellBuffer.SetDimensions (rows, _columns.Max (p => p.SectorIndex + 1));
+         _displayBuffer.SetDimensions (rows * RowHeight, _sectors.Max (p => p.Offset + p.Width));
          InvalidateBuffers ();
       }
 
@@ -411,29 +423,9 @@ namespace DynamicGrid {
          var realRectangle = new Rectangle (realPosition, size);
          var croppedRectangle = new Rectangle (croppedPosition, size);
 
-         var backgroundColor = cell.BackgroundColor ?? BackColor;
-         var foregroundColor = cell.ForegroundColor ?? ForeColor;
-
-         if (renderingContext.CurrentBackgroundColor != backgroundColor) {
-            renderingContext.CurrentBackgroundColor = backgroundColor;
-            Gdi32.SetBackgroundColor (_displayBuffer.Hdc, backgroundColor);
-         }
-
-         if (renderingContext.CurrentForegroundColor != foregroundColor) {
-            renderingContext.CurrentForegroundColor = foregroundColor;
-            Gdi32.SetForegroundColor (_displayBuffer.Hdc, foregroundColor);
-         }
-
-         if (renderingContext.CurrentAlignemnt != cell.TextAlignment) {
-            renderingContext.CurrentAlignemnt = cell.TextAlignment;
-            Gdi32.SetTextAlignemnt (_displayBuffer.Hdc, cell.TextAlignment);
-         }
-
-         if (renderingContext.CurrentFontStyle != cell.FontStyle) {
-            renderingContext.CurrentFontStyle = cell.FontStyle;
-            Gdi32.SelectObject (_displayBuffer.Hdc, _fontManager.GetHdc (cell.FontStyle));
-         }
-
+         _displayBuffer.setBackColor (cell.BackgroundColor ?? BackColor);
+         _displayBuffer.setForeColor (cell.ForegroundColor ?? ForeColor);
+         _displayBuffer.setTextAlignment (cell.TextAlignment);
          Gdi32.PrintText (_displayBuffer.Hdc, croppedRectangle, cell.TextAlignment, cell.Text);
 
          renderingContext.InvalidatedRect = RectangleUtils.Union (renderingContext.InvalidatedRect, realRectangle);
@@ -456,160 +448,53 @@ namespace DynamicGrid {
       }
 
       protected override void OnPaint (PaintEventArgs e) {
-         if (IsDisposed) return;
+         //protected void OnPaint2 (PaintEventArgs e) {
+         long virtualX = e.ClipRectangle.X + HorizontalOffset;
+         long virtualY = e.ClipRectangle.Y + VerticalOffset;
+         long virtualXEnd = virtualX + e.ClipRectangle.Width;
 
-         var destinationRect = e.ClipRectangle;
+         long rh = RowHeight;
+         int rowStart = (int)(virtualY / rh);
+         int rowEnd = 1+(int)((virtualY + e.ClipRectangle.Width) / rh);
 
-         var leftEdge = 0;
-         var rightEdge = _columns.Count == 0
-            ? 0
-            : _columns[^1].GlobalOffsetPlusWidth;
+         int colStart = 0;
+         for (; colStart < _columns.Count && _columns[colStart].GlobalOffsetPlusWidth <= virtualX; colStart++) ;
+         int colEnd = _columns.Count;
+         for (; colEnd > colStart && _columns[colEnd-1].GlobalOffset > virtualXEnd; colEnd--) ;
 
-         // Filling in the region left to the grid
-         // ###|---|---|---|---|...
-         // ###|---|---|---|---|...
-         // ###|---|---|---|---|...
-         // ###|---|---|---|---|...
-         // ###|---|---|---|---|...
-         // ###|---|---|---|---|...
-         if (destinationRect.Left + HorizontalOffset < leftEdge) {
-            var destination = destinationRect.Location;
-            var size = new Size (
-               Math.Min (destinationRect.Width, (int)(leftEdge - destinationRect.Left - HorizontalOffset)),
-               destinationRect.Height);
+         //logger.Log ("clip=({0}, {1}), ({2}, {3})", e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height);
+         _displayBuffer.SetDimensions (e.ClipRectangle.Height, e.ClipRectangle.Width);
+         _displayBuffer.Clear (BackColor);
+         //logger.Log ("rows=({0}, {1}), cols=({2}, {3})", rowStart, rowEnd, colStart, colEnd);
 
-            Gdi32.SetBackgroundColor (_graphicsHdc, BackColor);
-            Gdi32.Fill (_graphicsHdc, new Rectangle (destination, size));
+         Rectangle bufRect = new Rectangle (0, 0, 0, (int)rh);
+         for (int col = colStart; col < colEnd; col++) {
+            var column = _columns[col];
+            int x = (int)(column.GlobalOffset - virtualX);
+            bufRect.X = x;
+            bufRect.Width = column.Width;
 
-            destinationRect = new Rectangle (
-               destinationRect.Left + size.Width,
-               destinationRect.Top,
-               destinationRect.Width - size.Width,
-               destinationRect.Height);
+            int y=(int)(rowStart * rh - virtualY);
+            for (int row = rowStart; row < rowEnd; row++) {
+               logger.Log ("-- getCell ({0}, {1}", row, col);
+               logger.Log ("-- cellRect=({0}, {1}), ({2}, {3})", bufRect.X, bufRect.Y, bufRect.Width, bufRect.Height);
+               Cell cell = GetCell (row, col);
+               //_displayBuffer.ClearRect (cell.BackgroundColor ?? this.BackColor, bufRect);
+               bufRect.Y = y;
+               _displayBuffer.PrintCell (
+                  cell.BackgroundColor ?? this.BackColor,
+                  cell.ForegroundColor ?? this.ForeColor,
+                  bufRect,
+                  cell.FontStyle,
+                  cell.TextAlignment,
+                  cell.Text
+               );
+               y += (int)rh;
+            }
          }
 
-         // Filling in the region right to the grid
-         // ...|---|---|---|---|###
-         // ...|---|---|---|---|###
-         // ...|---|---|---|---|###
-         // ...|---|---|---|---|###
-         // ...|---|---|---|---|###
-         // ...|---|---|---|---|###
-         if (destinationRect.Right + HorizontalOffset >= rightEdge) {
-            var destination = new Point (
-               Math.Max (destinationRect.Left, (int)(rightEdge - HorizontalOffset)),
-               destinationRect.Top);
-            var size = new Size (
-               destinationRect.Width - Math.Max (0, (int)(rightEdge - HorizontalOffset - destinationRect.Left)),
-               destinationRect.Height);
-
-            Gdi32.SetBackgroundColor (_graphicsHdc, BackColor);
-            Gdi32.Fill (_graphicsHdc, new Rectangle (destination, size));
-
-            destinationRect = new Rectangle (
-               destinationRect.Left,
-               destinationRect.Top,
-               destinationRect.Width - size.Width,
-               destinationRect.Height);
-         }
-
-         if (_columns.Count == 0)
-            return;
-
-         var minRow = VisibleRows.MinRow;
-         var (minColumn, maxColumn) = VisibleColumns;
-         long rowHeight = RowHeight;
-         var sourceRect = new Rectangle (
-            (int)(_columns[minColumn].SectorOffset + _sectors[_columns[minColumn].Sector].Offset + destinationRect.Left + HorizontalOffset - _columns[minColumn].GlobalOffset),
-            (int)(_cellBuffer.CropRow (minRow) * rowHeight + destinationRect.Top + VerticalOffset - minRow * RowHeight),
-            destinationRect.Width,
-            destinationRect.Height);
-         var sectorRect = new Rectangle (
-            _sectors[_columns[minColumn].Sector].Offset,
-            0,
-            _sectors[_columns[minColumn].Sector].Width,
-            _displayBuffer.Size.Height);
-
-         // Drawing the top left corner of the grid using the bottom right corner of the buffer
-         //        6    7        3    4  5                 3    4  5  6    7
-         // 8 ...|---|-----|..|-----|---|-|...     5 ...|#####|###|#|---|-----|...
-         // 9 ...|---|-----|..|-----|---|-|...     6 ...|#####|###|#|---|-----|...
-         // 5 ...|---|-----|..|#####|###|#|...  >  7 ...|#####|###|#|---|-----|...
-         // 6 ...|---|-----|..|#####|###|#|...     8 ...|-----|---|-|---|-----|...
-         // 7 ...|---|-----|..|#####|###|#|...     9 ...|-----|---|-|---|-----|...
-         if (sourceRect.Left < sectorRect.Right && sourceRect.Top < sectorRect.Bottom) {
-            var source = sourceRect.Location;
-            var destination = destinationRect.Location;
-            var size = new Size (
-               Math.Min (destinationRect.Width, sectorRect.Right - sourceRect.Left),
-               Math.Min (destinationRect.Height, sectorRect.Bottom - sourceRect.Top));
-
-            Gdi32.Copy (_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
-         }
-
-         // Drawing the top right corner of the grid using the bottom left corner of the buffer
-         //        6    7        3    4  5                 3    4  5  6    7
-         // 8 ...|---|-----|..|-----|---|-|...     5 ...|-----|---|-|###|#####|...
-         // 9 ...|---|-----|..|-----|---|-|...     6 ...|-----|---|-|###|#####|...
-         // 5 ...|###|#####|..|-----|---|-|...  >  7 ...|-----|---|-|###|#####|...
-         // 6 ...|###|#####|..|-----|---|-|...     8 ...|-----|---|-|---|-----|...
-         // 7 ...|###|#####|..|-----|---|-|...     9 ...|-----|---|-|---|-----|...
-         if (sourceRect.Right > sectorRect.Right && sourceRect.Top < sectorRect.Bottom) {
-            var source = new Point (
-               _sectors[_columns[maxColumn].Sector].Offset + Math.Max (0, sourceRect.Left - sectorRect.Right),
-               sourceRect.Top);
-            var destination = new Point (
-               destinationRect.Left + Math.Max (0, sectorRect.Right - sourceRect.Left),
-               destinationRect.Top);
-            var size = new Size (
-               destinationRect.Width - Math.Max (0, sectorRect.Right - sourceRect.Left),
-               Math.Min (destinationRect.Height, sectorRect.Bottom - sourceRect.Top));
-
-            Gdi32.Copy (_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
-         }
-
-         // Drawing the bottom left corner of the grid using the top right corner of the buffer
-         //        6    7        3    4  5                 3    4  5  6    7
-         // 8 ...|---|-----|..|#####|###|#|...     5 ...|-----|---|-|---|-----|...
-         // 9 ...|---|-----|..|#####|###|#|...     6 ...|-----|---|-|---|-----|...
-         // 5 ...|---|-----|..|-----|---|-|...  >  7 ...|-----|---|-|---|-----|...
-         // 6 ...|---|-----|..|-----|---|-|...     8 ...|#####|###|#|---|-----|...
-         // 7 ...|---|-----|..|-----|---|-|...     9 ...|#####|###|#|---|-----|...
-         if (sourceRect.Left < sectorRect.Right && sourceRect.Bottom > sectorRect.Bottom) {
-            var source = new Point (
-               sourceRect.Left,
-               Math.Max (0, sourceRect.Top - sectorRect.Bottom));
-            var destination = new Point (
-               destinationRect.Left,
-               destinationRect.Top + Math.Max (0, sectorRect.Bottom - sourceRect.Top));
-            var size = new Size (
-               Math.Min (destinationRect.Width, sectorRect.Right - sourceRect.Left),
-               destinationRect.Height - Math.Max (0, sectorRect.Bottom - sourceRect.Top));
-
-            Gdi32.Copy (_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
-         }
-
-
-         // Drawing the bottom right corner of the grid using the top left corner of the buffer
-         //        6    7        3    4  5                 3    4  5  6    7
-         // 8 ...|###|#####|..|-----|---|-|...     5 ...|-----|---|-|---|-----|...
-         // 9 ...|###|#####|..|-----|---|-|...     6 ...|-----|---|-|---|-----|...
-         // 5 ...|---|-----|..|-----|---|-|...  >  7 ...|-----|---|-|---|-----|...
-         // 6 ...|---|-----|..|-----|---|-|...     8 ...|-----|---|-|###|#####|...
-         // 7 ...|---|-----|..|-----|---|-|...     9 ...|-----|---|-|###|#####|...
-         if (sourceRect.Right > sectorRect.Right && sourceRect.Bottom > sectorRect.Bottom) {
-            var source = new Point (
-               _sectors[_columns[maxColumn].Sector].Offset + Math.Max (0, sourceRect.Left - sectorRect.Right),
-               Math.Max (0, sourceRect.Top - sectorRect.Bottom));
-            var destination = new Point (
-               destinationRect.Left + Math.Max (0, sectorRect.Right - sourceRect.Left),
-               destinationRect.Top + Math.Max (0, sectorRect.Bottom - sourceRect.Top));
-            var size = new Size (
-               destinationRect.Width - Math.Max (0, sectorRect.Right - sourceRect.Left),
-               destinationRect.Height - Math.Max (0, sectorRect.Bottom - sourceRect.Top));
-
-            Gdi32.Copy (_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
-         }
+         //Gdi32.Copy (_displayBuffer.Hdc, source, _graphicsHdc, destination, size);
+         Gdi32.BitBlt (_graphicsHdc, e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height, _displayBuffer.Hdc, 0, 0, Gdi32.TernaryRasterOperations.SRCCOPY);
       }
 
       protected override void OnPaintBackground (PaintEventArgs e) { }
