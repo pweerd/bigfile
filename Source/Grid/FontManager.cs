@@ -1,10 +1,8 @@
-﻿using DynamicGrid.Interop;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 
-namespace DynamicGrid.Managers
-{
+namespace Bitmanager.Grid {
 	internal sealed class FontManager : IDisposable
 	{
 		private sealed class FontWrapper : IDisposable

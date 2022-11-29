@@ -1,7 +1,6 @@
 ﻿using System;
 
-namespace DynamicGrid.Utils
-{
+namespace Bitmanager.Grid {
 	internal static class MathUtils
 	{
 		public static int Clip(int min, int value, int max)

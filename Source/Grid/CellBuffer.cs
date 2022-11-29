@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 
-namespace DynamicGrid.Buffers {
+namespace Bitmanager.Grid {
    internal sealed class CellBuffer {
       private Cell[,] _cells;
       private int _maxRows, _numRows;

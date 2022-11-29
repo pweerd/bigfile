@@ -1,11 +1,9 @@
-﻿using DynamicGrid.Data;
-using DynamicGrid.Utils;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Reflection.Metadata.Ecma335;
 using System.Windows.Forms;
 
-namespace DynamicGrid {
+namespace Bitmanager.Grid {
    /// <summary>
    /// Defines the content and the layout of a grid cell.
    /// </summary>

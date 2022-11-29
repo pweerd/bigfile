@@ -1,9 +1,7 @@
-﻿using DynamicGrid.Interop;
-using DynamicGrid.Managers;
-using System;
+﻿using System;
 using System.Drawing;
 
-namespace DynamicGrid.Buffers {
+namespace Bitmanager.Grid {
    internal sealed class DisplayBuffer : IDisposable {
       private readonly IntPtr _parentHdc;
       private readonly FontManager _fontManager;

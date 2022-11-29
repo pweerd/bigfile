@@ -1,8 +1,7 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
 
-namespace DynamicGrid
-{
+namespace Bitmanager.Grid {
 	public class MouseCellEventArgs
 	{
 		/// <summary>

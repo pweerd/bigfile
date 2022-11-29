@@ -1,9 +1,8 @@
-﻿using DynamicGrid.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DynamicGrid.Data {
+namespace Bitmanager.Grid {
 
    public class Column {
       public int Width;

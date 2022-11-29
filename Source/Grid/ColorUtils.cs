@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 
-namespace DynamicGrid.Utils
-{
+namespace Bitmanager.Grid {
 	internal static class ColorUtils
 	{
 		public static Color Mix(Color lhs, Color rhs, double ratioOfRhs)

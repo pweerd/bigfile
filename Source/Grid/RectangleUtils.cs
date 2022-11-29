@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 
-namespace DynamicGrid.Utils
-{
+namespace Bitmanager.Grid {
 	public static class RectangleUtils
 	{
 		public static Rectangle Union(Rectangle lhs, Rectangle rhs)

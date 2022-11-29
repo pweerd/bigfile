@@ -4,8 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace DynamicGrid.Interop
-{
+namespace Bitmanager.Grid {
 	internal static class Gdi32
 	{
 		public static void SetBackgroundColor(IntPtr hdc, Color color)

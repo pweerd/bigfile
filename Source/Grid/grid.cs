@@ -1,9 +1,4 @@
 ﻿using Bitmanager.Core;
-using DynamicGrid.Buffers;
-using DynamicGrid.Data;
-using DynamicGrid.Interop;
-using DynamicGrid.Managers;
-using DynamicGrid.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,7 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
-namespace DynamicGrid {
+namespace Bitmanager.Grid {
    /// <summary>
    /// Defines a base class for high performance grid controls.
    /// </summary>

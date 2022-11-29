@@ -37,7 +37,7 @@ using Bitmanager.Query;
 using System.Reflection;
 using Microsoft.Win32;
 using static BrightIdeasSoftware.ObjectListView;
-using DynamicGrid.Data;
+using Bitmanager.Grid;
 
 namespace Bitmanager.BigFile {
    /// <summary>
