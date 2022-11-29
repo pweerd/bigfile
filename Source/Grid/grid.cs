@@ -18,6 +18,8 @@ namespace DynamicGrid {
    /// </summary>
    [System.ComponentModel.DesignerCategory ("")]
    public class RawGrid : Control {
+      public delegate Cell ON_GETCELL (int row, int col); 
+      public event ON_GETCELL OnGetCell; 
       protected readonly HScrollBar hScrollBar;
       protected readonly VScrollBar vScrollBar;
 
@@ -39,7 +41,7 @@ namespace DynamicGrid {
       private int clientWidth, clientHeight; //without scrollbars
       private int rowCount;
       private int maxLineWidth;
-      public static readonly Logger logger = Logs.CreateLogger("bigfile", "grid");
+      public static readonly Logger logger = Logs.CreateLogger ("bigfile", "grid");
 
 
 
@@ -60,11 +62,11 @@ namespace DynamicGrid {
          BackColor = Color.LightGray;
 
          _fontManager.Load (Font);
-         hScrollBar.Scroll += handleScroll_Scroll;
-         vScrollBar.Scroll += handleScroll_Scroll;
+         hScrollBar.Scroll += handleScroll;
+         vScrollBar.Scroll += handleScroll;
          Controls.Add (hScrollBar);
          Controls.Add (vScrollBar);
-      }  
+      }
       protected override void OnResize (EventArgs e) {
          clientWidth = Width;
          if (vScrollBar.Visible) clientWidth -= vScrollBar.Width;
@@ -78,12 +80,12 @@ namespace DynamicGrid {
 
       public UpdateableColumns Columns => new UpdateableColumns (this, _columns);
 
-      internal void CreateInternalColumns(List<Column> list) {
+      internal void CreateInternalColumns (List<Column> list) {
          List<InternalColumn> tmp = new List<InternalColumn> (list.Count);
          int offset = 0;
          for (int i = 0; i < list.Count; i++) {
             var c = list[i];
-            tmp.Add(new InternalColumn (this, c, offset));
+            tmp.Add (new InternalColumn (this, c, offset));
             offset += c.Width;
          }
          _columns = tmp;
@@ -93,13 +95,16 @@ namespace DynamicGrid {
 
       }
 
-      private void handleScroll_Scroll (object sender, ScrollEventArgs e) {
-         if (e.ScrollOrientation == ScrollOrientation.VerticalScroll) {
-            this.VerticalOffset = (long)(e.NewValue * vScrollBarMultiplier);
-         } else {
-            this.HorizontalOffset = (long)(e.NewValue * hScrollBarMultiplier);
+      bool updatingScrollbar;
+      private void handleScroll (object sender, ScrollEventArgs e) {
+         if (!updatingScrollbar) {
+            if (e.ScrollOrientation == ScrollOrientation.VerticalScroll) {
+               this.VerticalOffset = (long)(e.NewValue * vScrollBarMultiplier);
+            } else {
+               this.HorizontalOffset = (long)(e.NewValue * hScrollBarMultiplier);
+            }
+            logger.Log ("e.scroll={0}, orient={1}, offset={2}", e.NewValue, e.ScrollOrientation, VerticalOffset);
          }
-         logger.Log ("e.scroll={0}, orient={1}, offset={2}", e.NewValue, e.ScrollOrientation, VerticalOffset);
       }
 
       public int RowCount { get { return rowCount; }
@@ -115,6 +120,7 @@ namespace DynamicGrid {
       double vScrollBarMultiplier;
       private void recomputeScrollBars() {
          const int MAX_VALUE = (int.MaxValue - 10000) & ~16;
+         if (clientHeight <= 0 || clientWidth <= 0) return;
 
          //Reconstruct vertical scrollbar
          vScrollBarMultiplier = 1.0;
@@ -157,10 +163,12 @@ namespace DynamicGrid {
          else {
             hScrollBarMultiplier = (neededPixels) / (double)max;
          }
-         hScrollBar.SmallChange = (int)(10 * rowHeight / hScrollBarMultiplier);
-         hScrollBar.LargeChange = (int)((clientWidth * .9) / hScrollBarMultiplier);
+         smallChange = clientWidth / 10;
+         largeChange = clientWidth - 10 * rowHeight;
+         hScrollBar.SmallChange = smallChange;
+         hScrollBar.LargeChange = largeChange < smallChange ? smallChange : largeChange; ;
          logger.Log ("Max (H): {0}, mult={1}", max, hScrollBarMultiplier);
-         hScrollBar.Maximum = max + hScrollBar.LargeChange;
+         hScrollBar.Maximum = max - clientWidth;
       }
 
 
@@ -183,7 +191,8 @@ namespace DynamicGrid {
          get => _horizontalOffset;
          set {
             if (_horizontalOffset == value) return;
-            _horizontalOffset = value;
+            _horizontalOffset = value < 0 ? 0 : value;
+            updateScrollbarPosition (hScrollBar, _horizontalOffset / hScrollBarMultiplier);
 
             HorizontalOffsetChanged?.Invoke (this, EventArgs.Empty);
             Invalidate ();
@@ -199,10 +208,23 @@ namespace DynamicGrid {
          get => _verticalOffset;
          set {
             if (_verticalOffset == value) return;
-            _verticalOffset = value;
+            _verticalOffset = value < 0 ? 0 : value;
+            updateScrollbarPosition (vScrollBar, _verticalOffset / vScrollBarMultiplier);
 
             VerticalOffsetChanged?.Invoke (this, EventArgs.Empty);
             Invalidate ();
+         }
+      }
+
+      private void updateScrollbarPosition (ScrollBar sb, double pos) {
+         updatingScrollbar = true;
+         try {
+            int newValue = (int)(.5 + pos);
+            if (newValue < sb.Minimum) newValue = sb.Minimum;
+            else if (newValue > sb.Maximum) newValue = sb.Maximum;
+            sb.Value = newValue;
+         } finally {
+            updatingScrollbar = false;
          }
       }
 
@@ -231,10 +253,12 @@ namespace DynamicGrid {
       /// <remarks>
       /// When the data invalidation occurs, this method will be called only for cells within the <see cref="VisibleCells"/> region.
       /// </remarks>
-      protected virtual Cell GetCell (int rowIndex, int columnIndex) => Cell.Empty;
+      protected virtual Cell GetCell (int row, int col) {
+         return (OnGetCell != null) ? OnGetCell(row, col) : CreateCell (col);
+      }
 
-      public virtual Cell CreateCell(int columnIndex) {
-         return columnIndex < _columns.Count ? new Cell (_columns[columnIndex]) : new Cell(this);
+      public virtual Cell CreateCell(int col) {
+         return col < _columns.Count ? new Cell (_columns[col]) : new Cell(this);
       }
 
 
@@ -286,6 +310,31 @@ namespace DynamicGrid {
          Gdi32.BitBlt (_graphicsHdc, e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height, _displayBuffer.Hdc, 0, 0, Gdi32.TernaryRasterOperations.SRCCOPY);
       }
 
+      protected override void OnKeyDown (KeyEventArgs e) {
+         base.OnKeyDown (e);
+         if (e.Handled || rowCount==0 || _columns.Count==0) return;
+         switch (e.KeyCode) {
+            case Keys.Home:
+               HorizontalOffset = 0;
+               if (e.Control) VerticalOffset = 0;
+               break;
+            case Keys.End:
+               if (e.Control) {
+                  VerticalOffset = RowHeight * (long)RowCount - clientHeight;
+                  HorizontalOffset = 0;
+               } else {
+                  logger.Log ("offset1={0}, offset2={1}", _columns[^1].GlobalOffsetPlusWidth - clientWidth, (int)(.5 + hScrollBar.Maximum * hScrollBarMultiplier));
+                  HorizontalOffset = _columns[^1].GlobalOffsetPlusWidth - clientWidth;// (int) (.5 + hScrollBar.Maximum * hScrollBarMultiplier);
+               }
+               break;
+         }
+      }
+      protected override void OnKeyUp (KeyEventArgs e) {
+         base.OnKeyUp (e);
+      }
+      protected override void OnKeyPress (KeyPressEventArgs e) {
+         base.OnKeyPress (e);
+      }
       protected override void OnPaintBackground (PaintEventArgs e) { }
 
       protected override void OnBackColorChanged (EventArgs e) {
