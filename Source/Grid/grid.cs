@@ -277,7 +277,7 @@ namespace DynamicGrid {
                   cell.ForeColor,
                   bufRect,
                   cell.FontStyle,
-                  cell.TextAlignment,
+                  cell.Alignment,
                   cell.Text
                );
                y += (int)rh;

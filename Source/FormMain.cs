@@ -117,7 +117,7 @@ namespace Bitmanager.BigFile {
          float newSize = listLines.Font.SizeInPoints + (e.Delta < 0 ? -1f : 1f);
          if (newSize < 6) newSize = 6;
          float diff = newSize - initialFontSize;
-         int ix = (int)(diff+.5);
+         int ix = (int)(diff + .5);
          logger.Log ("FONT: size={3}, newSize={0}, diff={1}, ix={2}", newSize, diff, ix, listLines.Font.SizeInPoints);
 
          if (diff > -.05f && ix >= 0 && ix < cbFontSize.Items.Count)
@@ -131,7 +131,7 @@ namespace Bitmanager.BigFile {
          setListViewFontSize (initialFontSize + ix);
       }
 
-      private void setListViewFontSize(float sizeInPt) {
+      private void setListViewFontSize (float sizeInPt) {
          listLines.SetFontSizePt (sizeInPt);
          fontMeasures = new FixedFontMeasures (listLines.Font);
          computeListViewDimensions (lf);
@@ -147,7 +147,7 @@ namespace Bitmanager.BigFile {
          if (!visible) cbZipEntries.Items.Clear ();
       }
 
-      private void setEncodingComboFromEncoding(Encoding c) {
+      private void setEncodingComboFromEncoding (Encoding c) {
          int ix = 0;
          int cp = c.CodePage;
          switch (c.CodePage) {
@@ -166,7 +166,7 @@ namespace Bitmanager.BigFile {
             case 1: return FileEncoding.ExtendedLatin;
             case 2: return FileEncoding.Utf16;
             case 3: return FileEncoding.Utf16BE;
-            default: throw new BMException("Unexpected encoding-index: {0}", sel);
+            default: throw new BMException ("Unexpected encoding-index: {0}", sel);
          }
       }
 
@@ -218,15 +218,15 @@ namespace Bitmanager.BigFile {
          linesGrid = new LinesGrid ();
          linesGrid.AllowDrop = true;
          linesGrid.CausesValidation = false;
+         linesGrid.BackColor = Color.Red;
+         linesGrid.ForeColor = Color.Black;
          using (var cols = linesGrid.Columns) {
             cols.Clear ();
             cols.Add (new Column (100, HorizontalAlignment.Right));
             cols.Add (new Column (100000, HorizontalAlignment.Left));
-            //cols[0].BackColor = Color.Beige;
-            //cols[1].BackColor = Color.Green;
+            cols[0].BackColor = Color.LightGray;
+            cols[1].BackColor = Color.White;
          }
-         linesGrid.BackColor = Color.Red;
-         linesGrid.ForeColor = Color.Black;
 
          panelMain.Controls.Add (linesGrid);
          linesGrid.Dock = DockStyle.Fill;
@@ -302,8 +302,8 @@ namespace Bitmanager.BigFile {
          //tth.ToolTipInterval = 20000;
          //tth.Tooltip.ReshowDelay = 4000;
          //tooltipHelpers.Add (tth);
-         tooltipHelpers.Add (this.toolStrip, (tth)=>{
-            tth.ToolTipInterval = 20000; 
+         tooltipHelpers.Add (this.toolStrip, (tth) => {
+            tth.ToolTipInterval = 20000;
             tth.Tooltip.ReshowDelay = 3000;
          });
 
@@ -527,7 +527,7 @@ namespace Bitmanager.BigFile {
 
       private void computeNeededTextLength () {
          if (fontMeasures == null) return;
-         int needed = listLines.LowLevelScrollPosition.X + (int)(1.2*(listLines.Width-olvcLineNumber.Width));
+         int needed = listLines.LowLevelScrollPosition.X + (int)(1.2 * (listLines.Width - olvcLineNumber.Width));
 
          neededTextLength = (int)(1.2 * fontMeasures.GetTextLengthForPixels (needed));
       }
@@ -566,8 +566,8 @@ namespace Bitmanager.BigFile {
          }
       }
       private String getLimitedLine (Object model) {
-         int row = model==null ? -1 : (int)model;
-         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;  
+         int row = model == null ? -1 : (int)model;
+         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;
 
          String x = lf.GetPartialLine (row, neededTextLength, TabsReplacer.INSTANCE);
          //logger.Log("{2}: Needed={0}, returned={1}, {3}", neededTextLength, x.Length, model, x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x);
@@ -934,7 +934,7 @@ namespace Bitmanager.BigFile {
          }
       }
 
-   void ILogFileCallback.OnLoadComplete (Result result) {
+      void ILogFileCallback.OnLoadComplete (Result result) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
             indicateFinished ();
             setSearchStatus ("");
