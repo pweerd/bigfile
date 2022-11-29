@@ -37,6 +37,7 @@ using Bitmanager.Query;
 using System.Reflection;
 using Microsoft.Win32;
 using static BrightIdeasSoftware.ObjectListView;
+using DynamicGrid.Data;
 
 namespace Bitmanager.BigFile {
    /// <summary>
@@ -173,8 +174,6 @@ namespace Bitmanager.BigFile {
 
       ToolStripToolTipHelpers tooltipHelpers;
       LinesGrid linesGrid;
-      HScrollBar hScrollBar;
-      VScrollBar vScrollBar;
 
       private void FormMain_Load (object sender, EventArgs e) {
          Bitmanager.Core.GlobalExceptionHandler.Hook ();
@@ -219,27 +218,20 @@ namespace Bitmanager.BigFile {
          linesGrid = new LinesGrid ();
          linesGrid.AllowDrop = true;
          linesGrid.CausesValidation = false;
-         linesGrid.Columns = new List<int> { 100, 100000};
+         using (var cols = linesGrid.Columns) {
+            cols.Clear ();
+            cols.Add (new Column (100, HorizontalAlignment.Right));
+            cols.Add (new Column (100000, HorizontalAlignment.Left));
+            //cols[0].BackColor = Color.Beige;
+            //cols[1].BackColor = Color.Green;
+         }
          linesGrid.BackColor = Color.Red;
          linesGrid.ForeColor = Color.Black;
 
-         hScrollBar = new HScrollBar ();
-         vScrollBar = new VScrollBar ();
-         hScrollBar.Dock = DockStyle.Bottom;
-         vScrollBar.Dock = DockStyle.Right;
-         vScrollBar.Minimum = 0;
-         vScrollBar.Maximum = int.MaxValue -1;
-
-         //panelMain.Controls.Add (hScrollBar);
-         //panelMain.Controls.Add (vScrollBar);
          panelMain.Controls.Add (linesGrid);
          linesGrid.Dock = DockStyle.Fill;
          ResumeLayout ();
          linesGrid.RowCount = 100000000;
-         //vScrollBar.ValueChanged += VScrollBar_ValueChanged;
-         //vScrollBar.Scroll += VScrollBar_Scroll;
-         //hScrollBar.ValueChanged += VScrollBar_ValueChanged;
-         //hScrollBar.Scroll += VScrollBar_Scroll;
 
 
          //var cols = new List<SectorPlacement> ();
@@ -339,16 +331,6 @@ namespace Bitmanager.BigFile {
                break;
             };
          }
-      }
-
-      private void VScrollBar_Scroll (object sender, ScrollEventArgs e) {
-         logger.Log ("VScroll track: {0}", e.NewValue);
-         linesGrid.VerticalOffset = e.NewValue;
-      }
-
-      private void VScrollBar_ValueChanged (object sender, EventArgs e) {
-         logger.Log ("VScroll end: {0}", vScrollBar.Value);
-         linesGrid.VerticalOffset = vScrollBar.Value;
       }
 
       private void checkWarnings () {
