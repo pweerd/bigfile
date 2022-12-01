@@ -1193,6 +1193,18 @@ namespace Bitmanager.BigFile {
          return ((int)partialLines[line] & LineFlags.CONTINUATION) == 0 ? PartialToLineNumber (line) : -1;
       }
 
+      public void CopyStateBitsFrom (LogFile lf) {
+         var oldList = lf.partialLines;
+         var newList = partialLines;
+
+         if (newList.Count < oldList.Count || FileName != lf.fileName)
+            throw new BMException ("Cannot assign flags: old={0} ({1} lines), new={2} ({3} lines)", lf.fileName, oldList.Count, fileName, newList.Count);
+
+         for (int i=oldList.Count-1; i>=0; i--) {
+            newList[i] = (newList[i] & ~LineFlags.FLAGS_MASK) | (oldList[i] & LineFlags.FLAGS_MASK);
+         }
+      }
+
 
 
       /// <summary>
