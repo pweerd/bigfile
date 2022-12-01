@@ -30,7 +30,7 @@ namespace Bitmanager.Grid {
          _textAlignment = HorizontalAlignment.Left;
          _fontStyle = FontStyle.Regular;
       }
-      public void SetDimensions (int h, int w) {
+      public void Init (int h, int w) {
          if (h > _maxHeight || w > _maxWidth) {
             _maxHeight = Math.Max (h, _maxHeight * 2);
             _maxWidth = Math.Max (w, _maxWidth * 2);
@@ -41,10 +41,10 @@ namespace Bitmanager.Grid {
             Gdi32.SetForegroundColor (Hdc, _foreColor);
             Gdi32.SetTextAlignemnt (Hdc, _textAlignment);
             Gdi32.SelectObject (Hdc, _fontManager.GetHdc (_fontStyle));
-
          }
          Height = h;
          Width = w;
+         Gdi32.SelectObject (Hdc, _fontManager.GetHdc (_fontStyle));
       }
 
       public void setBackColor (Color c) {

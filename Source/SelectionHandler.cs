@@ -18,6 +18,7 @@
  */
 
 using Bitmanager.Core;
+using Bitmanager.Grid;
 using BrightIdeasSoftware;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,7 @@ namespace Bitmanager.BigFile {
       public event SelectionEventHandler OnToggleSelection;
       public event SelectionEventHandler OnAddSelection;
       public event SelectionEventHandler OnRemoveSelection;
-      public readonly BrightIdeasSoftware.VirtualObjectListView ListView;
+      public readonly RawGrid Grid;
       private Logger logger;
 
       private InducedBy inducedBy;
@@ -49,13 +50,13 @@ namespace Bitmanager.BigFile {
       private int low, high;
       private int prevRow;
 
-      public SelectionHandler (FormMain form, BrightIdeasSoftware.VirtualObjectListView listview) {
-         this.ListView = listview;
+      public SelectionHandler (FormMain form, RawGrid grid) {
+         this.Grid = grid;
          this.logger = Globals.MainLogger.Clone ("select");
          prevRow = -1;
-         listview.MouseDown += Listview_MouseDown;
-         listview.SelectedIndexChanged += Listview_SelectedIndexChanged;
-         listview.KeyDown += Listview_KeyDown;
+         grid.MouseDown += Listview_MouseDown;
+         grid.SelectedIndexChanged += Listview_SelectedIndexChanged;
+         grid.KeyDown += Listview_KeyDown;
       }
 
       public void NotifyExternalChange () {
@@ -85,7 +86,7 @@ namespace Bitmanager.BigFile {
                if (e.Control) {
                   complex = false;
                   low = 0;
-                  high = ListView.VirtualListSize;
+                  high = Grid.RowCount;
                   prevRow = -1;
                   addSelection (0, high);
                }
@@ -120,24 +121,27 @@ namespace Bitmanager.BigFile {
          high = -1;
          prevRow = -1;
       }
+      //PW
+      //private OLVListItem getItem (int x, int y) {
+      //   OLVColumn c;
+      //   return ListView.GetItemAt (x, y, out c);
+      //}
 
-      private OLVListItem getItem (int x, int y) {
-         OLVColumn c;
-         return ListView.GetItemAt (x, y, out c);
-      }
-      private int getRow (int x, int y) {
-         var item = getItem (x, y);
-         return item == null ? -1 : item.Index;
-      }
+      //PW
+      //private int getRow (int x, int y) {
+      //   var item = getItem (x, y);
+      //   return item == null ? -1 : item.Index;
+      //}
 
       private void Listview_SelectedIndexChanged (object sender, EventArgs e) {
-         int row = ListView.SelectedIndex;
+         int row = Grid.SelectedIndex;
          logger.Log ("SelectedIndexChanged: row={0}, inducedBy={1}", row, inducedBy);
          if (row < 0) return;
 
-         //Force the selection not to be happen in the listview itself by deselecting immediately
-         //Reason: it is impossible to reliable select colors for selected items in the listview
-         ListView.SelectedIndex = -1;
+         //PW
+         ////Force the selection not to be happen in the listview itself by deselecting immediately
+         ////Reason: it is impossible to reliable select colors for selected items in the listview
+         //Grid.SelectedIndex = -1;
 
          switch (inducedBy) {
             case InducedBy.Mouse: goto RESET; //Selection already handled in mouse-procedure 
@@ -188,7 +192,7 @@ namespace Bitmanager.BigFile {
          logger.Log ();
          logger.Log ("LMouseDown: prev={0} complex={1}, mods={2}", prevRow, complex, Control.ModifierKeys);
          inducedBy = InducedBy.Mouse;
-         int row = getRow (e.X, e.Y);
+         int row = Grid.GetMouseRow (e.Y);
          if (row < 0) return;
 
          Keys mods = Control.ModifierKeys;
@@ -251,7 +255,7 @@ namespace Bitmanager.BigFile {
          toggleSelection (row, row + 1);
       }
       void deselectAll () {
-         removeSelection (0, ListView.VirtualListSize);
+         removeSelection (0, Grid.RowCount);
          Clear ();
       }
 

@@ -74,16 +74,15 @@ namespace Bitmanager.Grid {
 			SelectObject(hdc, obj);
 		}
 
-		public static Size Measure(IntPtr hdc, string text, IntPtr font)
-		{
-			Select(hdc, font);
+      public static Size Measure (IntPtr hdc, string text, IntPtr font) {
+         Select (hdc, font);
 
-			GetTextExtentPoint32(hdc, text, text.Length, out var size);
+         GetTextExtentPoint32 (hdc, text, text.Length, out var size);
 
-			return new Size(size.cx, size.cy);
-		}
+         return new Size (size.cx, size.cy);
+      }
 
-		[DllImport("gdi32.dll", EntryPoint = "ExtTextOutW")]
+      [DllImport ("gdi32.dll", EntryPoint = "ExtTextOutW")]
 		private static extern bool ExtTextOut(IntPtr hdc, int X, int Y, ETOOptions fuOptions, [In] ref RECT lprc, [MarshalAs(UnmanagedType.LPWStr)] string lpString, uint cbCount, [In] IntPtr lpDx);
 
 		[DllImport("gdi32.dll")]

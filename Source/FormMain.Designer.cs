@@ -111,16 +111,11 @@ namespace Bitmanager.BigFile
          this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
          this.cbZipEngine = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
-         this.listLines = new Bitmanager.BigFile.SubclassedVirtualListView();
-         this.olvcLineNumber = new BrightIdeasSoftware.OLVColumn();
-         this.olvcText = new BrightIdeasSoftware.OLVColumn();
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
-         this.panelMain.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.listLines)).BeginInit();
          this.contextMenu.SuspendLayout();
          this.SuspendLayout();
          // 
@@ -613,72 +608,12 @@ namespace Bitmanager.BigFile
          // 
          // panelMain
          // 
-         this.panelMain.Controls.Add(this.listLines);
          this.panelMain.Dock = System.Windows.Forms.DockStyle.Fill;
          this.panelMain.Location = new System.Drawing.Point(0, 55);
          this.panelMain.Margin = new System.Windows.Forms.Padding(2);
          this.panelMain.Name = "panelMain";
          this.panelMain.Size = new System.Drawing.Size(1300, 568);
          this.panelMain.TabIndex = 5;
-         // 
-         // listLines
-         // 
-         this.listLines.AllColumns.Add(this.olvcLineNumber);
-         this.listLines.AllColumns.Add(this.olvcText);
-         this.listLines.AllowDrop = true;
-         this.listLines.AutoArrange = false;
-         this.listLines.CausesValidation = false;
-         this.listLines.CellEditUseWholeCell = false;
-         this.listLines.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.olvcLineNumber,
-            this.olvcText});
-         this.listLines.ContextMenuStrip = this.contextMenu;
-         this.listLines.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         this.listLines.FullRowSelect = true;
-         this.listLines.HasCollapsibleGroups = false;
-         this.listLines.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-         this.listLines.IsSearchOnSortColumn = false;
-         this.listLines.Location = new System.Drawing.Point(0, 0);
-         this.listLines.Margin = new System.Windows.Forms.Padding(2);
-         this.listLines.Name = "listLines";
-         this.listLines.SelectColumnsMenuStaysOpen = false;
-         this.listLines.SelectColumnsOnRightClick = false;
-         this.listLines.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.None;
-         this.listLines.ShowFilterMenuOnRightClick = false;
-         this.listLines.ShowGroups = false;
-         this.listLines.ShowSortIndicators = false;
-         this.listLines.Size = new System.Drawing.Size(1046, 77);
-         this.listLines.TabIndex = 0;
-         this.listLines.TriggerCellOverEventsWhenOverHeader = false;
-         this.listLines.UseCellFormatEvents = true;
-         this.listLines.UseCompatibleStateImageBehavior = false;
-         this.listLines.View = System.Windows.Forms.View.Details;
-         this.listLines.VirtualMode = true;
-         this.listLines.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.listLines_CellRightClick);
-         this.listLines.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs>(this.listLines_FormatCell);
-         this.listLines.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs>(this.listLines_Scroll);
-         this.listLines.ItemActivate += new System.EventHandler(this.listLines_ItemActivate);
-         this.listLines.DragDrop += new System.Windows.Forms.DragEventHandler(this.listLines_DragDrop);
-         this.listLines.DragEnter += new System.Windows.Forms.DragEventHandler(this.listLines_DragEnter);
-         this.listLines.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
-         this.listLines.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.FormMain_KeyPress);
-         this.listLines.Resize += new System.EventHandler(this.listLines_Resize);
-         // 
-         // olvcLineNumber
-         // 
-         this.olvcLineNumber.Searchable = false;
-         this.olvcLineNumber.Sortable = false;
-         this.olvcLineNumber.Text = "Line No.";
-         this.olvcLineNumber.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-         this.olvcLineNumber.UseFiltering = false;
-         this.olvcLineNumber.Width = 95;
-         // 
-         // olvcText
-         // 
-         this.olvcText.Searchable = false;
-         this.olvcText.Sortable = false;
-         this.olvcText.Text = "Data";
-         this.olvcText.UseFiltering = false;
          // 
          // contextMenu
          // 
@@ -725,8 +660,6 @@ namespace Bitmanager.BigFile
          this.statusStrip.PerformLayout();
          this.toolStrip.ResumeLayout(false);
          this.toolStrip.PerformLayout();
-         this.panelMain.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.listLines)).EndInit();
          this.contextMenu.ResumeLayout(false);
          this.ResumeLayout(false);
          this.PerformLayout();
@@ -761,8 +694,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem menuTools;
       private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
       private System.Windows.Forms.ToolStripMenuItem menuToolsConfiguration;
-      private BrightIdeasSoftware.OLVColumn olvcLineNumber;
-      private BrightIdeasSoftware.OLVColumn olvcText;
       private System.Windows.Forms.ToolStripMenuItem menuFileClose;
       private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
       private System.Windows.Forms.ToolStripMenuItem menuView;
@@ -794,7 +725,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem clearByMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem clearByNonMatchedToolStripMenuItem;
       private System.Windows.Forms.ToolStripMenuItem toolStripCopyMenuItem;
-      private SubclassedVirtualListView listLines;
       private ToolStripComboBox cbFontSize;
       private ToolStripLabel toolStripLabel2;
       private ToolStripTextBox txtMaxLoad;

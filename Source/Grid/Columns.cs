@@ -78,6 +78,31 @@ namespace Bitmanager.Grid {
          BackColor = c.BackColor;
          Alignment = c.Alignment;
       }
+      public InternalColumn (InternalColumn c, int width, int offset) {
+         Parent = c.Parent;
+         Width = width;
+         GlobalOffset = offset;
+         Font = c.Font;
+         FontStyle = c.FontStyle;
+         ForeColor = c.ForeColor;
+         BackColor = c.BackColor;
+         Alignment = c.Alignment;
+      }
+
+      internal static void SetColumnWidth (List<InternalColumn> columns, int col, int width) {
+         if (col >=0 && col < columns.Count) {
+            var c = columns[col];
+            var offset = c.GlobalOffset;
+            InternalColumn prev;
+            columns[col] = prev = new InternalColumn (c, width, offset); ;
+            offset += width; 
+
+            for (int i = col+1; i< columns.Count; i++) {
+               c = columns[i];
+               columns[i] = prev = new InternalColumn (c, c.Width, prev.GlobalOffsetPlusWidth);
+            }
+         }
+      }
    }
 
 }

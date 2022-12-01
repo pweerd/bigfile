@@ -13,8 +13,10 @@ namespace Bitmanager.Grid {
    /// </summary>
    [System.ComponentModel.DesignerCategory ("")]
    public class RawGrid : Control {
-      public delegate Cell ON_GETCELL (int row, int col); 
-      public event ON_GETCELL OnGetCell; 
+      public delegate Cell ON_GETCELL (Object sender, int row, int col);
+      public delegate void ON_SELECTED_INDEX_CHANGED (object sender, EventArgs e);
+      public event ON_GETCELL OnGetCell;
+      public event EventHandler SelectedIndexChanged;
       protected readonly HScrollBar hScrollBar;
       protected readonly VScrollBar vScrollBar;
 
@@ -22,19 +24,14 @@ namespace Bitmanager.Grid {
       private readonly IntPtr _graphicsHdc;
       private readonly CellBuffer _cellBuffer;
       private readonly DisplayBuffer _displayBuffer;
-      private readonly FontManager _fontManager;
-
-      private Rectangle _invalidDataRegion = Rectangle.Empty;
-      private Point _mousePosition;
-      private (int Row, int Column) _mouseCell;
-      private bool _isMouseOverControl;
-      private bool _isMouseOverGrid;
-      private bool _isMouseDownOverGrid;
+      private FontManager _fontManager;
+      private int _selectedIndex;
+      private int _currentIndex;
+      private int _rowCount;
 
       private List<InternalColumn> _columns;
 
       private int clientWidth, clientHeight; //without scrollbars
-      private int rowCount;
       private int maxLineWidth;
       public static readonly Logger logger = Logs.CreateLogger ("bigfile", "grid");
 
@@ -61,6 +58,8 @@ namespace Bitmanager.Grid {
          vScrollBar.Scroll += handleScroll;
          Controls.Add (hScrollBar);
          Controls.Add (vScrollBar);
+
+         _selectedIndex = -1;
       }
       protected override void OnResize (EventArgs e) {
          clientWidth = Width;
@@ -73,7 +72,29 @@ namespace Bitmanager.Grid {
          base.OnResize (e);
       }
 
+      public int SelectedIndex {
+         get { return _selectedIndex; }
+         set {
+            int ix;
+            if (value < 0) ix = -1;
+            else ix = (value >= RowCount) ? RowCount - 1 : value;
+            if (ix != _selectedIndex) {
+               _selectedIndex = ix;
+               OnSelectedIndexChanged (ix);
+               Invalidate ();
+            }
+         }
+      }
+
+      protected virtual void OnSelectedIndexChanged(int ix) {
+         if (SelectedIndexChanged != null) {
+            SelectedIndexChanged (this, EventArgs.Empty);
+         }
+      }
+
+
       public UpdateableColumns Columns => new UpdateableColumns (this, _columns);
+
 
       internal void CreateInternalColumns (List<Column> list) {
          List<InternalColumn> tmp = new List<InternalColumn> (list.Count);
@@ -102,12 +123,12 @@ namespace Bitmanager.Grid {
          }
       }
 
-      public int RowCount { get { return rowCount; }
+      public int RowCount { get { return _rowCount; }
          set {
-            rowCount = value < 0 ? 0: value;
+            _rowCount = value < 0 ? 0: value;
             recomputeScrollBars ();
             logger.Log ("min={0}, max={1}, multiplier={2}", vScrollBar.Minimum, vScrollBar.Maximum, vScrollBarMultiplier);
-
+            Invalidate ();
          }
       }
 
@@ -123,8 +144,8 @@ namespace Bitmanager.Grid {
          int rowHeight = RowHeight;
          int rowsPerWindow = (clientHeight+rowHeight-1) / rowHeight;
 
-         long neededPixels = (rowHeight * (long)rowCount) - clientHeight;
-         logger.Log ("Needed pixels (H): {0}, c={1}, rh={2}", neededPixels, rowCount, rowHeight);
+         long neededPixels = (rowHeight * (long)_rowCount) - clientHeight;
+         logger.Log ("Needed pixels (H): {0}, c={1}, rh={2}", neededPixels, _rowCount, rowHeight);
          if (neededPixels <= 0) {
             vScrollBar.Enabled = false;
             return;
@@ -245,15 +266,24 @@ namespace Bitmanager.Grid {
       /// <summary>
       /// A virtual method to be overwritten by a deriving class to provides the cell content and layout for requested cell coordinates.
       /// </summary>
-      /// <remarks>
-      /// When the data invalidation occurs, this method will be called only for cells within the <see cref="VisibleCells"/> region.
-      /// </remarks>
       protected virtual Cell GetCell (int row, int col) {
-         return (OnGetCell != null) ? OnGetCell(row, col) : CreateCell (col);
+         return (OnGetCell != null) ? OnGetCell(this, row, col) : CreateCell (col);
       }
 
       public virtual Cell CreateCell(int col) {
          return col < _columns.Count ? new Cell (_columns[col]) : new Cell(this);
+      }
+      public void SetColumnWidth (int col, int width) {
+         InternalColumn.SetColumnWidth (_columns, col, width);
+         Invalidate ();
+      }
+
+      public int MeasureTextWidth (String txt) {
+//         var g = new Graphics (_graphicsHdc);
+
+         if (String.IsNullOrEmpty (txt)) return 0;
+
+         return Gdi32.Measure (_graphicsHdc, txt, _fontManager.GetHdc (FontStyle.Regular)).Width;
       }
 
 
@@ -273,7 +303,7 @@ namespace Bitmanager.Grid {
          for (; colEnd > colStart && _columns[colEnd-1].GlobalOffset > virtualXEnd; colEnd--) ;
 
          //logger.Log ("clip=({0}, {1}), ({2}, {3})", e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height);
-         _displayBuffer.SetDimensions (e.ClipRectangle.Height, e.ClipRectangle.Width);
+         _displayBuffer.Init (e.ClipRectangle.Height, e.ClipRectangle.Width);
          _displayBuffer.Clear (BackColor);
          //logger.Log ("rows=({0}, {1}), cols=({2}, {3})", rowStart, rowEnd, colStart, colEnd);
 
@@ -305,9 +335,85 @@ namespace Bitmanager.Grid {
          Gdi32.BitBlt (_graphicsHdc, e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height, _displayBuffer.Hdc, 0, 0, Gdi32.TernaryRasterOperations.SRCCOPY);
       }
 
+      public void GotoCell (int row, int col=-1, bool select=true) {
+         if (row >= 0) VerticalOffset = RowHeight * (long)row;
+         if (col >= 0 && col < _columns.Count) HorizontalOffset = _columns[col].GlobalOffset;
+         if (select) SelectedIndex = row;
+         _currentIndex = row;
+         Invalidate ();
+      }
+
+      public void MakeCellVisible (int row, int col = -1, bool select = true) {
+         int visibleRows = clientHeight / RowHeight;
+         if (row < 0) row = 0;
+         else if (row >= _rowCount) row = _rowCount - 1;
+
+         long vOffset = RowHeight * (long)row;
+         long offset = vOffset - _verticalOffset;
+
+         if (visibleRows < 3) {
+            VerticalOffset = vOffset;
+            goto SELECT;
+         }
+         if (vOffset < _verticalOffset) {
+            vOffset -= 2 * RowHeight;
+            VerticalOffset = vOffset;
+            goto SELECT;
+         }
+         if (vOffset + RowHeight > clientHeight) {
+            vOffset = VerticalOffset + clientHeight - 3 * RowHeight;
+            VerticalOffset = vOffset;
+            goto SELECT;
+         }
+
+      SELECT:
+         if (select) SelectedIndex = row;
+
+      MAKE_COL_VISIBLE:
+         if (col < 0 ) goto EXIT_RTN;
+         if (col >= _columns.Count) col = _columns.Count - 1;
+         HorizontalOffset = _columns[col].GlobalOffset;
+
+      EXIT_RTN:
+         return;
+      }
+
+      protected override bool IsInputKey (Keys keyData) {
+         bool ret;
+         switch (keyData & Keys.KeyCode) {
+            case Keys.Left:
+            case Keys.Right:
+            case Keys.Up:
+            case Keys.Down:
+            case Keys.PageUp:
+            case Keys.PageDown:
+            case Keys.Home:
+            case Keys.End:
+               ret = true; break;
+            default: ret = base.IsInputKey (keyData); break;
+         }
+         logger.Log ("Old IsInputKey ({0}) -> {1} (was {2})", keyData, ret, base.IsInputKey (keyData));
+         return ret;
+      }
+
+      protected override void OnMouseWheel (MouseEventArgs e) {
+         base.OnMouseWheel (e);
+         int delta = 1; // e.Delta < 0 ? -1 : 1;
+         int visibleRows = clientHeight / RowHeight;
+         int max = Math.Min(1, visibleRows / 2);
+         if (RowCount > 1000) delta *= 3;
+         else if (RowCount > 100) delta *= 2;
+
+         if (max > delta) delta = max;
+         if (e.Delta > 0) delta = -delta;
+
+         VerticalOffset = VerticalOffset + delta*RowHeight;
+      }
+
       protected override void OnKeyDown (KeyEventArgs e) {
+         int row;
          base.OnKeyDown (e);
-         if (e.Handled || rowCount==0 || _columns.Count==0) return;
+         if (e.Handled || _rowCount==0 || _columns.Count==0) return;
          switch (e.KeyCode) {
             case Keys.Home:
                HorizontalOffset = 0;
@@ -322,6 +428,21 @@ namespace Bitmanager.Grid {
                   HorizontalOffset = _columns[^1].GlobalOffsetPlusWidth - clientWidth;// (int) (.5 + hScrollBar.Maximum * hScrollBarMultiplier);
                }
                break;
+            case Keys.Up:
+               row = _currentIndex - 1;
+               if (row < 0) row = 0;
+               _currentIndex = row;
+               MakeCellVisible (row, -1, true);
+               break;
+
+            case Keys.Down:
+               row = _currentIndex + 1;
+               if (row >= _rowCount) row = _rowCount-1;
+               _currentIndex = row;
+               MakeCellVisible (row, -1, true);
+               break;
+               //case Keys.PageUp:
+               //case Keys.PageDown:
          }
       }
       protected override void OnKeyUp (KeyEventArgs e) {
@@ -344,62 +465,9 @@ namespace Bitmanager.Grid {
          base.OnFontChanged (e);
       }
 
-      protected override void OnClick (EventArgs e) {
-         base.OnClick (e);
-
-         if (_isMouseOverGrid)
-            OnCellClicked (CreateMouseCellEventArgs ());
-      }
-
-      protected override void OnDoubleClick (EventArgs e) {
-         base.OnDoubleClick (e);
-
-         if (_isMouseOverGrid)
-            OnCellDoubleClicked (CreateMouseCellEventArgs ());
-      }
-
-      protected override void OnMouseDown (MouseEventArgs e) {
-         base.OnMouseDown (e);
-
-         if (_isMouseOverGrid) {
-            _isMouseDownOverGrid = true;
-            OnMouseDownOverCell (CreateMouseCellEventArgs ());
-         }
-      }
-
-      protected override void OnMouseUp (MouseEventArgs e) {
-         base.OnMouseUp (e);
-
-         if (_isMouseDownOverGrid) {
-            _isMouseDownOverGrid = false;
-            OnMouseUpOverCell (CreateMouseCellEventArgs ());
-            ProcessMouseEvents ();
-         }
-      }
-
-      protected override void OnMouseMove (MouseEventArgs e) {
-         base.OnMouseMove (e);
-
-         _mousePosition = e.Location;
-         ProcessMouseEvents ();
-      }
-
-      protected override void OnMouseEnter (EventArgs e) {
-         base.OnMouseEnter (e);
-
-         _isMouseOverControl = true;
-      }
-
-      protected override void OnMouseLeave (EventArgs e) {
-         base.OnMouseLeave (e);
-
-         _isMouseOverControl = false;
-         ProcessMouseEvents ();
-      }
-
       private int getRow (int y) {
          int row = (int)((y + VerticalOffset) % RowHeight);
-         return (row >= 0 && row < rowCount) ? row : -1;
+         return (row >= 0 && row < _rowCount) ? row : -1;
       }
       private int getCell (int x) {
          long virtualX = x + HorizontalOffset;
@@ -412,90 +480,31 @@ namespace Bitmanager.Grid {
          return -1;
       }
 
-      private void ProcessMouseEvents () {
-         //if (!_isMouseOverControl && !_isMouseOverGrid) return;
 
-         //var x = _mousePosition.X + HorizontalOffset;
-         //var y = _mousePosition.Y + VerticalOffset;
+      public int GetMouseRow (int y) {
+         int row = (int)((_verticalOffset + y) / RowHeight);
+         if (row < 0) row = -1;
+         else if (row >= RowCount) row = RowCount - 1;
+         return row;
+      }
+      public int GetMouseRowAndCol (int x, int y, out int col) {
+         long virtualX = x + HorizontalOffset;
+         for (int i = 0; i < _columns.Count; i++) {
+            var c = _columns[i];
+            if (virtualX >= c.GlobalOffsetPlusWidth) continue;
+            if (virtualX < c.GlobalOffset) continue;
+            col = i;
+            goto EXIT_RTN;
+         }
+         col = -1;
 
-         //var oldMouseCell = _mouseCell;
-         //var oldIsMouseOverGrid = _isMouseOverGrid;
-
-         //_mouseCell = (
-         //   (int)(y >= 0 ? y / RowHeight : (y - RowHeight + 1) / RowHeight),
-         //   ColumnPlacementResolver.GetColumnIndex (_columns, (int)x, _mouseCell.Column));
-         //_isMouseOverGrid =
-         //   _isMouseDownOverGrid ||
-         //   _isMouseOverControl &&
-         //   _columns.Count > 0 &&
-         //   x >= 0 &&
-         //   x < _columns[_columns.Count - 1].GlobalOffsetPlusWidth;
-
-         //var mouseCellChanged = _mouseCell != oldMouseCell;
-         //var isMouseOverGridChanged = _isMouseOverGrid != oldIsMouseOverGrid;
-
-         //switch ((_isMouseDownOverGrid, _isMouseOverGrid, isMouseOverGridChanged, mouseCellChanged)) {
-         //   case (true, _, _, true):
-         //   case (false, true, false, true):
-         //      OnMouseMovedOverGrid (CreateMouseCellEventArgs ());
-         //      break;
-         //   case (false, true, true, _):
-         //      OnMouseEnteredGrid (EventArgs.Empty);
-         //      break;
-         //   case (false, false, true, _):
-         //      OnMouseLeftGrid (EventArgs.Empty);
-         //      break;
-         //};
+      EXIT_RTN:
+         return GetMouseRow (y);
       }
 
-      private MouseCellEventArgs CreateMouseCellEventArgs () {
-         var cellRect = new Rectangle (
-            (int)(_columns[_mouseCell.Column].GlobalOffset - HorizontalOffset),
-            (int)(_mouseCell.Row * (long)RowHeight - VerticalOffset),
-            _columns[_mouseCell.Column].Width,
-            RowHeight);
-
-         return new MouseCellEventArgs (_mouseCell.Row, _mouseCell.Column, MouseButtons, cellRect);
-      }
-
-      /// <summary>
-      /// Raises the <see cref="CellClicked"/> event
-      /// </summary>
-      protected virtual void OnCellClicked (MouseCellEventArgs e) => CellClicked?.Invoke (this, e);
-      /// <summary>
-      /// Raises the <see cref="CellDoubleClicked"/> event
-      /// </summary>
-      protected virtual void OnCellDoubleClicked (MouseCellEventArgs e) => CellDoubleClicked?.Invoke (this, e);
-      /// <summary>
-      /// Raises the <see cref="MouseDownOverCell"/> event
-      /// </summary>
-      protected virtual void OnMouseDownOverCell (MouseCellEventArgs e) => MouseDownOverCell?.Invoke (this, e);
-      /// <summary>
-      /// Raises the <see cref="MouseUpOverCell"/> event
-      /// </summary>
-      protected virtual void OnMouseUpOverCell (MouseCellEventArgs e) => MouseUpOverCell?.Invoke (this, e);
-      /// <summary>
-      /// Raises the <see cref="MouseMovedOverGrid"/> event
-      /// </summary>
-      protected virtual void OnMouseMovedOverGrid (MouseCellEventArgs e) => MouseMovedOverGrid?.Invoke (this, e);
-      /// <summary>
-      /// Raises the <see cref="MouseEnteredGrid"/> event
-      /// </summary>
-      protected virtual void OnMouseEnteredGrid (EventArgs e) => MouseEnteredGrid?.Invoke (this, e);
-      /// <summary>
-      /// Raises the <see cref="MouseLeftGrid"/> event
-      /// </summary>
-      protected virtual void OnMouseLeftGrid (EventArgs e) => MouseLeftGrid?.Invoke (this, e);
 
       public event EventHandler<EventArgs> ColumnsChanged;
       public event EventHandler<EventArgs> HorizontalOffsetChanged;
       public event EventHandler<EventArgs> VerticalOffsetChanged;
-      public event EventHandler<MouseCellEventArgs> CellClicked;
-      public event EventHandler<MouseCellEventArgs> CellDoubleClicked;
-      public event EventHandler<MouseCellEventArgs> MouseDownOverCell;
-      public event EventHandler<MouseCellEventArgs> MouseUpOverCell;
-      public event EventHandler<MouseCellEventArgs> MouseMovedOverGrid;
-      public event EventHandler<EventArgs> MouseEnteredGrid;
-      public event EventHandler<EventArgs> MouseLeftGrid;
    }
 }

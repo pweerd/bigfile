@@ -38,6 +38,7 @@ using System.Reflection;
 using Microsoft.Win32;
 using static BrightIdeasSoftware.ObjectListView;
 using Bitmanager.Grid;
+using static Bitmanager.BigFile.GridLines;
 
 namespace Bitmanager.BigFile {
    /// <summary>
@@ -55,7 +56,6 @@ namespace Bitmanager.BigFile {
       private Settings settings;
       public Settings Settings => settings;
       private FixedFontMeasures fontMeasures;
-      private readonly VirtualDataSource listDatasource;
       private ParserNode<SearchContext> lastQuery;
       private readonly SelectionHandler selectionHandler;
       private float initialFontSize;
@@ -63,6 +63,7 @@ namespace Bitmanager.BigFile {
       public FormMain () {
          InitializeComponent ();
          this.Text = Globals.TITLE;
+         gridLines = new GridLines ();
 
          synchronizationContext = SynchronizationContext.Current;
 
@@ -78,7 +79,7 @@ namespace Bitmanager.BigFile {
          cbFontSize.Items.Add ("A+++");
          cbFontSize.SelectedIndex = 0;
          cbFontSize.SelectedIndexChanged += cbFontSize_SelectedIndexChanged;
-         initialFontSize = listLines.Font.SizeInPoints;
+         initialFontSize = gridLines.Font.SizeInPoints;
 
          //if (Globals.IsDebug) {
          //   encodings[4] = new Utf81 ();
@@ -87,15 +88,8 @@ namespace Bitmanager.BigFile {
          //   dropdownEncoding.Items.Add ("Utf8 with ptrs");
          //}
          cbEncoding.SelectedIndex = 0;
-         listLines.VirtualListDataSource = listDatasource = new VirtualDataSource (listLines);
-         listLines.MultiSelect = false;
-         listLines.SelectAllOnControlA = false;
-         listLines.SelectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.None;
-         listLines.CopySelectionOnControlC = false;
-         selectedFore = listLines.SelectedForeColorOrDefault;
-         selectedBack = listLines.SelectedBackColorOrDefault;
-         olvcLineNumber.CellPadding = new Rectangle (0, 0, 2, 0);
-         listLines.OnFontTick += ListLines_OnFontTick;
+         //PW olvcLineNumber.CellPadding = new Rectangle (0, 0, 2, 0);
+         gridLines.OnFontTick += ListLines_OnFontTick;
 
 
          searchboxDriver = new SearchHistory (cbSearch);
@@ -103,10 +97,8 @@ namespace Bitmanager.BigFile {
          btnWarning.Visible = false;
          btnResplit.Visible = false;
 
-         olvcLineNumber.AutoResize (ColumnHeaderAutoResizeStyle.None);
-         olvcText.AutoResize (ColumnHeaderAutoResizeStyle.None);
          showZipEntries (false);
-         selectionHandler = new SelectionHandler (this, listLines);
+         selectionHandler = new SelectionHandler (this, gridLines);
          selectionHandler.OnAddSelection += selectionHandler_Add;
          selectionHandler.OnRemoveSelection += selectionHandler_Remove;
          selectionHandler.OnToggleSelection += selectionHandler_Toggle;
@@ -114,11 +106,11 @@ namespace Bitmanager.BigFile {
 
       #region FONT_TICKERS
       private void ListLines_OnFontTick (object sender, FontTickArgs e) {
-         float newSize = listLines.Font.SizeInPoints + (e.Delta < 0 ? -1f : 1f);
+         float newSize = gridLines.Font.SizeInPoints + (e.Delta < 0 ? -1f : 1f);
          if (newSize < 6) newSize = 6;
          float diff = newSize - initialFontSize;
          int ix = (int)(diff + .5);
-         logger.Log ("FONT: size={3}, newSize={0}, diff={1}, ix={2}", newSize, diff, ix, listLines.Font.SizeInPoints);
+         logger.Log ("FONT: size={3}, newSize={0}, diff={1}, ix={2}", newSize, diff, ix, gridLines.Font.SizeInPoints);
 
          if (diff > -.05f && ix >= 0 && ix < cbFontSize.Items.Count)
             cbFontSize.SelectedIndex = ix;
@@ -132,14 +124,13 @@ namespace Bitmanager.BigFile {
       }
 
       private void setListViewFontSize (float sizeInPt) {
-         listLines.SetFontSizePt (sizeInPt);
-         fontMeasures = new FixedFontMeasures (listLines.Font);
-         computeListViewDimensions (lf);
-         listLines.Focus ();
+         gridLines.SetFontSizePt (sizeInPt);
+         fontMeasures = new FixedFontMeasures (gridLines.Font);
+         //PWcomputeListViewDimensions (lf);
+         gridLines.Focus ();
       }
       #endregion
 
-      private Color selectedFore, selectedBack;
 
       private void showZipEntries (bool visible) {
          cbZipEntries.Visible = visible;
@@ -173,7 +164,7 @@ namespace Bitmanager.BigFile {
       FileHistory fileHistory, directoryHistory;
 
       ToolStripToolTipHelpers tooltipHelpers;
-      LinesGrid linesGrid;
+      GridLines gridLines;
 
       private void FormMain_Load (object sender, EventArgs e) {
          Bitmanager.Core.GlobalExceptionHandler.Hook ();
@@ -197,8 +188,6 @@ namespace Bitmanager.BigFile {
             }), null);
          });
 
-         this.olvcLineNumber.AspectGetter = getLineNumber;
-         this.olvcText.AspectGetter = getLimitedLine;
          this.cbEncoding.SelectedIndex = 0;
 
          contextMenu.Items.Clear ();
@@ -210,33 +199,20 @@ namespace Bitmanager.BigFile {
          menuFileClose.Enabled = false;
 
 
-         listLines.Dock = DockStyle.Fill;
-         listLines.Visible = true;
-         listLines.Visible = false;
-
          SuspendLayout ();
-         linesGrid = new LinesGrid ();
-         linesGrid.AllowDrop = true;
-         linesGrid.CausesValidation = false;
-         linesGrid.BackColor = Color.Red;
-         linesGrid.ForeColor = Color.Black;
-         using (var cols = linesGrid.Columns) {
-            cols.Clear ();
-            cols.Add (new Column (100, HorizontalAlignment.Right));
-            cols.Add (new Column (100000, HorizontalAlignment.Left));
-            cols[0].BackColor = Color.LightGray;
-            cols[1].BackColor = Color.White;
-         }
+         gridLines.Settings = settings;
+         gridLines.AllowDrop = true;
+         gridLines.CausesValidation = false;
 
-         panelMain.Controls.Add (linesGrid);
-         linesGrid.Dock = DockStyle.Fill;
+         panelMain.Controls.Add (gridLines);
+         gridLines.Dock = DockStyle.Fill;
+         gridLines.ContextMenuStrip = this.contextMenu;
          ResumeLayout ();
-         linesGrid.RowCount = 100000000;
+         //gridLines.RowCount = 100000000;
 
 
          //var cols = new List<SectorPlacement> ();
          //linesGrid.Columns = cols;
-         //linesGrid.ContextMenuStrip = this.contextMenu;
          //linesGrid.Font = new System.Drawing.Font ("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          //linesGrid.FullRowSelect = true;
          //linesGrid.HasCollapsibleGroups = false;
@@ -271,7 +247,7 @@ namespace Bitmanager.BigFile {
 
 
 
-         fontMeasures = new FixedFontMeasures (listLines.Font);
+         fontMeasures = new FixedFontMeasures (gridLines.Font);
          cbZipEngine.SelectedIndex = 0;
          if (Globals.IsDebug) {
             String fn = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
@@ -332,6 +308,7 @@ namespace Bitmanager.BigFile {
             };
          }
       }
+
 
       private void checkWarnings () {
          var sb = new StringBuilder ();
@@ -484,6 +461,7 @@ namespace Bitmanager.BigFile {
 
          statusLabelMain.Text = "Loading...";
          setSearchStatus (String.Empty);
+         isFirstPartial = true;
          new LogFile (this, settings, getCurrentEncoding (), maxPartial, maxLoadSize).Load (filePath, cancellationTokenSource.Token, zipEntry);
       }
 
@@ -512,7 +490,7 @@ namespace Bitmanager.BigFile {
          var selected = lf.GetSelectedPartialLines (maxCount, out truncated);
          if (selected.Count == 0) return null;
 
-         var filter = listDatasource.Filter;
+         var filter = gridLines.Filter;
          if (filter != null) {
             var list = new List<int> (selected.Count);
             foreach (int x in selected) list.Add (filter[x]);
@@ -525,46 +503,9 @@ namespace Bitmanager.BigFile {
 
       int neededTextLength;
 
-      private void computeNeededTextLength () {
-         if (fontMeasures == null) return;
-         int needed = listLines.LowLevelScrollPosition.X + (int)(1.2 * (listLines.Width - olvcLineNumber.Width));
-
-         neededTextLength = (int)(1.2 * fontMeasures.GetTextLengthForPixels (needed));
-      }
-
 
       #region display_logic_listview
-      /// <summary>
-      /// Determines how an item in the listview is formatted
-      /// </summary>
-      private void listLines_FormatCell (object sender, FormatCellEventArgs e) {
-         if (e.Model == null) return;
-         int row = (int)e.Model;
-         if (row < 0 || row >= lf.PartialLineCount) return;
-
-         if (e.ColumnIndex == 0) {
-            e.SubItem.BackColor = this.BackColor;
-            e.SubItem.ForeColor = listLines.ForeColor;
-            e.Item.SelectedBackColor = this.BackColor;
-         } else {
-            int flags = lf.GetLineFlags (row);
-            Color f = listLines.ForeColor;
-            Color b = listLines.BackColor;
-
-            if ((flags & LineFlags.MATCHED) != 0) {
-               b = settings.HighlightColor;
-               if ((flags & LineFlags.SELECTED) != 0) {
-                  b = settings.SelectedHighlightColor;
-                  f = selectedFore;
-               }
-            } else if ((flags & LineFlags.SELECTED) != 0) {
-               f = selectedFore;
-               b = selectedBack;
-            }
-            e.SubItem.BackColor = b;
-            e.SubItem.ForeColor = f;
-         }
-      }
+      
       private String getLimitedLine (Object model) {
          int row = model == null ? -1 : (int)model;
          if (row < 0 || row >= lf.PartialLineCount) return String.Empty;
@@ -603,7 +544,7 @@ namespace Bitmanager.BigFile {
                fl = lineForm;
                if (fl == null || fl.IsClosed) fl = lineForm = new FormLine (fl);
             }
-            fl.ShowLine (DesktopLocation, settings, lf, listDatasource.Filter, m, lastQuery);
+            fl.ShowLine (DesktopLocation, settings, lf, gridLines.Filter, m, lastQuery);
          }
       }
 
@@ -689,7 +630,8 @@ namespace Bitmanager.BigFile {
 
 
       private void contextMenu_Opening (object sender, System.ComponentModel.CancelEventArgs e) {
-         if (listLines.SelectedObjects.Count > this.settings.MaxCopyLines) {
+         //PW
+         if (false) {//gridLines.SelectedObjects.Count > this.settings.MaxCopyLines) {
             contextMenuCopy.Enabled = false;
             exportSelectedToolStripMenuItem.Enabled = false;
             return;
@@ -733,7 +675,7 @@ namespace Bitmanager.BigFile {
          searchboxDriver.Clear ();
          selectionHandler.Clear ();
          lastQuery = null;
-         this.listDatasource.Clear ();
+         gridLines.SetLogFile(null, true);
 
          if (lineForm != null) {
             lineForm.Close ();
@@ -750,10 +692,7 @@ namespace Bitmanager.BigFile {
 
          // Clear any existing filters/reset values
          clearAll ();
-         listLines.ClearObjects ();
-         listDatasource.SetContent (0);
-
-         setLogFile (null);
+         setLogFile (null);  //PW in clearAll?
 
          menuFileClose.Enabled = false;
          statusLabelMain.Text = "";
@@ -801,7 +740,7 @@ namespace Bitmanager.BigFile {
          statusProgress.Value = 0;
          setHourGlass ();
          cancellationTokenSource = new CancellationTokenSource ();
-         listLines.Focus ();
+         gridLines.Focus ();
       }
       private void indicateFinished () {
          menuFileOpen.Enabled = true;
@@ -824,14 +763,6 @@ namespace Bitmanager.BigFile {
          cancel ();
       }
 
-      private void listLines_Scroll (object sender, ScrollEventArgs e) {
-         if (e.ScrollOrientation == ScrollOrientation.HorizontalScroll)
-            this.computeNeededTextLength ();
-      }
-      private void listLines_Resize (object sender, EventArgs e) {
-         this.computeNeededTextLength ();
-      }
-
 
       void ILogFileCallback.OnProgress (LogFile lf, int percent) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
@@ -842,7 +773,7 @@ namespace Bitmanager.BigFile {
 
       void ILogFileCallback.OnSearchComplete (SearchResult result) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
-            listLines.Refresh ();
+            gridLines.Refresh ();
             indicateFinished ();
 
             result.ThrowIfError ();
@@ -872,30 +803,33 @@ namespace Bitmanager.BigFile {
       void ILogFileCallback.OnSearchPartial (LogFile lf, int firstMatch) {
          logger.Log ("OnSearchPartial (first={0})", firstMatch);
          synchronizationContext.Post (new SendOrPostCallback (o => {
-            if (this.listDatasource.Filter != null) {
-               firstMatch = this.listDatasource.Filter.IndexOf (firstMatch);
+            if (gridLines.Filter != null) {
+               firstMatch = gridLines.Filter.IndexOf (firstMatch);
             }
             if (firstMatch >= 0)
                gotoAndSelectLogicalLineIndex (firstMatch);
          }), null);
       }
 
+      bool isFirstPartial;
       private void setLogFile (LogFile newLF) {
-         if (newLF != null)
+         if (newLF != null) {
             newLF.SetEncoding (getCurrentEncoding ());
-         else
-            listDatasource.SetContent (0);
+            if (lf != null) {
+               if (!isFirstPartial) newLF.CopyStateBitsFrom (lf);
+               lf.Dispose ();
+            }
+         }
 
-         if (lf != null && lf != newLF) lf.Dispose ();
          lf = newLF;
          if (newLF == null) {
+            gridLines.SetLogFile (null, true);
             showZipEntries (false);
             return;
          }
 
-         computeListViewDimensions (newLF);
-         listDatasource.SetContent (newLF.PartialLineCount);
-         logger.Log ("set count: {0}, ds={1}, ll={2}", newLF.PartialLineCount, listDatasource.Count, listLines.GetItemCount ());
+         gridLines.SetLogFile (newLF, isFirstPartial);
+         isFirstPartial = false;
          if (lineForm != null && !lineForm.IsClosed)
             lineForm.UpdateLogFile (newLF);
 
@@ -911,28 +845,6 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      void computeListViewDimensions (LogFile newLF) {
-         if (newLF.PartialLineCount > 0) {
-            int col0 = Math.Max (newLF.PartialLineCount.ToString ().Length, olvcLineNumber.Text.Length);
-            olvcLineNumber.Width = 20 + fontMeasures.GetTextPixels (col0);
-
-            int largestIndex = newLF.LongestPartialIndex;
-            int lineLength = newLF.GetPartialLineLength (largestIndex);
-            int w = fontMeasures.GetTextPixels (lineLength);
-            int min = listLines.Width - olvcLineNumber.Width - listLines.Margin.Horizontal;
-            logger.Log ("-- w={0}, min={1}", w, min);
-            if (w < min) w = min;
-            olvcText.Width = w;
-
-            logger.Log ("-- new width={0}", olvcText.Width);
-            computeNeededTextLength ();
-            logger.Log ("-- largest partial: {0} at {1}, largest line at {2}",
-                     lineLength,
-                     largestIndex,
-                     newLF.LongestLineIndex);
-            logger.Log ("-- Max width is {0} pixels, pixels in screen is {1}", w, listLines.LowLevelScrollPosition.X + listLines.Width - olvcLineNumber.Width);
-         }
-      }
 
       void ILogFileCallback.OnLoadComplete (Result result) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
@@ -993,16 +905,17 @@ namespace Bitmanager.BigFile {
       private void handleViewSelection () {
          if (lf == null || lf.PartialLineCount == 0) return;
          if (menuViewAll.Checked) {
-            listDatasource.SetContent (lf.PartialLineCount);
+            gridLines.SetFilter (null);
             return;
          }
          if (menuViewMatched.Checked) {
-            listDatasource.SetContent (lf.GetMatchedList (settings.NumContextLines));
+            gridLines.SetFilter (lf.GetMatchedList (settings.NumContextLines));
             return;
          }
-         listDatasource.SetContent (lf.GetUnmatchedList (settings.NumContextLines));
+         gridLines.SetFilter (lf.GetUnmatchedList (settings.NumContextLines));
          return;
       }
+
       private void menuView_Click (object sender, EventArgs e) {
          var item = sender as ToolStripMenuItem;
          var owner = item.Owner;
@@ -1024,25 +937,25 @@ namespace Bitmanager.BigFile {
       }
       private void gotoLine (int line, bool isPartial) //PW nakijken
       {
-         listLines.TopItemIndex = 0;
-         if (lf == null) return;
+         if (lf == null) { 
+            gridLines.GotoCell (0, 0);
+            return; 
+         }
          int index = (line < 0) ? 0 : line;
          if (!isPartial) index = lf.PartialFromLineNumber (index);
 
-         index = lf.PartialToLogicalIndex (index, listDatasource.Filter);
+         index = lf.PartialToLogicalIndex (index, gridLines.Filter);
          gotoAndSelectLogicalLineIndex (index);
       }
 
       private void gotoAndSelectLogicalLineIndex (int index) {
          if (index < 0) return; // index = 0;  //pw need to check, 
-         int N = listLines.GetItemCount ();
+         int N = gridLines.RowCount;
          if (N == 0) return;
          if (index >= N) index = N - 1;
 
          //if (index < 0 || index >= listLines.GetItemCount()) return;
-         listLines.SelectedIndex = index;
-         listLines.EnsureVisible (index);
-         listLines.Update ();
+         gridLines.MakeCellVisible (index, 0, true);
       }
 
       private void FormMain_KeyDown (object sender, KeyEventArgs e) {
@@ -1080,12 +993,12 @@ namespace Bitmanager.BigFile {
          if (menuViewUnmatched.Selected)
             throw new Exception ("Goto prev/next hit impossible if filtered for unmatched.");
 
-         listLines.TopItemIndex = 0;
-         var filter = listDatasource.Filter;
+         gridLines.GotoCell(0, 0, true);
+         var filter = gridLines.Filter;
          int index = selectionHandler.SelectedIndex;
          logger.Log ("gotoNextHit (index={0}, filter={1})", index, filter == null ? 0 : 1);
          if (index >= 0) {
-            if (filter != null) index = listDatasource.Filter[index];
+            if (filter != null) index = gridLines.Filter[index];
          }
 
          index = lf.NextPartialHit (index);
@@ -1105,11 +1018,11 @@ namespace Bitmanager.BigFile {
          if (menuViewUnmatched.Selected)
             throw new Exception ("Goto prev/next hit impossible if filtered for unmatched.");
 
-         listLines.TopItemIndex = 0;
-         var filter = listDatasource.Filter;
+         gridLines.GotoCell (0, 0, true);
+         var filter = gridLines.Filter;
          int index = selectionHandler.SelectedIndex;
          if (index >= 0) {
-            if (filter != null) index = listDatasource.Filter[index];
+            if (filter != null) index = gridLines.Filter[index];
          }
 
          index = lf.PrevPartialHit (index);
@@ -1165,7 +1078,7 @@ namespace Bitmanager.BigFile {
          if (e.KeyChar == '\r') //Enter key
          {
             toolButtonSearch_Click (btnSearch, null);
-            listLines.Focus ();
+            gridLines.Focus ();
             e.Handled = true;
          }
       }
@@ -1205,32 +1118,32 @@ namespace Bitmanager.BigFile {
       }
 
       private void allToolStripMenuItem_Click (object sender, EventArgs e) {
-         selectionHandler_Add (0, listLines.VirtualListSize);
+         selectionHandler_Add (0, gridLines.RowCount);
       }
 
       private void clearAllToolStripMenuItem_Click (object sender, EventArgs e) {
-         selectionHandler_Remove (0, listLines.VirtualListSize);
+         selectionHandler_Remove (0, gridLines.RowCount);
       }
 
       private void toggleToolStripMenuItem_Click (object sender, EventArgs e) {
-         selectionHandler_Toggle (0, listLines.VirtualListSize);
+         selectionHandler_Toggle (0, gridLines.RowCount);
       }
 
       private void selectionHandler_Add (int from, int to) {
          if (lf == null) return;
          lf.MarkSelected (from, to);
-         listLines.Invalidate ();
+         gridLines.Invalidate ();
          logger.Log ("done");
       }
       private void selectionHandler_Remove (int from, int to) {
          if (lf == null) return;
          lf.MarkUnselected (from, to);
-         listLines.Invalidate ();
+         gridLines.Invalidate ();
       }
       private void selectionHandler_Toggle (int from, int to) {
          if (lf == null) return;
          lf.ToggleSelected (from, to);
-         listLines.Invalidate ();
+         gridLines.Invalidate ();
       }
 
       /// <summary>
