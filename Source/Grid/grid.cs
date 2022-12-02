@@ -25,6 +25,9 @@ namespace Bitmanager.Grid {
       private readonly CellBuffer _cellBuffer;
       private readonly DisplayBuffer _displayBuffer;
       private FontManager _fontManager;
+      private long _maxHorizontalOffset, _maxVerticalOffset;
+      private long _horizontalOffset, _verticalOffset;
+
       private int _selectedIndex;
       private int _currentIndex;
       private int _rowCount;
@@ -32,7 +35,6 @@ namespace Bitmanager.Grid {
       private List<InternalColumn> _columns;
 
       private int clientWidth, clientHeight; //without scrollbars
-      private int maxLineWidth;
       public static readonly Logger logger = Logs.CreateLogger ("bigfile", "grid");
 
 
@@ -67,9 +69,25 @@ namespace Bitmanager.Grid {
          clientHeight = Height;
          if (hScrollBar.Visible) clientHeight -= hScrollBar.Height;
          logger.Log ("OnResize: h={0} ({1}), w={2} ({3})", clientHeight, Height, clientWidth, Width);
-         recomputeScrollBars ();
+         RecomputeScrollBars ();
          Invalidate ();
          base.OnResize (e);
+      }
+
+      /// <summary>
+      /// Resolves a grid row into a 'real' row-index. 
+      /// This enabeles support for filering
+      /// </summary>
+      public virtual int GridRowToRow (int row) {
+         return row;
+      }
+
+      /// <summary>
+      /// Resolves a 'real' row into a grid row-index. 
+      /// This enabeles support for filering
+      /// </summary>
+      public virtual int RowToGridRow (int row, bool returnGE = false) {
+         return row;
       }
 
       public int SelectedIndex {
@@ -126,7 +144,7 @@ namespace Bitmanager.Grid {
       public int RowCount { get { return _rowCount; }
          set {
             _rowCount = value < 0 ? 0: value;
-            recomputeScrollBars ();
+            RecomputeScrollBars ();
             logger.Log ("min={0}, max={1}, multiplier={2}", vScrollBar.Minimum, vScrollBar.Maximum, vScrollBarMultiplier);
             Invalidate ();
          }
@@ -134,23 +152,31 @@ namespace Bitmanager.Grid {
 
       double hScrollBarMultiplier=1;
       double vScrollBarMultiplier;
-      private void recomputeScrollBars() {
+      protected void RecomputeScrollBars() {
          const int MAX_VALUE = (int.MaxValue - 10000) & ~16;
-         if (clientHeight <= 0 || clientWidth <= 0) return;
+         if (clientHeight <= 0 || clientWidth <= 0) {
+            _verticalOffset = 0;
+            _maxVerticalOffset = 0;
+            _horizontalOffset = 0;
+            _maxHorizontalOffset = 0;
+            return;
+         }
 
          //Reconstruct vertical scrollbar
          vScrollBarMultiplier = 1.0;
          int max = MAX_VALUE; 
          int rowHeight = RowHeight;
          int rowsPerWindow = (clientHeight+rowHeight-1) / rowHeight;
+         long neededPixels = Math.Max (0, (rowHeight * (long)_rowCount) - clientHeight);
+         _maxVerticalOffset = neededPixels;
+         if (_verticalOffset > neededPixels) _verticalOffset = neededPixels;
 
-         long neededPixels = (rowHeight * (long)_rowCount) - clientHeight;
          logger.Log ("Needed pixels (H): {0}, c={1}, rh={2}", neededPixels, _rowCount, rowHeight);
-         if (neededPixels <= 0) {
+         if (_maxVerticalOffset <= 0) {
             vScrollBar.Enabled = false;
-            return;
+            goto SETUP_HORIZONTAL;
          }
-         neededPixels += rowHeight / 2;
+         //neededPixels += rowHeight / 2;
          vScrollBar.Enabled = true;
          if (neededPixels < max)
             max = (int)neededPixels;
@@ -159,19 +185,25 @@ namespace Bitmanager.Grid {
          }
 
          int smallChange = (int)(.99999 + rowHeight / vScrollBarMultiplier);
+         if (smallChange >= max) smallChange = max - 1;
          int largeChange = (int)(((rowsPerWindow - 1) * rowHeight) / vScrollBarMultiplier);
+         if (largeChange >= max) largeChange = max - 1;
          vScrollBar.SmallChange = smallChange;
-         vScrollBar.LargeChange = largeChange < smallChange ? smallChange:largeChange;
-         logger.Log ("Max (V): {0}, mult={1}", max, vScrollBarMultiplier);
+         vScrollBar.LargeChange = largeChange;
          vScrollBar.Maximum = max + vScrollBar.LargeChange;
+         logger.Log ("Max (V): {0}, mult={1}, small={2}, large={3}", max, vScrollBarMultiplier, vScrollBar.SmallChange, vScrollBar.LargeChange);
 
-         //Reconstruct horizontal bar
+      //Reconstruct horizontal bar
+      SETUP_HORIZONTAL:
          hScrollBarMultiplier = 1.0;
          max = MAX_VALUE;
-         neededPixels = _columns.Count == 0 ? 0 : _columns[^1].GlobalOffsetPlusWidth - clientWidth;
+         neededPixels = Math.Max(0, _columns.Count == 0 ? 0 : _columns[^1].GlobalOffsetPlusWidth - clientWidth);
+         _maxHorizontalOffset = neededPixels;
+         if (_horizontalOffset > neededPixels) _horizontalOffset = neededPixels;
+
          if (neededPixels <= 0) {
             hScrollBar.Enabled = false;
-            return;
+            goto EXIT_RTN;
          }
          hScrollBar.Enabled = true;
          if (neededPixels < max)
@@ -179,12 +211,20 @@ namespace Bitmanager.Grid {
          else {
             hScrollBarMultiplier = (neededPixels) / (double)max;
          }
+
          smallChange = clientWidth / 10;
+         if (smallChange >= max) smallChange = max - 1;
          largeChange = clientWidth - 10 * rowHeight;
+         if (largeChange >= max) largeChange = max - 1;
+
          hScrollBar.SmallChange = smallChange;
          hScrollBar.LargeChange = largeChange < smallChange ? smallChange : largeChange; ;
-         logger.Log ("Max (H): {0}, mult={1}", max, hScrollBarMultiplier);
+         logger.Log ("Max (H): {0}, mult={1}, small={2}, large={3}", max, hScrollBarMultiplier, hScrollBar.SmallChange, hScrollBar.LargeChange);
          hScrollBar.Maximum = max - clientWidth;
+      EXIT_RTN:
+         logger.Log ("MaxVerticalOffset={0}, max height={1}, clientH={2}", _maxVerticalOffset, _rowCount*(long)rowHeight, clientHeight);
+         logger.Log ("MaxHorizontalOffset={0}, max width={1}, clientW={2}", _maxHorizontalOffset, _columns[^1].GlobalOffsetPlusWidth, clientWidth);
+         return;
       }
 
 
@@ -198,7 +238,6 @@ namespace Bitmanager.Grid {
       }
 
 
-      private long _horizontalOffset;
       /// <summary>
       /// Horizontal offset applied to the content of the control.
       /// It's highly recommended to use this property over placing the <c>Grid</c> in a scrollable panel. This way the grid can avoid processing and rendering of invisible columns (columns that are out of the scrolling area).
@@ -207,7 +246,7 @@ namespace Bitmanager.Grid {
          get => _horizontalOffset;
          set {
             if (_horizontalOffset == value) return;
-            _horizontalOffset = value < 0 ? 0 : value;
+            _horizontalOffset = MathUtils.Clipped (value, _maxHorizontalOffset);
             updateScrollbarPosition (hScrollBar, _horizontalOffset / hScrollBarMultiplier);
 
             HorizontalOffsetChanged?.Invoke (this, EventArgs.Empty);
@@ -215,7 +254,6 @@ namespace Bitmanager.Grid {
          }
       }
 
-      private long _verticalOffset;
       /// <summary>
       /// Vertical offset applied to the content of the control.
       /// It's highly recommended to use this property over placing the <c>Grid</c> in a scrollable panel. This way the grid can avoid processing and rendering of invisible rows (rows that are out of the scrolling area).
@@ -224,7 +262,7 @@ namespace Bitmanager.Grid {
          get => _verticalOffset;
          set {
             if (_verticalOffset == value) return;
-            _verticalOffset = value < 0 ? 0 : value;
+            _verticalOffset = MathUtils.Clipped(value, _maxVerticalOffset);
             updateScrollbarPosition (vScrollBar, _verticalOffset / vScrollBarMultiplier);
 
             VerticalOffsetChanged?.Invoke (this, EventArgs.Empty);
@@ -407,7 +445,7 @@ namespace Bitmanager.Grid {
          if (max > delta) delta = max;
          if (e.Delta > 0) delta = -delta;
 
-         VerticalOffset = VerticalOffset + delta*RowHeight;
+         VerticalOffset = Math.Min(_verticalOffset + delta*RowHeight, _maxVerticalOffset);
       }
 
       protected override void OnKeyDown (KeyEventArgs e) {
@@ -461,6 +499,7 @@ namespace Bitmanager.Grid {
 
       protected override void OnFontChanged (EventArgs e) {
          _fontManager.Load (Font);
+         RecomputeScrollBars ();
          Invalidate ();
          base.OnFontChanged (e);
       }

@@ -121,17 +121,6 @@ namespace Bitmanager.BigFile {
          high = -1;
          prevRow = -1;
       }
-      //PW
-      //private OLVListItem getItem (int x, int y) {
-      //   OLVColumn c;
-      //   return ListView.GetItemAt (x, y, out c);
-      //}
-
-      //PW
-      //private int getRow (int x, int y) {
-      //   var item = getItem (x, y);
-      //   return item == null ? -1 : item.Index;
-      //}
 
       private void Listview_SelectedIndexChanged (object sender, EventArgs e) {
          int row = Grid.SelectedIndex;

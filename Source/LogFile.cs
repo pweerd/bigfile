@@ -178,7 +178,7 @@ namespace Bitmanager.BigFile {
          if (partialIndex >= lineCount) return int.MaxValue;
          if (partialFilter == null) return partialIndex;
 
-
+         //Invariant: arr[i] < arg && arr[j] >= arg
          int i = -1;
          int j = partialFilter.Count;
          while (j - i > 1) {

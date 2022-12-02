@@ -12,5 +12,9 @@ namespace Bitmanager.Grid {
 		{
 			return Math.Max(min, Math.Min(value, max));
 		}
+
+		public static long Clipped (long v, long max) {
+			return v < 0 ? 0 : (v <= max || max < 0 ? v : max);
+		}
 	}
 }
