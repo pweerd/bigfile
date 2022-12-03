@@ -17,6 +17,7 @@ namespace Bitmanager.Grid {
       public delegate void ON_SELECTED_INDEX_CHANGED (object sender, EventArgs e);
       public event ON_GETCELL OnGetCell;
       public event EventHandler SelectedIndexChanged;
+      public event EventHandler RowCountChanged;
       protected readonly HScrollBar hScrollBar;
       protected readonly VScrollBar vScrollBar;
 
@@ -41,7 +42,6 @@ namespace Bitmanager.Grid {
 
       public RawGrid () {
          _columns = new ();
-
          hScrollBar = new HScrollBar ();
          hScrollBar.Dock = DockStyle.Bottom;
          vScrollBar = new VScrollBar ();
@@ -141,9 +141,13 @@ namespace Bitmanager.Grid {
          }
       }
 
+      protected virtual void OnRowCountChanged (int newCount) {
+         if (RowCountChanged != null) RowCountChanged (this, EventArgs.Empty);
+      }
       public int RowCount { get { return _rowCount; }
          set {
             _rowCount = value < 0 ? 0: value;
+            OnRowCountChanged (_rowCount);
             RecomputeScrollBars ();
             logger.Log ("min={0}, max={1}, multiplier={2}", vScrollBar.Minimum, vScrollBar.Maximum, vScrollBarMultiplier);
             Invalidate ();
@@ -350,7 +354,7 @@ namespace Bitmanager.Grid {
             var column = _columns[col];
             int x = (int)(column.GlobalOffset - virtualX);
             bufRect.X = x;
-            bufRect.Width = column.Width;
+            bufRect.Width = column.OuterWidth;
 
             int y=(int)(rowStart * rh - virtualY);
             for (int row = rowStart; row < rowEnd; row++) {
@@ -359,14 +363,7 @@ namespace Bitmanager.Grid {
                Cell cell = GetCell (row, col);
                //_displayBuffer.ClearRect (cell.BackgroundColor ?? this.BackColor, bufRect);
                bufRect.Y = y;
-               _displayBuffer.PrintCell (
-                  cell.BackColor,
-                  cell.ForeColor,
-                  bufRect,
-                  cell.FontStyle,
-                  cell.Alignment,
-                  cell.Text
-               );
+               _displayBuffer.PrintCell (cell, ref bufRect);
                y += (int)rh;
             }
          }

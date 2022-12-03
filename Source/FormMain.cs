@@ -17,7 +17,6 @@
  * under the License.
  */
 
-using BrightIdeasSoftware;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -36,7 +35,6 @@ using System.Diagnostics;
 using Bitmanager.Query;
 using System.Reflection;
 using Microsoft.Win32;
-using static BrightIdeasSoftware.ObjectListView;
 using Bitmanager.Grid;
 using static Bitmanager.BigFile.GridLines;
 
@@ -114,16 +112,16 @@ namespace Bitmanager.BigFile {
 
          if (diff > -.05f && ix >= 0 && ix < cbFontSize.Items.Count)
             cbFontSize.SelectedIndex = ix;
-         setListViewFontSize (newSize);
+         setGridFontSize (newSize);
       }
 
       private void cbFontSize_SelectedIndexChanged (object sender, EventArgs e) {
          int ix = cbFontSize.SelectedIndex;
          if (ix < 0) return;
-         setListViewFontSize (initialFontSize + ix);
+         setGridFontSize (initialFontSize + ix);
       }
 
-      private void setListViewFontSize (float sizeInPt) {
+      private void setGridFontSize (float sizeInPt) {
          gridLines.SetFontSizePt (sizeInPt);
          fontMeasures = new FixedFontMeasures (gridLines.Font);
          //PWcomputeListViewDimensions (lf);
@@ -857,7 +855,10 @@ namespace Bitmanager.BigFile {
          }
 
          gridLines.SetLogFile (newLF, isFirstPartial);
-         isFirstPartial = false;
+         if (isFirstPartial) {
+            selectViewAll ();
+            isFirstPartial = false;
+         }
          if (lineForm != null && !lineForm.IsClosed)
             lineForm.UpdateLogFile (newLF);
 
@@ -949,6 +950,13 @@ namespace Bitmanager.BigFile {
          var owner = item.Owner;
          foreach (ToolStripMenuItem x in owner.Items) x.Checked = x == item;
 
+         handleViewSelection ();
+      }
+
+      private void selectViewAll () {
+         foreach (ToolStripMenuItem x in menuViewAll.Owner.Items) {
+            x.Checked = x == menuViewAll;
+         }
          handleViewSelection ();
       }
 
@@ -1172,10 +1180,6 @@ namespace Bitmanager.BigFile {
          if (lf != null) {
             lf.UnselectAllNonMatched (); selectionHandler.NotifyExternalChange ();
          }
-      }
-
-      private void listLines_CellRightClick (object sender, CellRightClickEventArgs e) {
-         e.Handled = true;
       }
 
       private void createRegEntries (RegistryKey key, String exe) {

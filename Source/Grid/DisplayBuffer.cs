@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using static Bitmanager.Grid.Gdi32;
 
 namespace Bitmanager.Grid {
    internal sealed class DisplayBuffer : IDisposable {
@@ -85,46 +86,57 @@ namespace Bitmanager.Grid {
 
       public void Clear (Color color) {
          setBackColor (color);
-         Gdi32.Fill (Hdc, new Rectangle (0, 0, Width, Height));
+         var rect = new GDIRECT (0, 0, Width, Height);
+         Gdi32.Fill (Hdc, ref rect);
       }
 
       public void ClearColumn (Color color, int offset, int width) {
          setBackColor (color);
-         Gdi32.Fill (Hdc, new Rectangle (offset, 0, width, Height));
+         var rect = new GDIRECT (offset, 0, Width, Height);
+         Gdi32.Fill (Hdc, ref rect);
       }
-      public void ClearRect (Color color, Rectangle rect) {
-         int overflow;
-         overflow = rect.Right - Width;
-         if (overflow > 0) rect.Width = rect.Width - overflow;
-         overflow = rect.Bottom - Height;
-         if (overflow > 0) rect.Height = rect.Height - overflow;
-         if (rect.Width > 0 && rect.Height > 0) {
-            setBackColor (color);
-            Gdi32.Fill (Hdc, rect);
-         }
-      }
+      //public void ClearRect (Color color, Rectangle rect) {
+      //   int overflow;
+      //   overflow = rect.Right - Width;
+      //   if (overflow > 0) rect.Width = rect.Width - overflow;
+      //   overflow = rect.Bottom - Height;
+      //   if (overflow > 0) rect.Height = rect.Height - overflow;
+      //   if (rect.Width > 0 && rect.Height > 0) {
+      //      setBackColor (color);
+      //      Gdi32.Fill (Hdc, rect);
+      //   }
+      //}
 
-      public void PrintCell (Color backColor, Color foreColor, Rectangle rect, FontStyle fontStyle, HorizontalAlignment textAlignment, string text) {
-         int x = rect.X;
-         switch (textAlignment) {
+      public void PrintCell (Cell cell, ref Rectangle rect) {
+         int left = rect.Left + cell.HorizontalPadding.Left;
+         int right = rect.Right - cell.HorizontalPadding.Right;
+         int x;
+         switch (cell.Alignment) {
+            case HorizontalAlignment.Left:
+               x = left; break;
             case HorizontalAlignment.Right:
-               x = rect.Right; break;
+               x = right; break;
             case HorizontalAlignment.Center:
-               x = (x + rect.Right) / 2; break;
+               x = (left+right) / 2; break;
+            default: throw new Exception("Unexpected Alignment: " + cell.Alignment);
          }
-         int overflow;
-         overflow = rect.Right - Width;
-         if (overflow > 0) rect.Width = rect.Width - overflow;
-         overflow = rect.Bottom - Height;
-         if (overflow > 0) rect.Height = rect.Height - overflow;
+         //int overflow;
+         //overflow = rect.Right - Width;
+         //if (overflow > 0) rect.Width = rect.Width - overflow;
+         //overflow = rect.Bottom - Height;
+         //if (overflow > 0) rect.Height = rect.Height - overflow;
 
          if (rect.Width > 0 && rect.Height > 0) {
-            setBackColor (backColor);
-            setForeColor (foreColor);
-            setFontStyle (fontStyle);
-            setTextAlignment (textAlignment);
-            Gdi32.Fill (Hdc, rect);
-            Gdi32.PrintText (Hdc, rect, x, text);
+            var gdiRect = new GDIRECT (rect.X, rect.Y, rect.Right, rect.Bottom);
+            setBackColor (cell.BackColor);
+            setForeColor (cell.ForeColor);
+            setFontStyle (cell.FontStyle);
+            setTextAlignment (cell.Alignment);
+            Gdi32.Fill (Hdc, ref gdiRect);
+
+            gdiRect.Left += cell.HorizontalPadding.Left;
+            gdiRect.Right -= cell.HorizontalPadding.Right;
+            Gdi32.PrintText (Hdc, ref gdiRect, x, cell.Text);
          }
       }
    }

@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Bitmanager.Grid {
+   public struct HorizontalPadding {
+      public int Left;
+      public int Right;
+      public HorizontalPadding (int left, int right) {
+         Left = left;
+         Right = right;
+      }
+   }
 
    public class Column {
       public int Width;
@@ -11,16 +19,20 @@ namespace Bitmanager.Grid {
       public Color? ForeColor;
       public FontStyle FontStyle;
       public Font Font;
+      public HorizontalPadding Padding;
+      public static readonly HorizontalPadding DefPadding = new HorizontalPadding(5, 5);
 
       public Column () {
          Alignment = HorizontalAlignment.Left;
          FontStyle = FontStyle.Regular;
+         Padding = DefPadding;
       }
 
       public Column (int width, HorizontalAlignment alignment = HorizontalAlignment.Left) {
          Width = width;
          Alignment = alignment;
          FontStyle = FontStyle.Regular;
+         Padding = DefPadding;
       }
 
       internal Column (InternalColumn c) {
@@ -30,10 +42,13 @@ namespace Bitmanager.Grid {
          ForeColor = c.ForeColor;
          FontStyle = FontStyle.Regular;
          Font = c.Font;
+         Padding = c.Padding;
       }
    }
 
-
+   /// <summary>
+   /// List of columns, public, to be changed by the client
+   /// </summary>
    public class UpdateableColumns : List<Column>, IDisposable {
       private readonly RawGrid parent;
       private bool disposed;
@@ -50,6 +65,9 @@ namespace Bitmanager.Grid {
       }
    }
 
+   /// <summary>
+   /// Internal column definition. Not modifiable
+   /// </summary>
    internal class InternalColumn {
       public readonly RawGrid Parent;
       public readonly int Width;
@@ -60,7 +78,10 @@ namespace Bitmanager.Grid {
       public readonly Color? ForeColor;
       public readonly Color? BackColor;
       public readonly HorizontalAlignment Alignment;
-      public int GlobalOffsetPlusWidth => GlobalOffset + Width;
+      public HorizontalPadding Padding;
+
+      public int OuterWidth => Width + Padding.Left + Padding.Right;
+      public int GlobalOffsetPlusWidth => GlobalOffset + OuterWidth;
 
       public Color EffectiveBackColor => BackColor ?? Parent.BackColor;
 
@@ -77,6 +98,7 @@ namespace Bitmanager.Grid {
          ForeColor = c.ForeColor;
          BackColor = c.BackColor;
          Alignment = c.Alignment;
+         Padding = c.Padding;
       }
       public InternalColumn (InternalColumn c, int width, int offset) {
          Parent = c.Parent;
@@ -87,6 +109,7 @@ namespace Bitmanager.Grid {
          ForeColor = c.ForeColor;
          BackColor = c.BackColor;
          Alignment = c.Alignment;
+         Padding = c.Padding;
       }
 
       internal static void SetColumnWidth (List<InternalColumn> columns, int col, int width) {

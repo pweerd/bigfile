@@ -31,8 +31,9 @@ namespace Bitmanager.BigFile {
    public delegate void SelectionEventHandler (int from, int to);
 
    /// <summary>
-   /// Module to handle selection logic to a ListView component.
-   /// Reason is that the Listview handles selections very slow in case of lots of selected elements
+   /// Module to handle selection logic for the Grid component.
+   /// Original reason was that the Listview handles selections very slow in case of lots of selected elements,
+   /// But today we  implemented our own Grid. This Grid doesn't do selection at all...
    /// 
    /// This class hooks mouse and key events and handles them.
    /// The caller needs to handle selection ranges via the supplied events.
@@ -54,9 +55,10 @@ namespace Bitmanager.BigFile {
          this.Grid = grid;
          this.logger = Globals.MainLogger.Clone ("select");
          prevRow = -1;
-         grid.MouseDown += Listview_MouseDown;
-         grid.SelectedIndexChanged += Listview_SelectedIndexChanged;
-         grid.KeyDown += Listview_KeyDown;
+         grid.MouseDown += Grid_MouseDown;
+         grid.SelectedIndexChanged += Grid_SelectedIndexChanged;
+         grid.KeyDown += Grid_KeyDown;
+         grid.RowCountChanged += Grid_RowCountChanged;
       }
 
       public void NotifyExternalChange () {
@@ -77,7 +79,16 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      private void Listview_KeyDown (object sender, System.Windows.Forms.KeyEventArgs e) {
+      public void Clear () {
+         inducedBy = InducedBy.Other;
+         complex = false;
+         low = -1;
+         high = -1;
+         prevRow = -1;
+      }
+
+      #region EventHandlers for Grid
+      private void Grid_KeyDown (object sender, System.Windows.Forms.KeyEventArgs e) {
          switch (e.KeyCode) {
             default: return;
             case Keys.A:
@@ -114,69 +125,7 @@ namespace Bitmanager.BigFile {
          inducedBy = InducedBy.Keypress;
       }
 
-      public void Clear () {
-         inducedBy = InducedBy.Other;
-         complex = false;
-         low = -1;
-         high = -1;
-         prevRow = -1;
-      }
-
-      private void Listview_SelectedIndexChanged (object sender, EventArgs e) {
-         int row = Grid.SelectedIndex;
-         logger.Log ("SelectedIndexChanged: row={0}, inducedBy={1}", row, inducedBy);
-         if (row < 0) return;
-
-         //PW
-         ////Force the selection not to be happen in the listview itself by deselecting immediately
-         ////Reason: it is impossible to reliable select colors for selected items in the listview
-         //Grid.SelectedIndex = -1;
-
-         switch (inducedBy) {
-            case InducedBy.Mouse: goto RESET; //Selection already handled in mouse-procedure 
-            case InducedBy.Keypress:
-               if (prevRow < 0)
-                  select (row);
-               else if (row < prevRow)
-                  select (row, prevRow + 1, prevRow);
-               else
-                  select (prevRow, row + 1, prevRow);
-               break;
-
-            default:
-               prevRow = -1;
-               select (row);
-               break;
-         }
-
-      RESET:
-         inducedBy = InducedBy.Other;
-      }
-
-      protected virtual void toggleSelection (int from, int to) {
-         dump ("-- ToggleSelection ({0}, {1})", from, to);
-         if (OnToggleSelection != null) OnToggleSelection (from, to);
-      }
-      protected virtual void addSelection (int from, int to) {
-         dump ("-- AddSelection ({0}, {1})", from, to);
-         if (OnAddSelection != null) OnAddSelection (from, to);
-      }
-      protected virtual void removeSelection (int from, int to) {
-         dump ("-- RemoveSelection ({0}, {1})", from, to);
-         if (OnRemoveSelection != null) OnRemoveSelection (from, to);
-      }
-
-      private void dump (String fmt, params Object[] args) {
-         logger.Log (fmt, args);
-         String[] stack = Environment.StackTrace.Split ('\n');
-         int N = stack.Length;
-         if (N > 7) N = 7;
-
-         for (int i = 3; i < N; i++)
-            logger.Log ("-- -- {0}", stack[i]);
-      }
-
-      private void Listview_MouseDown (object sender, System.Windows.Forms.MouseEventArgs e) {
+      private void Grid_MouseDown (object sender, System.Windows.Forms.MouseEventArgs e) {
          if (e.Button != MouseButtons.Left) return;
          logger.Log ();
          logger.Log ("LMouseDown: prev={0} complex={1}, mods={2}", prevRow, complex, Control.ModifierKeys);
@@ -210,7 +159,70 @@ namespace Bitmanager.BigFile {
          select (row);
       }
 
-      void select (int row) {
+      private void Grid_SelectedIndexChanged (object sender, EventArgs e) {
+         int row = Grid.SelectedIndex;
+         logger.Log ("SelectedIndexChanged: row={0}, inducedBy={1}", row, inducedBy);
+         if (row < 0) return;
+
+         //PW
+         ////Force the selection not to be happen in the listview itself by deselecting immediately
+         ////Reason: it is impossible to reliable select colors for selected items in the listview
+         //Grid.SelectedIndex = -1;
+
+         switch (inducedBy) {
+            case InducedBy.Mouse: goto RESET; //Selection already handled in mouse-procedure 
+            case InducedBy.Keypress:
+               if (prevRow < 0)
+                  select (row);
+               else if (row < prevRow)
+                  select (row, prevRow + 1, prevRow);
+               else
+                  select (prevRow, row + 1, prevRow);
+               break;
+
+            default:
+               prevRow = -1;
+               select (row);
+               break;
+         }
+
+      RESET:
+         inducedBy = InducedBy.Other;
+      }
+
+      private void Grid_RowCountChanged (object sender, EventArgs e) {
+         Clear ();
+      }
+
+      #endregion
+
+      #region event-handlers
+      protected virtual void toggleSelection (int from, int to) {
+         dump ("-- ToggleSelection ({0}, {1})", from, to);
+         if (OnToggleSelection != null) OnToggleSelection (from, to);
+      }
+      protected virtual void addSelection (int from, int to) {
+         dump ("-- AddSelection ({0}, {1})", from, to);
+         if (OnAddSelection != null) OnAddSelection (from, to);
+      }
+      protected virtual void removeSelection (int from, int to) {
+         dump ("-- RemoveSelection ({0}, {1})", from, to);
+         if (OnRemoveSelection != null) OnRemoveSelection (from, to);
+      }
+      #endregion
+
+      private void dump (String fmt, params Object[] args) {
+         logger.Log (fmt, args);
+         String[] stack = Environment.StackTrace.Split ('\n');
+         int N = stack.Length;
+         if (N > 7) N = 7;
+
+         for (int i = 3; i < N; i++)
+            logger.Log ("-- -- {0}", stack[i]);
+      }
+
+
+      private void select (int row) {
          if (complex)
             deselectAll ();
          else {
@@ -223,7 +235,8 @@ namespace Bitmanager.BigFile {
          prevRow = row;
          addSelection (row, row + 1);
       }
-      void select (int from, int to, int row) {
+
+      private void select (int from, int to, int row) {
          if (complex)
             deselectAll ();
          else {
@@ -236,14 +249,16 @@ namespace Bitmanager.BigFile {
          prevRow = row;
          addSelection (from, to);
       }
-      void toggle (int row) {
+
+      private void toggle (int row) {
          complex = true;
          low = row;
          high = row + 1;
          prevRow = row;
          toggleSelection (row, row + 1);
       }
-      void deselectAll () {
+
+      private void deselectAll () {
          removeSelection (0, Grid.RowCount);
          Clear ();
       }

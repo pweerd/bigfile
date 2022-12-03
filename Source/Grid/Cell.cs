@@ -14,24 +14,28 @@ namespace Bitmanager.Grid {
       public FontStyle FontStyle;
       public Color BackColor;
       public Color ForeColor;
+      public HorizontalPadding HorizontalPadding;
 
       private Cell () {
-         BackColor = Color.Transparent;
-         ForeColor = Color.Transparent;
+         BackColor = Color.Yellow;
+         ForeColor = Color.Black;
          FontStyle = FontStyle.Regular;
          Alignment = HorizontalAlignment.Left;
+         HorizontalPadding = new HorizontalPadding ();
       }
       internal Cell (InternalColumn c) {
          BackColor = c.EffectiveBackColor;
          ForeColor = c.EffectiveForeColor;
          FontStyle = c.FontStyle;
          Alignment = c.Alignment;
+         HorizontalPadding = c.Padding;
       }
       internal Cell (RawGrid grid) {
          BackColor = grid.BackColor;
          ForeColor = grid.ForeColor;
          FontStyle = FontStyle.Regular;
          Alignment = HorizontalAlignment.Left;
+         HorizontalPadding = new HorizontalPadding ();
       }
 
 

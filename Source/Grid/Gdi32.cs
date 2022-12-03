@@ -38,30 +38,28 @@ namespace Bitmanager.Grid {
 			SetTextAlign(hdc, value);
 		}
 
-      public static void PrintText (IntPtr hdc, Rectangle rectangle, HorizontalAlignment alignment, string text) {
+      public static void PrintText (IntPtr hdc, ref GDIRECT rect, HorizontalAlignment alignment, string text) {
          int txtLen = text == null ? 0 : text.Length;
 
-         var rect = new RECT (rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
-         var position = alignment switch {
-            HorizontalAlignment.Left => new Point (2, 0),
-            HorizontalAlignment.Right => new Point (rectangle.Width - 2, 0),
-            HorizontalAlignment.Center => new Point (rectangle.Width / 2, 0),
-            _ => throw new InvalidEnumArgumentException (nameof (alignment), (int)alignment, typeof (HorizontalAlignment))
+         int x = rect.Left;
+         int y = rect.Top;
+         switch (alignment){
+				case HorizontalAlignment.Left: break;
+				case HorizontalAlignment.Right: y = rect.Right; break;
+				case HorizontalAlignment.Center: x = (x + rect.Right) / 2; break;
          };
 
-         ExtTextOut (hdc, rectangle.X + position.X, rectangle.Y + position.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)txtLen, IntPtr.Zero);
+         ExtTextOut (hdc, x, y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)txtLen, IntPtr.Zero);
       }
 
-      public static void PrintText (IntPtr hdc, Rectangle rectangle, int xPos, string text) {
+      public static void PrintText (IntPtr hdc, ref GDIRECT rect, int xPos, string text) {
 			int txtLen = text==null?0 : text.Length;
-         var gdiRect = new RECT (rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
-         ExtTextOut (hdc, xPos, rectangle.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref gdiRect, text, (uint)txtLen, IntPtr.Zero);
+         ExtTextOut (hdc, xPos, rect.Top, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref rect, text, (uint)txtLen, IntPtr.Zero);
       }
       
-		public static void Fill(IntPtr hdc, Rectangle rectangle)
+		public static void Fill(IntPtr hdc, ref GDIRECT gdiRect)
 		{
-         var gdiRect = new RECT (rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom);
-         ExtTextOut (hdc, rectangle.X, rectangle.Y, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref gdiRect, null, 0, IntPtr.Zero);
+         ExtTextOut (hdc, gdiRect.Left, gdiRect.Top, ETOOptions.OPAQUE | ETOOptions.CLIPPED, ref gdiRect, null, 0, IntPtr.Zero);
 		}
 
 		public static void Delete(IntPtr hdc)
@@ -83,7 +81,7 @@ namespace Bitmanager.Grid {
       }
 
       [DllImport ("gdi32.dll", EntryPoint = "ExtTextOutW")]
-		private static extern bool ExtTextOut(IntPtr hdc, int X, int Y, ETOOptions fuOptions, [In] ref RECT lprc, [MarshalAs(UnmanagedType.LPWStr)] string lpString, uint cbCount, [In] IntPtr lpDx);
+		private static extern bool ExtTextOut(IntPtr hdc, int X, int Y, ETOOptions fuOptions, [In] ref GDIRECT lprc, [MarshalAs(UnmanagedType.LPWStr)] string lpString, uint cbCount, [In] IntPtr lpDx);
 
 		[DllImport("gdi32.dll")]
 		private static extern uint SetBkColor(IntPtr hdc, int crColor);
@@ -155,14 +153,14 @@ namespace Bitmanager.Grid {
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private readonly struct RECT
+		public struct GDIRECT
 		{
-			public readonly int Left;
-			public readonly int Top;
-			public readonly int Right;
-			public readonly int Bottom;
+			public int Left;
+			public int Top;
+			public int Right;
+			public int Bottom;
 
-			public RECT(int left, int top, int right, int bottom)
+			public GDIRECT(int left, int top, int right, int bottom)
 			{
 				Left = left;
 				Top = top;
