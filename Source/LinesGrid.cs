@@ -1,7 +1,29 @@
-﻿using Bitmanager.Core;
+﻿/*
+ * Licensed to De Bitmanager under one or more contributor
+ * license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright
+ * ownership. De Bitmanager licenses this file to you under
+ * the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+using Bitmanager.Core;
 using Bitmanager.Grid;
+using Microsoft.VisualBasic.ApplicationServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using static Bitmanager.BigFile.GridLines;
+using Timer = System.Windows.Forms.Timer;
 
 namespace Bitmanager.BigFile {
 
@@ -40,14 +62,13 @@ namespace Bitmanager.BigFile {
       private readonly Color selectedForeColor;
       private readonly Color selectedBackColor;
 
-
       public GridLines () {
-         this.selectedBackColor = ((SolidBrush)SystemBrushes.ActiveCaption).Color;
-         this.selectedForeColor = ((SolidBrush)SystemBrushes.ActiveCaptionText).Color;
+         this.selectedBackColor = Color.FromArgb (0, 120, 215);
+         this.selectedForeColor = Color.White;
          BackColor = Color.White;
          ForeColor = Color.Black;
          RowCount = 0;
-         Font = new Font ("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+         Font = new Font ("Consolas", 10F, FontStyle.Regular, GraphicsUnit.Point);
          using (var cols = Columns) {
             cols.Clear ();
             cols.Add (new Column (100, HorizontalAlignment.Right));
@@ -157,6 +178,43 @@ namespace Bitmanager.BigFile {
          return ret;
       }
 
+
+      public String GetTooltipForRow (int row) {
+         int partial = GridRowToRow (row);
+
+         int line = lf == null ? -1 : lf.PartialToLineNumber (partial);
+         var sb = new StringBuilder ();
+         sb.AppendFormat (Invariant.Culture, "Grid row-index={0}, partial-line={1}, line={2}", row, partial, line);
+         if (line >= 0) {
+            int partialByteLen = lf.GetPartialLineLengthInBytes (partial);
+            int lineByteLen = lf.GetLineLengthInBytes (line);
+            int partialCharLen = lf.GetPartialLineLengthInChars (partial);
+            int lineCharLen = lf.GetLineLengthInBytes (line);
+            sb.AppendFormat (Invariant.Culture, "\nPartialChars={0} ({1} bytes)", partialCharLen, partialByteLen);
+            sb.AppendFormat (Invariant.Culture, "\nLinesChars={0} ({1} bytes)", lineCharLen, lineByteLen);
+         }
+         return sb.ToString();
+      }
+
+      RowToolTip _rowTooltip;
+
+      protected override void OnMouseLeave (EventArgs e) {
+         logger.Log ("Mouseleave");
+         base.OnMouseLeave (e);
+         if (_rowTooltip != null) _rowTooltip.Stop ();
+      }
+      protected override void OnMouseMove (MouseEventArgs e) {
+         base.OnMouseMove (e);
+         int row = base.GetMouseRowAndCol (e.X, e.Y, out var col);
+         //logger.Log ("MouseMove: row={0}, col={1}", row, col);
+         if (row < 0 || col != 0) {
+            if (_rowTooltip != null) _rowTooltip.Stop ();
+         } else {
+            if (_rowTooltip == null) _rowTooltip = new RowToolTip (this, null);//, logger.Clone("tooltip"));
+            _rowTooltip.Start (e.X, e.Y, row);
+         }
+      }
+
       protected override void WndProc (ref Message m) {
          switch (m.Msg) {
             case WM_MOUSEWHEEL:
@@ -191,40 +249,4 @@ namespace Bitmanager.BigFile {
 
 
    }
-
-
-
-   //public class LinesGrid: RawGrid {
-   //   private static readonly String def;
-
-   //   public LinesGrid() {
-   //      using (var c  = Columns) {
-   //         c.Add (new Bitmanager.Grid.Column (100));
-   //         c.Add (new Bitmanager.Grid.Column (250));
-   //      }
-         
-   //   }
-
-   //   //protected override Cell GetCell (int row, int col) {
-   //   //   Cell cell = CreateCell (col);
-   //   //   if (col == 0) {
-   //   //      cell.Text = row.ToString ();
-   //   //   } else {
-   //   //      cell.Text = def;
-   //   //   }
-   //   //   return cell;
-   //   //}
-
-   //   static LinesGrid () {
-   //      String space = new string (' ', 32);
-   //      var sb = new StringBuilder ();
-   //      for (int i = 0; i < 1000; i++) {
-   //         sb.Append ('|');
-   //         sb.Append (10 * i);
-   //         int fill = 10 - sb.Length % 10;
-   //         sb.Append (space, 0, fill);
-   //      }
-   //      def = sb.ToString();
-   //   }
-   //}
 }

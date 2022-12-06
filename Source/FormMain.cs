@@ -58,7 +58,10 @@ namespace Bitmanager.BigFile {
       private readonly SelectionHandler selectionHandler;
       private float initialFontSize;
 
+      public static Form Self;
+
       public FormMain () {
+         Self = this;
          InitializeComponent ();
          this.Text = Globals.TITLE;
          gridLines = new GridLines ();

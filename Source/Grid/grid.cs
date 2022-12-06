@@ -1,4 +1,23 @@
-﻿using Bitmanager.Core;
+﻿/*
+ * Licensed to De Bitmanager under one or more contributor
+ * license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright
+ * ownership. De Bitmanager licenses this file to you under
+ * the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+using Bitmanager.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -35,7 +54,7 @@ namespace Bitmanager.Grid {
 
       private List<InternalColumn> _columns;
 
-      private int clientWidth, clientHeight; //without scrollbars
+      private int _clientWidth, _clientHeight; //without scrollbars
       public static readonly Logger logger = Logs.CreateLogger ("bigfile", "grid");
 
 
@@ -64,11 +83,11 @@ namespace Bitmanager.Grid {
          _selectedIndex = -1;
       }
       protected override void OnResize (EventArgs e) {
-         clientWidth = Width;
-         if (vScrollBar.Visible) clientWidth -= vScrollBar.Width;
-         clientHeight = Height;
-         if (hScrollBar.Visible) clientHeight -= hScrollBar.Height;
-         logger.Log ("OnResize: h={0} ({1}), w={2} ({3})", clientHeight, Height, clientWidth, Width);
+         _clientWidth = Width;
+         if (vScrollBar.Visible) _clientWidth -= vScrollBar.Width;
+         _clientHeight = Height;
+         if (hScrollBar.Visible) _clientHeight -= hScrollBar.Height;
+         logger.Log ("OnResize: h={0} ({1}), w={2} ({3})", _clientHeight, Height, _clientWidth, Width);
          RecomputeScrollBars ();
          Invalidate ();
          base.OnResize (e);
@@ -154,11 +173,18 @@ namespace Bitmanager.Grid {
          }
       }
 
+      public Rectangle GetCellBounds (int row, int col) {
+         int rh = RowHeight;
+         var c = _columns[col];
+         int y = (int)((rh * (long)row) - _verticalOffset);
+         return new Rectangle ((int)(c.GlobalOffset - _horizontalOffset), y, c.GlobalOffsetPlusWidth, rh);
+      }
+
       double hScrollBarMultiplier=1;
       double vScrollBarMultiplier;
       protected void RecomputeScrollBars() {
          const int MAX_VALUE = (int.MaxValue - 10000) & ~16;
-         if (clientHeight <= 0 || clientWidth <= 0) {
+         if (_clientHeight <= 0 || _clientWidth <= 0) {
             _verticalOffset = 0;
             _maxVerticalOffset = 0;
             _horizontalOffset = 0;
@@ -170,8 +196,8 @@ namespace Bitmanager.Grid {
          vScrollBarMultiplier = 1.0;
          int max = MAX_VALUE; 
          int rowHeight = RowHeight;
-         int rowsPerWindow = (clientHeight+rowHeight-1) / rowHeight;
-         long neededPixels = Math.Max (0, (rowHeight * (long)_rowCount) - clientHeight);
+         int rowsPerWindow = (_clientHeight+rowHeight-1) / rowHeight;
+         long neededPixels = Math.Max (0, (rowHeight * (long)_rowCount) - _clientHeight);
          _maxVerticalOffset = neededPixels;
          if (_verticalOffset > neededPixels) _verticalOffset = neededPixels;
 
@@ -201,7 +227,7 @@ namespace Bitmanager.Grid {
       SETUP_HORIZONTAL:
          hScrollBarMultiplier = 1.0;
          max = MAX_VALUE;
-         neededPixels = Math.Max(0, _columns.Count == 0 ? 0 : _columns[^1].GlobalOffsetPlusWidth - clientWidth);
+         neededPixels = Math.Max(0, _columns.Count == 0 ? 0 : _columns[^1].GlobalOffsetPlusWidth - _clientWidth);
          _maxHorizontalOffset = neededPixels;
          if (_horizontalOffset > neededPixels) _horizontalOffset = neededPixels;
 
@@ -216,18 +242,18 @@ namespace Bitmanager.Grid {
             hScrollBarMultiplier = (neededPixels) / (double)max;
          }
 
-         smallChange = clientWidth / 10;
+         smallChange = _clientWidth / 10;
          if (smallChange >= max) smallChange = max - 1;
-         largeChange = clientWidth - 10 * rowHeight;
+         largeChange = _clientWidth - 10 * rowHeight;
          if (largeChange >= max) largeChange = max - 1;
 
          hScrollBar.SmallChange = smallChange;
          hScrollBar.LargeChange = largeChange < smallChange ? smallChange : largeChange; ;
          logger.Log ("Max (H): {0}, mult={1}, small={2}, large={3}", max, hScrollBarMultiplier, hScrollBar.SmallChange, hScrollBar.LargeChange);
-         hScrollBar.Maximum = max - clientWidth;
+         hScrollBar.Maximum = max - _clientWidth;
       EXIT_RTN:
-         logger.Log ("MaxVerticalOffset={0}, max height={1}, clientH={2}", _maxVerticalOffset, _rowCount*(long)rowHeight, clientHeight);
-         logger.Log ("MaxHorizontalOffset={0}, max width={1}, clientW={2}", _maxHorizontalOffset, _columns[^1].GlobalOffsetPlusWidth, clientWidth);
+         logger.Log ("MaxVerticalOffset={0}, max height={1}, clientH={2}", _maxVerticalOffset, _rowCount*(long)rowHeight, _clientHeight);
+         logger.Log ("MaxHorizontalOffset={0}, max width={1}, clientW={2}", _maxHorizontalOffset, _columns[^1].GlobalOffsetPlusWidth, _clientWidth);
          return;
       }
 
@@ -379,7 +405,7 @@ namespace Bitmanager.Grid {
       }
 
       public void MakeCellVisible (int row, int col = -1, bool select = true) {
-         int visibleRows = clientHeight / RowHeight;
+         int visibleRows = _clientHeight / RowHeight;
          if (row < 0) row = 0;
          else if (row >= _rowCount) row = _rowCount - 1;
 
@@ -395,8 +421,8 @@ namespace Bitmanager.Grid {
             VerticalOffset = vOffset;
             goto SELECT;
          }
-         if (vOffset + RowHeight > clientHeight) {
-            vOffset = VerticalOffset + clientHeight - 3 * RowHeight;
+         if (vOffset + RowHeight > _clientHeight) {
+            vOffset = VerticalOffset + _clientHeight - 3 * RowHeight;
             VerticalOffset = vOffset;
             goto SELECT;
          }
@@ -434,7 +460,7 @@ namespace Bitmanager.Grid {
       protected override void OnMouseWheel (MouseEventArgs e) {
          base.OnMouseWheel (e);
          int delta = 1; // e.Delta < 0 ? -1 : 1;
-         int visibleRows = clientHeight / RowHeight;
+         int visibleRows = _clientHeight / RowHeight;
          int max = Math.Min(1, visibleRows / 2);
          if (RowCount > 1000) delta *= 3;
          else if (RowCount > 100) delta *= 2;
@@ -456,11 +482,11 @@ namespace Bitmanager.Grid {
                break;
             case Keys.End:
                if (e.Control) {
-                  VerticalOffset = RowHeight * (long)RowCount - clientHeight;
+                  VerticalOffset = RowHeight * (long)RowCount - _clientHeight;
                   HorizontalOffset = 0;
                } else {
-                  logger.Log ("offset1={0}, offset2={1}", _columns[^1].GlobalOffsetPlusWidth - clientWidth, (int)(.5 + hScrollBar.Maximum * hScrollBarMultiplier));
-                  HorizontalOffset = _columns[^1].GlobalOffsetPlusWidth - clientWidth;// (int) (.5 + hScrollBar.Maximum * hScrollBarMultiplier);
+                  logger.Log ("offset1={0}, offset2={1}", _columns[^1].GlobalOffsetPlusWidth - _clientWidth, (int)(.5 + hScrollBar.Maximum * hScrollBarMultiplier));
+                  HorizontalOffset = _columns[^1].GlobalOffsetPlusWidth - _clientWidth;// (int) (.5 + hScrollBar.Maximum * hScrollBarMultiplier);
                }
                break;
             case Keys.Up:
@@ -516,7 +542,18 @@ namespace Bitmanager.Grid {
          return -1;
       }
 
+      public Rectangle InnerClientRectangle {
+         get {
+            return new Rectangle (0, 0, _clientWidth, _clientHeight);
+         }
+      }
 
+
+      /// <summary>
+      /// Returns the row based on the mouse-coordinates, or -1 if the coordinates do not point in a row
+      /// </summary>
+      /// <param name="y"></param>
+      /// <returns></returns>
       public int GetMouseRow (int y) {
          int row = (int)((_verticalOffset + y) / RowHeight);
          if (row < 0) row = -1;

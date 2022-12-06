@@ -1117,11 +1117,48 @@ namespace Bitmanager.BigFile {
       }
 
       /// <summary>
-      /// Get length of a partial line
+      /// Get length of a partial line in #bytes
       /// </summary>
-      public int GetPartialLineLength (int index) {
+      public int GetPartialLineLengthInBytes (int index) {
          if (index < 0 || index >= partialLines.Count - 1) return 0;
          return (int)((partialLines[index + 1] >> LineFlags.FLAGS_SHIFT) - (partialLines[index] >> LineFlags.FLAGS_SHIFT));
+      }
+
+      /// <summary>
+      /// Get length of a partial line in #chars
+      /// </summary>
+      public int GetPartialLineLengthInChars (int index) {
+         if (index < 0 || index >= partialLines.Count - 1) return 0;
+         String tmp = threadCtx.GetPartialLine (index, index + 1, -1, null);
+         return tmp.Length;
+      }
+
+
+      /// <summary>
+      /// Get length of a line in #chars
+      /// </summary>
+      public int GetLineLengthInBytes (int index) {
+         if (lines == null) return GetPartialLineLengthInBytes (index);
+         if (index < 0 || index >= lines.Count - 1) return 0;
+         return (int)((partialLines[lines[index + 1]] >> LineFlags.FLAGS_SHIFT) - (partialLines[lines[index]] >> LineFlags.FLAGS_SHIFT));
+      }
+
+
+      /// <summary>
+      /// Get length of a line in #chars
+      /// </summary>
+      public int GetLineLengthInChars (int index) {
+         if (lines == null) return GetPartialLineLengthInChars (index);
+         if (index < 0 || index >= lines.Count - 1) return 0;
+         String tmp = threadCtx.GetLine (index, index + 1, -1, out bool truncated);
+         return tmp.Length;
+      }
+      public int GetLineLengthInChars (int index, out bool truncated) {
+         truncated = false;
+         if (lines == null) return GetPartialLineLengthInChars (index);
+         if (index < 0 || index >= lines.Count - 1) return 0;
+         String tmp = threadCtx.GetLine (index, index + 1, -1, out truncated);
+         return tmp.Length;
       }
 
       /// <summary>
