@@ -45,7 +45,7 @@ namespace Bitmanager.BigFile {
          get { return filter; }
          set {
             filter = value;
-            RowCount = (value != null) ? value.Count : lf.PartialLineCount;
+            RowCount = (value != null) ? value.Count : ((lf==null) ? 0 : lf.PartialLineCount);
             RecomputeScrollBars ();
             GotoCell (0, 0, false);
          }
@@ -116,11 +116,6 @@ namespace Bitmanager.BigFile {
             //SetColumnWidth (1, 25000 + w);
             //logger.Log ("Set col-1 width: {0} at line {1}, chars={2}", w, largestIndex, content.Length);
          }
-      }
-
-      public void SetFilter (List<int> filter) {
-         this.Filter = filter;
-         base.RowCount = filter==null ? lf.PartialLineCount: filter.Count;
       }
 
       protected override void OnFontChanged (EventArgs e) {

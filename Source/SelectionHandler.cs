@@ -37,6 +37,8 @@ namespace Bitmanager.BigFile {
    /// 
    /// This class hooks mouse and key events and handles them.
    /// The caller needs to handle selection ranges via the supplied events.
+   /// 
+   /// NB: the rows in this class are grid-indexes. They must be translated into partial lines by our caller!
    /// </summary>
    public class SelectionHandler {
       private enum InducedBy { Other, Mouse, Keypress };
@@ -58,7 +60,6 @@ namespace Bitmanager.BigFile {
          grid.MouseDown += Grid_MouseDown;
          grid.SelectedIndexChanged += Grid_SelectedIndexChanged;
          grid.KeyDown += Grid_KeyDown;
-         grid.RowCountChanged += Grid_RowCountChanged;
       }
 
       public void NotifyExternalChange () {
@@ -188,10 +189,6 @@ namespace Bitmanager.BigFile {
 
       RESET:
          inducedBy = InducedBy.Other;
-      }
-
-      private void Grid_RowCountChanged (object sender, EventArgs e) {
-         Clear ();
       }
 
       #endregion

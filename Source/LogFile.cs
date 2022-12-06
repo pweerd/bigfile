@@ -783,10 +783,12 @@ namespace Bitmanager.BigFile {
       }
 
       public void MarkUnselected (int from, int to) {
+         logger.Log (_LogType.ltTimerStart, "MarkUnselected"); //PW clear later
          long mask = ~LineFlags.SELECTED;
          for (int i = from; i < to; i++) {
             partialLines[i] &= mask;
          }
+         logger.Log (_LogType.ltTimerStop, "MarkUnselected took");
       }
 
       public void ToggleSelected (int from, int to) {

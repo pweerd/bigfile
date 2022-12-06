@@ -357,7 +357,7 @@ namespace Bitmanager.BigFile {
             SettingsSource.SaveFormPosition (Left, Top, Width, Height);
             fileHistory.Save ();
             directoryHistory.Save ();
-            clearAll ();
+            //PW onnodig? clearAll ();
          }
       }
 
@@ -673,6 +673,7 @@ namespace Bitmanager.BigFile {
 
       private void clearAll () {
          searchboxDriver.Clear ();
+         //if (lf != null && selectionHandler.AnySelected) lf.MarkUnselected (0, lf.PartialLineCount);
          selectionHandler.Clear ();
          lastQuery = null;
          gridLines.SetLogFile(null, true);
@@ -857,11 +858,13 @@ namespace Bitmanager.BigFile {
             return;
          }
 
-         gridLines.SetLogFile (newLF, isFirstPartial);
-         if (isFirstPartial) {
+         bool first = isFirstPartial;
+         if (first) {
             selectViewAll ();
+            selectionHandler.Clear ();
             isFirstPartial = false;
          }
+         gridLines.SetLogFile (newLF, first);
          if (lineForm != null && !lineForm.IsClosed)
             lineForm.UpdateLogFile (newLF);
 
@@ -937,14 +940,14 @@ namespace Bitmanager.BigFile {
       private void handleViewSelection () {
          if (lf == null || lf.PartialLineCount == 0) return;
          if (menuViewAll.Checked) {
-            gridLines.SetFilter (null);
+            gridLines.Filter = null;
             return;
          }
          if (menuViewMatched.Checked) {
-            gridLines.SetFilter (lf.GetMatchedList (settings.NumContextLines));
+            gridLines.Filter = lf.GetMatchedList (settings.NumContextLines);
             return;
          }
-         gridLines.SetFilter (lf.GetUnmatchedList (settings.NumContextLines));
+         gridLines.Filter = lf.GetUnmatchedList (settings.NumContextLines);
          return;
       }
 
@@ -1142,17 +1145,20 @@ namespace Bitmanager.BigFile {
 
       private void selectionHandler_Add (int from, int to) {
          if (lf == null) return;
+         if (to >= gridLines.RowCount) to = gridLines.RowCount;
          lf.MarkSelected (gridLines.GridRowToRow (from), gridLines.GridRowToRow (to));
          gridLines.Invalidate ();
          logger.Log ("done");
       }
       private void selectionHandler_Remove (int from, int to) {
          if (lf == null) return;
+         if (to >= gridLines.RowCount) to = gridLines.RowCount;
          lf.MarkUnselected (gridLines.GridRowToRow (from), gridLines.GridRowToRow (to));
          gridLines.Invalidate ();
       }
       private void selectionHandler_Toggle (int from, int to) {
          if (lf == null) return;
+         if (to >= gridLines.RowCount) to = gridLines.RowCount;
          lf.ToggleSelected (gridLines.GridRowToRow (from), gridLines.GridRowToRow (to));
          gridLines.Invalidate ();
       }

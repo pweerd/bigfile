@@ -21,6 +21,7 @@ using Bitmanager.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -421,8 +422,8 @@ namespace Bitmanager.Grid {
             VerticalOffset = vOffset;
             goto SELECT;
          }
-         if (vOffset + RowHeight > _clientHeight) {
-            vOffset = VerticalOffset + _clientHeight - 3 * RowHeight;
+         if (vOffset + RowHeight - VerticalOffset > _clientHeight) {
+            vOffset -= (_clientHeight - 3 * RowHeight);
             VerticalOffset = vOffset;
             goto SELECT;
          }
@@ -482,11 +483,12 @@ namespace Bitmanager.Grid {
                break;
             case Keys.End:
                if (e.Control) {
-                  VerticalOffset = RowHeight * (long)RowCount - _clientHeight;
+                  VerticalOffset = _maxVerticalOffset;
                   HorizontalOffset = 0;
                } else {
                   logger.Log ("offset1={0}, offset2={1}", _columns[^1].GlobalOffsetPlusWidth - _clientWidth, (int)(.5 + hScrollBar.Maximum * hScrollBarMultiplier));
-                  HorizontalOffset = _columns[^1].GlobalOffsetPlusWidth - _clientWidth;// (int) (.5 + hScrollBar.Maximum * hScrollBarMultiplier);
+                  //HorizontalOffset = _columns[^1].GlobalOffsetPlusWidth - _clientWidth;// (int) (.5 + hScrollBar.Maximum * hScrollBarMultiplier);
+                  HorizontalOffset = _maxHorizontalOffset;
                }
                break;
             case Keys.Up:
