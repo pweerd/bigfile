@@ -382,7 +382,8 @@ namespace Bitmanager.Grid {
 
          long rh = RowHeight;
          int rowStart = (int)(virtualY / rh);
-         int rowEnd = 1+(int)((virtualY + e.ClipRectangle.Width) / rh);
+         int rowEnd = 1+(int)((virtualY + e.ClipRectangle.Height) / rh);
+         if (rowEnd > _rowCount) rowEnd = _rowCount;
 
          int colStart = 0;
          for (; colStart < _columns.Count && _columns[colStart].GlobalOffsetPlusWidth <= virtualX; colStart++) ;
@@ -391,7 +392,6 @@ namespace Bitmanager.Grid {
 
          //logger.Log ("clip=({0}, {1}), ({2}, {3})", e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height);
          _displayBuffer.Init (e.ClipRectangle.Height, e.ClipRectangle.Width);
-         _displayBuffer.Clear (BackColor);
          //logger.Log ("rows=({0}, {1}), cols=({2}, {3})", rowStart, rowEnd, colStart, colEnd);
 
          Rectangle bufRect = new Rectangle (0, 0, 0, (int)rh);
@@ -400,8 +400,9 @@ namespace Bitmanager.Grid {
             int x = (int)(column.GlobalOffset - virtualX);
             bufRect.X = x;
             bufRect.Width = column.OuterWidth;
+            _displayBuffer.ClearColumn (column.EffectiveBackColor, x, column.OuterWidth);
 
-            int y=(int)(rowStart * rh - virtualY);
+            int y =(int)(rowStart * rh - virtualY);
             for (int row = rowStart; row < rowEnd; row++) {
 //               logger.Log ("-- getCell ({0}, {1}", row, col);
 //               logger.Log ("-- cellRect=({0}, {1}), ({2}, {3})", bufRect.X, bufRect.Y, bufRect.Width, bufRect.Height);

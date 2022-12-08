@@ -128,9 +128,17 @@ namespace Bitmanager.BigFile {
          Invalidate ();
       }
 
+      /// <summary>
+      /// Convert a row into a real row by using an eventual filter.
+      /// It is allowed to use the count of the filter as a row
+      /// </summary>
       public override int GridRowToRow (int row) {
-         return (filter != null && row >= 0 && row < filter.Count) ? filter[row] : row;
+         if (row < 0 || filter==null) return row;
+         return (filter.Count == row) ? filter[row - 1] + 1 : filter[row];
       }
+      /// <summary>
+      /// Try to find a real row-index in the eventual active filter
+      /// </summary>
       public override int RowToGridRow (int row, bool returnGE=false) {
          if (filter == null || row < 0) return row;
 
