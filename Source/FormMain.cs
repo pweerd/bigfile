@@ -993,6 +993,7 @@ namespace Bitmanager.BigFile {
 
             case (char)6:  //CTRL_F
             case (char)7:  //CTRL_G
+               break;
             case (char)13: //Enter: activate line
                activateRow (gridLines.FocusRow);
                break;
