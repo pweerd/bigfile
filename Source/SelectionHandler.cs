@@ -19,7 +19,6 @@
 
 using Bitmanager.Core;
 using Bitmanager.Grid;
-using BrightIdeasSoftware;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -131,7 +130,7 @@ namespace Bitmanager.BigFile {
          logger.Log ();
          logger.Log ("LMouseDown: prev={0} complex={1}, mods={2}", prevRow, complex, Control.ModifierKeys);
          inducedBy = InducedBy.Mouse;
-         int row = Grid.GetMouseRow (e.Y);
+         int row = Grid.GetRowFromLocation (e.Y);
          if (row < 0) return;
 
          Keys mods = Control.ModifierKeys;

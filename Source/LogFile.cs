@@ -70,8 +70,8 @@ namespace Bitmanager.BigFile {
       private List<int> lines;
       private ZipEntries zipEntries;
       public ZipEntries ZipEntries { get { return zipEntries; } }
-      public int LongestPartialIndex { get; private set; }
-      public int LongestLineIndex { get; private set; }
+      public int LongestPartialIndex => largestPartialLine == null ? 0 : largestPartialLine.Length;
+      public int LongestLineIndex => largestPartialLine == null ? -1 : largestPartialLine.Index;
       public int PartialLineCount { get { return partialLines.Count - 1; } }
       public long Size { get { return partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT; } }
       public int LineCount { get { return lines == null ? partialLines.Count - 1 : lines.Count - 1; } }
@@ -80,6 +80,10 @@ namespace Bitmanager.BigFile {
       public FileEncoding DetectedEncoding => detectedEncoding;
 
       private Encoding encoding = Encoding.UTF8;
+
+      private PartialLineLength[] largestPartialLines;
+      private PartialLineLength largestPartialLine;
+      public PartialLineLength[] LargestPartialLines => largestPartialLines;
 
       public IDirectStream DirectStream { get { return threadCtx == null ? null : threadCtx.DirectStream; } }
 
@@ -281,6 +285,8 @@ namespace Bitmanager.BigFile {
 
          if (partialLines.Count == 0) partialLines.Add (0);
 
+         var prique = new LargestLines ();
+
          long prevPartial = partialLines[0];
          long prevLine = partialLines[0];
          int maxPartialLen = 0;
@@ -307,13 +313,14 @@ namespace Bitmanager.BigFile {
             len = (int)(offset - prevPartial);
             prevPartial = offset;
 
-            if (len <= maxPartialLen) continue;
-            maxPartialLen = len;
-            maxPartialIdx = i - 1;
+            if (len > prique.Min.Length) prique.Add (new PartialLineLength(i-1, len));
          }
-         LongestPartialIndex = maxPartialIdx;
-         LongestLineIndex = lines != null ? maxLineIdx : maxPartialIdx;
-         return maxPartialLen; //PW Math.Max(maxPartialLen, maxLineLen);
+         largestPartialLines = prique.ToArray ();
+         PartialLineLength max = largestPartialLines[0];
+         for (int i = largestPartialLines.Length - 1; i > 0; i--) 
+            if (largestPartialLines[i].Length > max.Length) max = largestPartialLines[i];
+         largestPartialLine = max;
+         return max.Length;
       }
 
       public int NextPartialHit (int idxPartial) {
@@ -701,7 +708,6 @@ namespace Bitmanager.BigFile {
             this.fileName = Path.GetFullPath (fn);
             this.ct = ct;
             try {
-               LongestPartialIndex = -1;
                if (String.Equals (".gz", Path.GetExtension (fileName), StringComparison.OrdinalIgnoreCase))
                   loadGZipFile (fileName, ct);
                else if (zipEntry != null || String.Equals (".zip", Path.GetExtension (fileName), StringComparison.OrdinalIgnoreCase))
@@ -1244,6 +1250,24 @@ namespace Bitmanager.BigFile {
          }
       }
 
+      public PartialLineLength GetLongestLineInBytes () {
+         return this.largestPartialLine;
+      }
+      public PartialLineLength GetLongestLineInChars () {
+         if (lines == null) return largestPartialLine;
+         PartialLineLength ret= PartialLineLength.ZERO;
+
+         for (int i =0; i< largestPartialLines.Length; i++) {
+            var ll = largestPartialLines[i];
+            int tmp = threadCtx.GetPartialLineLengthInChars (ll.Index);
+            logger.Log ("Longest partial line: at {0}, bytes={1}, chars={2} ({3})", ll.Index, GetPartialLineLengthInBytes (ll.Index), tmp, GetPartialLineLengthInChars (ll.Index));
+            if (ret==null || tmp > ret.Length) {
+               ret = new PartialLineLength (ll.Index, tmp);
+            }
+         }
+         return ret;
+      }
+
 
 
       /// <summary>
@@ -1304,4 +1328,5 @@ namespace Bitmanager.BigFile {
 
       }
    }
+
 }

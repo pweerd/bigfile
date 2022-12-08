@@ -7,9 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BigFile", "BigFile.csproj",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "..\UnitTests\UnitTests.csproj", "{D1820C33-3B5E-470D-B2FA-60B58FC09AC7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomVirtualListView", "..\CustomVirtualListView\CustomVirtualListView.csproj", "{50E90553-160A-42B9-A94C-86EB61017B1A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigFileTests", "..\BigFileTests\BigFileTests.csproj", "{244F47A5-3BFC-4259-B78A-98F8689A1A51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BigFileTests", "..\BigFileTests\BigFileTests.csproj", "{244F47A5-3BFC-4259-B78A-98F8689A1A51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +23,6 @@ Global
 		{D1820C33-3B5E-470D-B2FA-60B58FC09AC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1820C33-3B5E-470D-B2FA-60B58FC09AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1820C33-3B5E-470D-B2FA-60B58FC09AC7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{50E90553-160A-42B9-A94C-86EB61017B1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50E90553-160A-42B9-A94C-86EB61017B1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50E90553-160A-42B9-A94C-86EB61017B1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50E90553-160A-42B9-A94C-86EB61017B1A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{244F47A5-3BFC-4259-B78A-98F8689A1A51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{244F47A5-3BFC-4259-B78A-98F8689A1A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{244F47A5-3BFC-4259-B78A-98F8689A1A51}.Release|Any CPU.ActiveCfg = Release|Any CPU

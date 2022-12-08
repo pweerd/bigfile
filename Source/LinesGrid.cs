@@ -90,31 +90,35 @@ namespace Bitmanager.BigFile {
          }
       }
 
+      private int measurePartialLineWidth (int index) {
+         String txt = lf.GetPartialLine (index, -1, TabsReplacer.INSTANCE);
+         return base.MeasureTextWidth (txt);
+      }
+      
+      private PartialLineLength getWidestLine () {
+         int maxIndex=-1;
+         int maxWidth = 0;
+     
+         foreach (var ll in lf.LargestPartialLines) {
+            int w = measurePartialLineWidth(ll.Index);
+            if (w <= maxWidth) continue;
+            maxIndex = ll.Index;
+            maxWidth = w;
+         }
+         return new PartialLineLength(maxIndex, maxWidth);
+      }
       protected void updateColumnWidths() {
          if (lf != null && RowCount > 0) {
             int lastIndex = GridRowToRow (RowCount - 1);
             if (lastIndex < 0) lastIndex = lf.PartialLineCount - 1;
             lastIndex = lf.PartialToLineNumber (lastIndex);
             int w = base.MeasureTextWidth (lastIndex.ToString ());
-            SetColumnWidth (0, Math.Max(50, 10 + w));
+            SetColumnWidth (0, Math.Max(50, 10 + w), false);
             logger.Log ("Set col-0 width: {0}", w);
 
-            //int largestIx = 0;
-            //int largestLen = 0;
-            //for (int i = 0; i < lf.PartialLineCount; i++) {
-            //   String x = lf.GetPartialLine (i);
-            //   if (x.Length > largestLen) {
-            //      largestLen = x.Length;
-            //      largestIx = i;
-            //   }
-            //}
-            //logger.Log ("Largest at line {0}, chars={1}", largestIx, largestLen);
-
-            //int largestIndex = lf.LongestPartialIndex;
-            //String content = lf.GetPartialLine (largestIndex);
-            //w = base.MeasureTextWidth (lf.GetPartialLine (largestIndex));
-            //SetColumnWidth (1, 25000 + w);
-            //logger.Log ("Set col-1 width: {0} at line {1}, chars={2}", w, largestIndex, content.Length);
+            var ll = getWidestLine ();
+            logger.Log("Longest char line: len={0} at {1}", ll.Length, ll.Index);
+            SetColumnWidth (1, ll.Length + 500, true);
          }
       }
 
@@ -191,6 +195,27 @@ namespace Bitmanager.BigFile {
          return sb.ToString();
       }
 
+
+
+
+      protected override void OnKeyDown (KeyEventArgs e) {
+         if (RowCount == 0 || e.KeyCode != Keys.End || e.Control) goto BASE;
+
+         int row = FocusRow;
+         if (row < 0) goto BASE;
+
+         int w = measurePartialLineWidth (GridRowToRow(row));
+         if (w < 0) goto BASE;
+         logger.Log ("FocusRow={0}, partial={1}, w={2}", row, GridRowToRow (row), w);
+         int cw = InnerClientRectangle.Width;
+         HorizontalOffset = (w <= cw) ? 0 : w - cw / 2; ;
+         e.Handled = true;
+
+      BASE:
+         base.OnKeyDown (e);
+      }
+
+
       RowToolTip _rowTooltip;
 
       protected override void OnMouseLeave (EventArgs e) {
@@ -200,7 +225,7 @@ namespace Bitmanager.BigFile {
       }
       protected override void OnMouseMove (MouseEventArgs e) {
          base.OnMouseMove (e);
-         int row = base.GetMouseRowAndCol (e.X, e.Y, out var col);
+         int row = base.GetRowAndColFromLocation (e.X, e.Y, out var col);
          //logger.Log ("MouseMove: row={0}, col={1}", row, col);
          if (row < 0 || col != 0) {
             if (_rowTooltip != null) _rowTooltip.Stop ();

@@ -53,7 +53,6 @@ namespace Bitmanager.BigFile {
       private SettingsSource settingsSource;
       private Settings settings;
       public Settings Settings => settings;
-      private FixedFontMeasures fontMeasures;
       private ParserNode<SearchContext> lastQuery;
       private readonly SelectionHandler selectionHandler;
       private float initialFontSize;
@@ -90,7 +89,7 @@ namespace Bitmanager.BigFile {
          //}
          cbEncoding.SelectedIndex = 0;
          //PW olvcLineNumber.CellPadding = new Rectangle (0, 0, 2, 0);
-         gridLines.OnFontTick += ListLines_OnFontTick;
+         gridLines.OnFontTick += GridLines_OnFontTick;
 
 
          searchboxDriver = new SearchHistory (cbSearch);
@@ -106,7 +105,12 @@ namespace Bitmanager.BigFile {
       }
 
       #region FONT_TICKERS
-      private void ListLines_OnFontTick (object sender, FontTickArgs e) {
+
+      private void GridLines_MouseDoubleClick (object sender, MouseEventArgs e) {
+         activateRow (gridLines.FocusRow);
+      }
+
+      private void GridLines_OnFontTick (object sender, FontTickArgs e) {
          float newSize = gridLines.Font.SizeInPoints + (e.Delta < 0 ? -1f : 1f);
          if (newSize < 6) newSize = 6;
          float diff = newSize - initialFontSize;
@@ -126,8 +130,6 @@ namespace Bitmanager.BigFile {
 
       private void setGridFontSize (float sizeInPt) {
          gridLines.SetFontSizePt (sizeInPt);
-         fontMeasures = new FixedFontMeasures (gridLines.Font);
-         //PWcomputeListViewDimensions (lf);
          gridLines.Focus ();
       }
       #endregion
@@ -213,50 +215,10 @@ namespace Bitmanager.BigFile {
          this.gridLines.DragEnter += new System.Windows.Forms.DragEventHandler (this.FormMain_DragEnter);
          this.gridLines.KeyDown += new System.Windows.Forms.KeyEventHandler (this.FormMain_KeyDown);
          this.gridLines.KeyPress += new System.Windows.Forms.KeyPressEventHandler (this.FormMain_KeyPress);
-         //this.listLines.Resize += new System.EventHandler (this.listLines_Resize);
-         //this.listLines.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs> (this.listLines_Scroll);
-         //this.listLines.ItemActivate += new System.EventHandler (this.listLines_ItemActivate);
-
+         this.gridLines.MouseDoubleClick += GridLines_MouseDoubleClick;
          ResumeLayout ();
 
 
-         //var cols = new List<SectorPlacement> ();
-         //linesGrid.Columns = cols;
-         //linesGrid.Font = new System.Drawing.Font ("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-         //linesGrid.FullRowSelect = true;
-         //linesGrid.HasCollapsibleGroups = false;
-         //linesGrid.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-         //this.listLines.IsSearchOnSortColumn = false;
-         //this.listLines.Location = new System.Drawing.Point (0, 0);
-         //this.listLines.Margin = new System.Windows.Forms.Padding (2);
-         //this.listLines.Name = "listLines";
-         //this.listLines.SelectColumnsMenuStaysOpen = false;
-         //this.listLines.SelectColumnsOnRightClick = false;
-         //this.listLines.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.None;
-         //this.listLines.ShowFilterMenuOnRightClick = false;
-         //this.listLines.ShowGroups = false;
-         //this.listLines.ShowSortIndicators = false;
-         //this.listLines.Size = new System.Drawing.Size (1046, 77);
-         //this.listLines.TabIndex = 0;
-         //this.listLines.TriggerCellOverEventsWhenOverHeader = false;
-         //this.listLines.UseCellFormatEvents = true;
-         //this.listLines.UseCompatibleStateImageBehavior = false;
-         //this.listLines.View = System.Windows.Forms.View.Details;
-         //this.listLines.VirtualMode = true;
-         //this.listLines.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs> (this.listLines_CellRightClick);
-         //this.listLines.FormatCell += new System.EventHandler<BrightIdeasSoftware.FormatCellEventArgs> (this.listLines_FormatCell);
-         //this.listLines.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs> (this.listLines_Scroll);
-         //this.listLines.ItemActivate += new System.EventHandler (this.listLines_ItemActivate);
-         //this.listLines.DragDrop += new System.Windows.Forms.DragEventHandler (this.listLines_DragDrop);
-         //this.listLines.DragEnter += new System.Windows.Forms.DragEventHandler (this.listLines_DragEnter);
-         //this.listLines.KeyDown += new System.Windows.Forms.KeyEventHandler (this.FormMain_KeyDown);
-         //this.listLines.KeyPress += new System.Windows.Forms.KeyPressEventHandler (this.FormMain_KeyPress);
-         //this.listLines.Resize += new System.EventHandler (this.listLines_Resize);
-
-
-
-
-         fontMeasures = new FixedFontMeasures (gridLines.Font);
          cbZipEngine.SelectedIndex = 0;
          if (Globals.IsDebug) {
             String fn = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
@@ -317,7 +279,6 @@ namespace Bitmanager.BigFile {
             };
          }
       }
-
 
       private void checkWarnings () {
          var sb = new StringBuilder ();
@@ -501,42 +462,11 @@ namespace Bitmanager.BigFile {
       }
 
 
-      int neededTextLength;
-
-
-      #region display_logic_listview
-      
-      private String getLimitedLine (Object model) {
-         int row = model == null ? -1 : (int)model;
-         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;
-
-         String x = lf.GetPartialLine (row, neededTextLength, TabsReplacer.INSTANCE);
-         //logger.Log("{2}: Needed={0}, returned={1}, {3}", neededTextLength, x.Length, model, x.Length > neededTextLength + 32 ? x.Substring(0, neededTextLength) : x);
-         return x.Length > neededTextLength + 32 ? x.Substring (0, neededTextLength) : x;
-      }
-
-      private String getLine (Object model) {
-         int row = model == null ? -1 : (int)model;
-         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;
-         return lf.GetPartialLine (row);
-      }
-      private String getLineNumber (Object model) {
-         var str = String.Empty;
-         int row = model == null ? -1 : (int)model;
-         if (row < 0 || row >= lf.PartialLineCount) return String.Empty;
-
-         int ix = lf.GetOptRealLineNumber (row);
-         if (ix >= 0) str = Invariant.Format ("{0}", ix);
-         return str;
-      }
-      #endregion
 
 
       FormLine lineForm;
-      private void listLines_ItemActivate (object sender, EventArgs e) {
-
-         int m = selectionHandler.SelectedIndex;
-         if (m >= 0) {
+      private void activateRow (int row) {
+         if (row >= 0) {
             FormLine fl;
             if ((Control.ModifierKeys & Keys.Alt) != 0)
                fl = new FormLine (null);
@@ -544,7 +474,7 @@ namespace Bitmanager.BigFile {
                fl = lineForm;
                if (fl == null || fl.IsClosed) fl = lineForm = new FormLine (fl);
             }
-            fl.ShowLine (DesktopLocation, settings, lf, gridLines.Filter, m, lastQuery);
+            fl.ShowLine (DesktopLocation, settings, lf, gridLines.Filter, row, lastQuery);
          }
       }
 
@@ -1064,6 +994,7 @@ namespace Bitmanager.BigFile {
             case (char)6:  //CTRL_F
             case (char)7:  //CTRL_G
             case (char)13: //Enter: activate line
+               activateRow (gridLines.FocusRow);
                break;
 
             case '/':
@@ -1110,20 +1041,6 @@ namespace Bitmanager.BigFile {
          registerShellExt ();
       }
 
-      private void registerShellExt () {
-         String exe = Path.ChangeExtension (Assembly.GetEntryAssembly ().Location, ".exe");
-         try {
-            using (var rk = Registry.ClassesRoot.CreateSubKey (@"*\shell\BigFile", true)) {
-               createRegEntries (rk, exe);
-            }
-            using (var rk = Registry.ClassesRoot.CreateSubKey (@"Directory\shell\BigFile", true)) {
-               createRegEntries (rk, exe);
-            }
-         } catch (Exception e) {
-            throw new BMException (e, "{0}\r\n\r\nYou might want to run BigFile as administrator and rerun.", e.Message);
-         }
-      }
-
       private void cbZipEngine_SelectedIndexChanged (object sender, EventArgs e) {
          var cb = sender as ToolStripComboBox;
          int ix = cb.SelectedIndex;
@@ -1131,6 +1048,7 @@ namespace Bitmanager.BigFile {
          LogFile.DbgStr = (String)cb.Items[ix];
       }
 
+      #region selection-logic
       private void allToolStripMenuItem_Click (object sender, EventArgs e) {
          selectionHandler_Add (0, gridLines.RowCount);
       }
@@ -1162,6 +1080,8 @@ namespace Bitmanager.BigFile {
          lf.ToggleSelected (gridLines.GridRowToRow (from), gridLines.GridRowToRow (to));
          gridLines.Invalidate ();
       }
+      #endregion
+
 
       /// <summary>
       /// Select all matching lines (without clearing the selected items)
@@ -1188,6 +1108,21 @@ namespace Bitmanager.BigFile {
       private void clearByNonMatchedToolStripMenuItem_Click (object sender, EventArgs e) {
          if (lf != null) {
             lf.UnselectAllNonMatched (); selectionHandler.NotifyExternalChange ();
+         }
+      }
+
+
+      private void registerShellExt () {
+         String exe = Path.ChangeExtension (Assembly.GetEntryAssembly ().Location, ".exe");
+         try {
+            using (var rk = Registry.ClassesRoot.CreateSubKey (@"*\shell\BigFile", true)) {
+               createRegEntries (rk, exe);
+            }
+            using (var rk = Registry.ClassesRoot.CreateSubKey (@"Directory\shell\BigFile", true)) {
+               createRegEntries (rk, exe);
+            }
+         } catch (Exception e) {
+            throw new BMException (e, "{0}\r\n\r\nYou might want to run BigFile as administrator and rerun.", e.Message);
          }
       }
 

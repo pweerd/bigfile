@@ -95,17 +95,6 @@ namespace Bitmanager.Grid {
          var rect = new GDIRECT (offset, 0, Width, Height);
          Gdi32.Fill (Hdc, ref rect);
       }
-      //public void ClearRect (Color color, Rectangle rect) {
-      //   int overflow;
-      //   overflow = rect.Right - Width;
-      //   if (overflow > 0) rect.Width = rect.Width - overflow;
-      //   overflow = rect.Bottom - Height;
-      //   if (overflow > 0) rect.Height = rect.Height - overflow;
-      //   if (rect.Width > 0 && rect.Height > 0) {
-      //      setBackColor (color);
-      //      Gdi32.Fill (Hdc, rect);
-      //   }
-      //}
 
       public void PrintCell (Cell cell, ref Rectangle rect) {
          int left = rect.Left + cell.HorizontalPadding.Left;
@@ -120,11 +109,6 @@ namespace Bitmanager.Grid {
                x = (left+right) / 2; break;
             default: throw new Exception("Unexpected Alignment: " + cell.Alignment);
          }
-         //int overflow;
-         //overflow = rect.Right - Width;
-         //if (overflow > 0) rect.Width = rect.Width - overflow;
-         //overflow = rect.Bottom - Height;
-         //if (overflow > 0) rect.Height = rect.Height - overflow;
 
          if (rect.Width > 0 && rect.Height > 0) {
             var gdiRect = new GDIRECT (rect.X, rect.Y, rect.Right, rect.Bottom);

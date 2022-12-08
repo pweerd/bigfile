@@ -249,6 +249,27 @@ namespace Bitmanager.BigFile {
          }
       }
 
+      public int GetPartialLineLengthInChars (int index) {
+         long o1 = partialLines[index] >> LineFlags.FLAGS_SHIFT;
+         long o2 = partialLines[index+1] >> LineFlags.FLAGS_SHIFT;
+         switch (Encoding.CodePage) {
+            case FileEncoding.CP_UTF16:
+               o1 = (o1 + 1) & ~1L;
+               o2 = (o2 + 1) & ~1L;
+               return (int)((o2 - 01)/2);
+            case FileEncoding.CP_UTF16BE:
+               o1 = o1 & ~1L;
+               o2 = o2 & ~1L;
+               return (int)((o2 - 01) / 2);
+            case FileEncoding.CP_EXTENDED_LATIN:
+               return (int)(o2 - 01);
+            case FileEncoding.CP_UTF8:
+               int len = readPartialLineBytesInBuffer (o1, o2);
+               return Encoding.GetCharCount (byteBuffer, 0, len);
+            default:
+               throw new BMException ("Unexpected Encoding: {0}", Encoding);
+         };
+      }
    }
 
 
