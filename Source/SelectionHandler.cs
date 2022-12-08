@@ -41,7 +41,7 @@ namespace Bitmanager.BigFile {
    /// NB: the rows in this class are grid-indexes. They must be translated into partial lines by our caller!
    /// </summary>
    public class SelectionHandler {
-      private enum InducedBy { Other, Mouse, Keypress };
+      private enum InducedBy { Other, Mouse, Keypress, Self };
       public event SelectionEventHandler OnToggleSelection;
       public event SelectionEventHandler OnAddSelection;
       public event SelectionEventHandler OnRemoveSelection;
@@ -171,6 +171,7 @@ namespace Bitmanager.BigFile {
          //Grid.SelectedIndex = -1;
 
          switch (inducedBy) {
+            case InducedBy.Self: goto RESET; //Selection already handled 
             case InducedBy.Mouse: goto RESET; //Selection already handled in mouse-procedure 
             case InducedBy.Keypress:
                if (prevRow < 0)
@@ -201,6 +202,10 @@ namespace Bitmanager.BigFile {
       protected virtual void addSelection (int from, int to) {
          dump ("-- AddSelection ({0}, {1})", from, to);
          if (OnAddSelection != null) OnAddSelection (from, to);
+         if (SingleLineSelected) {
+            inducedBy = InducedBy.Self;
+            Grid.SelectedIndex = from;
+         }
       }
       protected virtual void removeSelection (int from, int to) {
          dump ("-- RemoveSelection ({0}, {1})", from, to);
