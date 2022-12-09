@@ -88,7 +88,6 @@ namespace Bitmanager.BigFile {
          //   dropdownEncoding.Items.Add ("Utf8 with ptrs");
          //}
          cbEncoding.SelectedIndex = 0;
-         //PW olvcLineNumber.CellPadding = new Rectangle (0, 0, 2, 0);
          gridLines.OnFontTick += GridLines_OnFontTick;
 
 
@@ -422,7 +421,7 @@ namespace Bitmanager.BigFile {
 
          statusLabelMain.Text = "Loading...";
          setSearchStatus (String.Empty);
-         isFirstPartial = true;
+         isFirstPartialLog = true;
          new LogFile (this, settings, getCurrentEncoding (), maxPartial, maxLoadSize).Load (filePath, cancellationTokenSource.Token, zipEntry);
       }
 
@@ -704,7 +703,7 @@ namespace Bitmanager.BigFile {
 
       void ILogFileCallback.OnSearchComplete (SearchResult result) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
-            gridLines.Refresh ();
+            gridLines.Invalidate ();
             indicateFinished ();
 
             result.ThrowIfError ();
@@ -731,52 +730,50 @@ namespace Bitmanager.BigFile {
          }), null);
       }
 
-      private int nextFilteredPartialMatch (int row) {
-         var ret = nextFilteredPartialMatch2 (row);
-         logger.Log ("nextFilteredPartialMatch({0}) --> {1}", row, ret);
+      /// <summary>
+      /// Accepts a partial index, returns a grid row index
+      /// </summary>
+      private int nextFilteredMatchedRow (int partialIdx) {
+         var ret = nextFilteredPartialRow2 (partialIdx);
+         logger.Log ("nextFilteredPartialMatch({0}) --> {1}", partialIdx, ret);
          return ret;
       }
-      private int nextFilteredPartialMatch2 (int row) {
-         logger.Log ("nextFilteredPartialMatch({0})", row);
-         if (row < 0) return -1;
+      private int nextFilteredPartialRow2 (int partialIdx) {
+         logger.Log ("nextFilteredPartialMatch({0})", partialIdx);
+         if (partialIdx < 0) return -1;
          while (true) {
-            int m = gridLines.RowToGridRow (row);
+            int m = gridLines.RowToGridRow (partialIdx);
             if (m >= 0) return m;
 
-            row = lf.NextPartialHit (row);
-            if (row >= lf.PartialLineCount) break;
+            partialIdx = lf.NextPartialHit (partialIdx);
+            if (partialIdx >= lf.PartialLineCount) break;
          }
          return int.MaxValue;
       }
 
-      private int prevFilteredPartialMatch (int row) {
-         if (row < 0) return -1;
+      private int prevFilteredMatchedRow (int partialIdx) {
+         if (partialIdx < 0) return -1;
          while (true) {
-            int m = gridLines.RowToGridRow (row);
+            int m = gridLines.RowToGridRow (partialIdx);
             if (m >= 0) return m;
 
-            row = lf.PrevPartialHit (row);
-            if (row < 0) break;
+            partialIdx = lf.PrevPartialHit (partialIdx);
+            if (partialIdx < 0) break;
          }
          return -1;
       }
       void ILogFileCallback.OnSearchPartial (LogFile lf, int firstMatch) {
-         logger.Log ("OnSearchPartial (first={0})", firstMatch);
          synchronizationContext.Post (new SendOrPostCallback (o => {
-            if (gridLines.Filter != null) {
-               firstMatch = nextFilteredPartialMatch (firstMatch);
-            }
-            if (firstMatch  >= 0)
-               gotoAndSelectLogicalLineIndex (firstMatch);
+            positionToFirstHit (firstMatch);
          }), null);
       }
 
-      bool isFirstPartial;
+      bool isFirstPartialLog;
       private void setLogFile (LogFile newLF) {
          if (newLF != null) {
             newLF.SetEncoding (getCurrentEncoding ());
             if (lf != null) {
-               if (!isFirstPartial) newLF.CopyStateBitsFrom (lf);
+               if (!isFirstPartialLog) newLF.CopyStateBitsFrom (lf);
                lf.Dispose ();
             }
          }
@@ -788,11 +785,11 @@ namespace Bitmanager.BigFile {
             return;
          }
 
-         bool first = isFirstPartial;
+         bool first = isFirstPartialLog;
          if (first) {
             selectViewAll ();
             selectionHandler.Clear ();
-            isFirstPartial = false;
+            isFirstPartialLog = false;
          }
          gridLines.SetLogFile (newLF, first);
          if (lineForm != null && !lineForm.IsClosed)
@@ -904,25 +901,30 @@ namespace Bitmanager.BigFile {
       private void gotoDialog () {
          using (FormGoToLine f = new FormGoToLine ()) {
             if (f.ShowDialog (this) == DialogResult.OK)
-               gotoLine (f.LineNumber, f.IsPartial);
+               gotoLine (f.LineNumber, f.GotoType);
          }
       }
-      private void gotoLine (int line, bool isPartial) //PW nakijken
+      private void gotoLine (int index, GotoType type) //PW nakijken
       {
          if (lf == null) { 
             gridLines.GotoCell (0, 0);
             return; 
          }
-         int index = gridLines.RowToGridRow((line < 0) ? 0 : line, true);
-         if (!isPartial) index = lf.PartialFromLineNumber (index);
+         bool select = true;
+         if (type == GotoType.Row) goto HANDLE_GOTO;
 
-         index = lf.PartialToLogicalIndex (index, gridLines.Filter);
-         gotoAndSelectLogicalLineIndex (index);
+         if (type == GotoType.Line) index = lf.PartialFromLineNumber (index);
+
+         if (gridLines.Filter != null) {
+            int tmp = gridLines.RowToGridRow (index, true);
+            select = tmp >= 0 && tmp < gridLines.Filter.Count && gridLines.Filter[tmp] == index;
+            index = tmp;
+         }
+
+         HANDLE_GOTO:
+         gridLines.MakeCellVisible (index, 0, select);
       }
 
-      private void gotoAndSelectLogicalLineIndex (int index) {
-         gridLines.MakeCellVisible (index, 0, true);
-      }
 
       private void FormMain_KeyDown (object sender, KeyEventArgs e) {
          if (e.Control) {
@@ -935,9 +937,9 @@ namespace Bitmanager.BigFile {
                case Keys.G:
                   gotoToolStripMenuItem_Click (this, null); break;
                case Keys.Home:
-                  gotoLine (0, true); break;
+                  gotoLine (0, GotoType.Row); break;
                case Keys.End:
-                  gotoLine (int.MaxValue, true); break;
+                  gotoLine (int.MaxValue, GotoType.Row); break;
                case Keys.F3:
                   gotoPrevHit (); break;
             }
@@ -954,30 +956,30 @@ namespace Bitmanager.BigFile {
          e.Handled = true;
       }
 
-      private void gotoNextHit () {
+      private void gotoNextHit (int? _row=null) {
          if (lf == null) return;
          if (menuViewUnmatched.Selected)
             throw new Exception ("Goto prev/next hit impossible if filtered for unmatched.");
 
-         gridLines.GotoCell(0, 0, false);
-         int index = gridLines.GridRowToRow (selectionHandler.SelectedIndex);
-         logger.Log ("gotoNextHit (selindex={0}, realrow={1})", selectionHandler.SelectedIndex, index);
+         int row = (_row!=null) ? (int) _row : gridLines.FocusRow;
+         int partialIdx = gridLines.GridRowToRow (row);
+         int newRow = this.nextFilteredMatchedRow (lf.NextPartialHit (partialIdx));
+         logger.Log ("gotoNextHit (parm={0}, startRow={1}, partialIdx={2}) -> row={3}", _row, row, partialIdx, newRow);
 
-         index = this.nextFilteredPartialMatch (lf.NextPartialHit (index));
-         gotoAndSelectLogicalLineIndex (index);
+         gridLines.MakeCellVisible (newRow, 0, true);
       }
 
-      private void gotoPrevHit () {
+      private void gotoPrevHit (int? _row=null) {
          if (lf == null) return;
          if (menuViewUnmatched.Selected)
             throw new Exception ("Goto prev/next hit impossible if filtered for unmatched.");
 
-         gridLines.GotoCell (0, 0, false);
-         int index = gridLines.GridRowToRow (selectionHandler.SelectedIndex);
-         logger.Log ("gotoPrevHit (selindex={0}, realrow={1})", selectionHandler.SelectedIndex, index);
+         int row = (_row != null) ? (int)_row : gridLines.FocusRow;
+         int partialIdx = gridLines.GridRowToRow (row);
+         int newRow = this.prevFilteredMatchedRow (lf.PrevPartialHit (partialIdx));
+         logger.Log ("gotoPrevHit (parm={0}, startRow={1}, partialIdx={2}) -> row={3}", _row, row, partialIdx, newRow);
 
-         index = this.prevFilteredPartialMatch (lf.PrevPartialHit (index));
-         gotoAndSelectLogicalLineIndex (index);
+         gridLines.MakeCellVisible (newRow, 0, true);
       }
 
 
@@ -1003,9 +1005,9 @@ namespace Bitmanager.BigFile {
             case '?':
                gotoPrevHit (); break;
             case '<':
-               gotoLine (0, true); break;
+               gotoLine (0, GotoType.Row); break;
             case '>':
-               gotoLine (int.MaxValue, true); break;
+               gotoLine (int.MaxValue, GotoType.Row); break;
          }
          e.Handled = true;
       }
@@ -1127,6 +1129,43 @@ namespace Bitmanager.BigFile {
          }
       }
 
+      private void menuFindMultis_Click (object sender, EventArgs e) {
+         handleSearchResult (lf.SearchAllMultiLines (), "multi");
+      }
+
+      private void menuFindSingles_Click (object sender, EventArgs e) {
+         handleSearchResult (lf.SearchAllSingleLines (), "single");
+      }
+
+      private void positionToFirstHit (int partialHitIndex) {
+         logger.Log ("positionToFirstHit (first partial={0})", partialHitIndex);
+         if (partialHitIndex < 0) return;
+         int row = nextFilteredMatchedRow (partialHitIndex);
+         if (row >= 0)
+            gridLines.MakeCellVisible (row, 0, true);
+      }
+
+      private void handleSearchResult(SearchResult result, String what) {
+         result.ThrowIfError ();
+         int all = result.LogFile.PartialLineCount;
+         int matched = result.NumMatches;
+         int perc = all == 0 ? 0 : (int)(0.5 + 100.0 * matched / all);
+         var msg = String.Format ("Matched {0:n0} / {1:n0} {2} lines ({3}%), # Duration: {4}",
+                  matched,
+                  all,
+                  what,
+                  perc,
+                  Pretty.PrintElapsedMs ((int)result.Duration.TotalMilliseconds)
+         );
+         setSearchStatus (msg, matched);
+         positionToFirstHit (result.FirstHit);
+      }
+
+      private void menuResetMatched_Click (object sender, EventArgs e) {
+         lf.ResetMatches ();
+         gridLines.Invalidate ();
+      }
+
       private void createRegEntries (RegistryKey key, String exe) {
          key.SetValue ("", "BigFile");
          key.SetValue ("icon", exe);
@@ -1137,4 +1176,7 @@ namespace Bitmanager.BigFile {
       }
    }
 
+   public enum GotoType {
+      Line, PartialLine, Row
+   }
 }

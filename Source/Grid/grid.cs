@@ -449,6 +449,7 @@ namespace Bitmanager.Grid {
 
       SELECT:
          if (select) SelectedIndex = row;
+         _focusRow = row;
 
       MAKE_COL_VISIBLE:
          if (col < 0 ) goto EXIT_RTN;

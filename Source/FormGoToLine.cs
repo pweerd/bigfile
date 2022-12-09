@@ -19,6 +19,7 @@
 
 using Bitmanager.Core;
 using System;
+using System.ComponentModel;
 using System.Windows.Forms;
 
 namespace Bitmanager.BigFile {
@@ -26,17 +27,17 @@ namespace Bitmanager.BigFile {
    /// Let the user input a line number
    /// </summary>
    public partial class FormGoToLine : Form {
-      static bool prevPartial = false;
+      static GotoType prevGotoType = GotoType.Line;
       static String prevGoto = String.Empty;
 
       public int LineNumber { get { return Invariant.ToInt32 (prevGoto); } }
-      public bool IsPartial { get { return prevPartial; } }
+      public GotoType GotoType { get { return prevGotoType; } }
 
       public FormGoToLine () {
          InitializeComponent ();
          Bitmanager.Core.GlobalExceptionHandler.Hook ();
          textLineNum.Text = prevGoto;
-         chkPartial.Checked = prevPartial;
+         gotoTypeToForm (prevGotoType);
       }
 
       public static void ResetGoto () {
@@ -49,7 +50,7 @@ namespace Bitmanager.BigFile {
 
          Invariant.ToInt32 (textLineNum.Text);
          prevGoto = textLineNum.Text;
-         prevPartial = chkPartial.Checked;
+         prevGotoType = formToGotoType();
          this.DialogResult = DialogResult.OK;
       }
 
@@ -57,5 +58,25 @@ namespace Bitmanager.BigFile {
          this.DialogResult = DialogResult.Cancel;
       }
 
+      private GotoType formToGotoType () {
+         if (rbLineIndex.Checked) return GotoType.Line;
+         if (rbPartialLine.Checked) return GotoType.PartialLine;
+         if (rbRowIndex.Checked) return GotoType.Row;
+         return GotoType.Line;
+      }
+
+      private void gotoTypeToForm (GotoType type) {
+         switch(type) {
+            case GotoType.Line:
+               rbLineIndex.Checked = true;
+               break;
+            case GotoType.PartialLine:
+               rbPartialLine.Checked = true;
+               break;
+            case GotoType.Row:
+               rbRowIndex.Checked = true;
+               break;
+         }
+      }
    }
 }

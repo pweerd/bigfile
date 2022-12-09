@@ -61,6 +61,9 @@ namespace Bitmanager.BigFile
          this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
          this.menuFileExit = new System.Windows.Forms.ToolStripMenuItem();
          this.menuTools = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuFindMultis = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuFindSingles = new System.Windows.Forms.ToolStripMenuItem();
+         this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
          this.gotoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -113,6 +116,7 @@ namespace Bitmanager.BigFile
          this.panelMain = new System.Windows.Forms.Panel();
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuResetMatched = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -194,6 +198,10 @@ namespace Bitmanager.BigFile
          // menuTools
          // 
          this.menuTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuFindMultis,
+            this.menuFindSingles,
+            this.menuResetMatched,
+            this.toolStripSeparator5,
             this.gotoToolStripMenuItem,
             this.exportToolStripMenuItem,
             this.selectToolStripMenuItem,
@@ -205,10 +213,29 @@ namespace Bitmanager.BigFile
          this.menuTools.Size = new System.Drawing.Size(46, 22);
          this.menuTools.Text = "Tools";
          // 
+         // menuFindMultis
+         // 
+         this.menuFindMultis.Name = "menuFindMultis";
+         this.menuFindMultis.Size = new System.Drawing.Size(180, 22);
+         this.menuFindMultis.Text = "Find multi lines";
+         this.menuFindMultis.Click += new System.EventHandler(this.menuFindMultis_Click);
+         // 
+         // menuFindSingles
+         // 
+         this.menuFindSingles.Name = "menuFindSingles";
+         this.menuFindSingles.Size = new System.Drawing.Size(180, 22);
+         this.menuFindSingles.Text = "Find single lines";
+         this.menuFindSingles.Click += new System.EventHandler(this.menuFindSingles_Click);
+         // 
+         // toolStripSeparator5
+         // 
+         this.toolStripSeparator5.Name = "toolStripSeparator5";
+         this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
+         // 
          // gotoToolStripMenuItem
          // 
          this.gotoToolStripMenuItem.Name = "gotoToolStripMenuItem";
-         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.gotoToolStripMenuItem.Text = "Goto (Ctrl-G)";
          this.gotoToolStripMenuItem.Click += new System.EventHandler(this.gotoToolStripMenuItem_Click);
          // 
@@ -219,7 +246,7 @@ namespace Bitmanager.BigFile
             this.exportSelectedToolStripMenuItem,
             this.exportMatchedToolStripMenuItem});
          this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-         this.exportToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.exportToolStripMenuItem.Text = "Export";
          // 
          // exportAllToolStripMenuItem
@@ -255,7 +282,7 @@ namespace Bitmanager.BigFile
             this.clearByMatchedToolStripMenuItem,
             this.clearByNonMatchedToolStripMenuItem});
          this.selectToolStripMenuItem.Name = "selectToolStripMenuItem";
-         this.selectToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.selectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.selectToolStripMenuItem.Text = "Select";
          // 
          // allToolStripMenuItem
@@ -315,26 +342,26 @@ namespace Bitmanager.BigFile
          // toolStripCopyMenuItem
          // 
          this.toolStripCopyMenuItem.Name = "toolStripCopyMenuItem";
-         this.toolStripCopyMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.toolStripCopyMenuItem.Size = new System.Drawing.Size(180, 22);
          this.toolStripCopyMenuItem.Text = "Copy (Ctrl-C)";
          this.toolStripCopyMenuItem.Click += new System.EventHandler(this.toolStripCopyMenuItem_Click);
          // 
          // toolStripMenuItem2
          // 
          this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-         this.toolStripMenuItem2.Size = new System.Drawing.Size(156, 6);
+         this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
          // 
          // menuToolsConfiguration
          // 
          this.menuToolsConfiguration.Name = "menuToolsConfiguration";
-         this.menuToolsConfiguration.Size = new System.Drawing.Size(159, 22);
+         this.menuToolsConfiguration.Size = new System.Drawing.Size(180, 22);
          this.menuToolsConfiguration.Text = "Options";
          this.menuToolsConfiguration.Click += new System.EventHandler(this.menuToolsConfiguration_Click);
          // 
          // registerShellextToolStripMenuItem
          // 
          this.registerShellextToolStripMenuItem.Name = "registerShellextToolStripMenuItem";
-         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
          this.registerShellextToolStripMenuItem.Text = "Register shellext";
          this.registerShellextToolStripMenuItem.Click += new System.EventHandler(this.registerShellextToolStripMenuItem_Click);
          // 
@@ -353,21 +380,21 @@ namespace Bitmanager.BigFile
          this.menuViewAll.Checked = true;
          this.menuViewAll.CheckState = System.Windows.Forms.CheckState.Checked;
          this.menuViewAll.Name = "menuViewAll";
-         this.menuViewAll.Size = new System.Drawing.Size(136, 22);
+         this.menuViewAll.Size = new System.Drawing.Size(180, 22);
          this.menuViewAll.Text = "View all";
          this.menuViewAll.Click += new System.EventHandler(this.menuView_Click);
          // 
          // menuViewMatched
          // 
          this.menuViewMatched.Name = "menuViewMatched";
-         this.menuViewMatched.Size = new System.Drawing.Size(136, 22);
+         this.menuViewMatched.Size = new System.Drawing.Size(180, 22);
          this.menuViewMatched.Text = "Matched";
          this.menuViewMatched.Click += new System.EventHandler(this.menuView_Click);
          // 
          // menuViewUnmatched
          // 
          this.menuViewUnmatched.Name = "menuViewUnmatched";
-         this.menuViewUnmatched.Size = new System.Drawing.Size(136, 22);
+         this.menuViewUnmatched.Size = new System.Drawing.Size(180, 22);
          this.menuViewUnmatched.Text = "Unmatched";
          this.menuViewUnmatched.Click += new System.EventHandler(this.menuView_Click);
          // 
@@ -632,6 +659,13 @@ namespace Bitmanager.BigFile
          this.contextMenuCopy.Text = "Copy";
          this.contextMenuCopy.Click += new System.EventHandler(this.contextMenuCopy_Click);
          // 
+         // menuResetMatched
+         // 
+         this.menuResetMatched.Name = "menuResetMatched";
+         this.menuResetMatched.Size = new System.Drawing.Size(180, 22);
+         this.menuResetMatched.Text = "Reset matched";
+         this.menuResetMatched.Click += new System.EventHandler(this.menuResetMatched_Click);
+         // 
          // FormMain
          // 
          this.AllowDrop = true;
@@ -729,6 +763,10 @@ namespace Bitmanager.BigFile
       private ToolStripLabel toolStripLabel2;
       private ToolStripTextBox txtMaxLoad;
       private ToolStripSeparator toolStripSeparator4;
-   }
+        private ToolStripMenuItem menuFindMultis;
+        private ToolStripMenuItem menuFindSingles;
+        private ToolStripSeparator toolStripSeparator5;
+        private ToolStripMenuItem menuResetMatched;
+    }
 }
 

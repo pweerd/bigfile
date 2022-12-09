@@ -44,10 +44,12 @@ namespace Bitmanager.BigFile {
       public List<int> Filter {
          get { return filter; }
          set {
-            filter = value;
-            RowCount = (value != null) ? value.Count : ((lf==null) ? 0 : lf.PartialLineCount);
-            RecomputeScrollBars ();
-            GotoCell (0, 0, false);
+            if (value != filter) {
+               filter = value;
+               RowCount = (value != null) ? value.Count : ((lf == null) ? 0 : lf.PartialLineCount);
+               RecomputeScrollBars ();
+               GotoCell (0, 0, false);
+            }
          }
       }
       private Settings _settings;
@@ -139,7 +141,7 @@ namespace Bitmanager.BigFile {
       /// <summary>
       /// Try to find a real row-index in the eventual active filter
       /// </summary>
-      public override int RowToGridRow (int row, bool returnGE=false) {
+      public override int RowToGridRow (int row, bool returnGE = false) {
          if (filter == null || row < 0) return row;
 
          //Invariant: filter[i] < row && filter[j] >= row
@@ -212,9 +214,10 @@ namespace Bitmanager.BigFile {
          int row = FocusRow;
          if (row < 0) goto BASE;
 
-         int w = measurePartialLineWidth (GridRowToRow(row));
+         int partialIdx = GridRowToRow (row);
+         int w = measurePartialLineWidth (partialIdx);
          if (w < 0) goto BASE;
-         logger.Log ("FocusRow={0}, partial={1}, w={2}", row, GridRowToRow (row), w);
+         logger.Log ("GOTO line-end FocusRow={0}, partial={1}, w={2}", row, partialIdx, w);
          int cw = InnerClientRectangle.Width;
          HorizontalOffset = (w <= cw) ? 0 : w - cw / 2; ;
          e.Handled = true;

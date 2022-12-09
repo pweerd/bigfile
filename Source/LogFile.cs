@@ -323,6 +323,11 @@ namespace Bitmanager.BigFile {
          return max.Length;
       }
 
+
+      /// <summary>
+      /// NextPartial hit: start searching at partial line idxPartial+1
+      /// Returns int.MaxValue if not found
+      /// </summary>
       public int NextPartialHit (int idxPartial) {
          if (idxPartial < -1) idxPartial = -1;
          long mask = LineFlags.MATCHED;
@@ -331,6 +336,11 @@ namespace Bitmanager.BigFile {
          }
          return int.MaxValue;
       }
+
+      /// <summary>
+      /// PrevPartialHit hit: start searching at partial line idxPartial-1
+      /// Returns -1 if not found
+      /// </summary>
       public int PrevPartialHit (int idxPartial) {
          if (idxPartial > PartialLineCount) idxPartial = PartialLineCount;
          long mask = LineFlags.MATCHED;
@@ -702,7 +712,7 @@ namespace Bitmanager.BigFile {
       public Task Load (string fn, CancellationToken ct, String zipEntry = null) {
          zipEntries = null;
          return Task.Run (() => {
-            DateTime startTime = DateTime.Now;
+            DateTime startTime = DateTime.UtcNow;
             Exception err = null;
             partialsEncountered = false;
             this.fileName = Path.GetFullPath (fn);
@@ -831,6 +841,53 @@ namespace Bitmanager.BigFile {
          }
       }
 
+      public SearchResult SearchAllSingleLines () {
+         DateTime started = DateTime.UtcNow;
+         long mask = LineFlags.MATCHED;
+         long notmask = ~mask;
+         int count = 0;
+         int firstHit = -1;
+         if (lines == null) {
+            count = partialLines.Count - 1;
+            if (count > 0) firstHit = 0;
+            for (int i = partialLines.Count - 1; i >= 0; i--) partialLines[i] |= mask;
+         } else {
+            for (int i = lines.Count - 1; i > 0; i--) {
+               int pix = lines[i - 1];
+               if (pix == lines[i] - 1) {
+                  partialLines[pix] |= mask;
+                  count++;
+                  firstHit = pix;
+               } else {
+                  partialLines[pix] &= notmask;
+               }
+            }
+         }
+         return new SearchResult (this, started, null, count, firstHit, 0);
+      }
+      public SearchResult SearchAllMultiLines () {
+         DateTime started = DateTime.UtcNow;
+         long mask = LineFlags.MATCHED;
+         long notmask = ~mask;
+         int count=0;
+         int firstHit=-1;
+         if (lines==null) {
+            for (int i = partialLines.Count - 1; i >= 0; i--) partialLines[i] &= notmask;
+         } else {
+            for (int i = lines.Count - 1; i > 0; i--) {
+               int pix = lines[i - 1];
+               if (pix == lines[i] - 1) {
+                  partialLines[pix] &= notmask;
+               } else {
+                  partialLines[pix] |= mask;
+                  count++;
+                  firstHit = pix;
+               }
+            }
+         }
+         return new SearchResult (this, started, null, count, firstHit, 0);
+      }
+
       public Task Search (ParserNode<SearchContext> query, CancellationToken ct) {
          if (threadCtx == null) return Task.CompletedTask;
          threadCtx.DirectStream.PrepareForNewInstance ();
@@ -842,9 +899,10 @@ namespace Bitmanager.BigFile {
             foreach (var x in ctx.LeafNodes)
                logger.Log ("-- {0}", x);
 
-            DateTime start = DateTime.Now;
+            DateTime start = DateTime.UtcNow;
             Exception err = null;
             int matches = 0;
+            int firstHit = -1;
 
             try {
                Task<int>[] tasks = new Task<int>[settings.SearchThreads - 1];
@@ -862,7 +920,7 @@ namespace Bitmanager.BigFile {
                }
 
                if (matches0 == 0 && matches > 0) {
-                  int firstHit = this.NextPartialHit (N);
+                  firstHit = this.NextPartialHit (N-1);
                   if (firstHit >= 0)
                      cb.OnSearchPartial (this, firstHit);
                }
@@ -874,13 +932,13 @@ namespace Bitmanager.BigFile {
             } finally {
                this.ct = CancellationToken.None;
                if (!disposed)
-                  cb.OnSearchComplete (new SearchResult (this, start, err, matches, ctx.LeafNodes.Count));
+                  cb.OnSearchComplete (new SearchResult (this, start, err, matches, firstHit, ctx.LeafNodes.Count));
             }
          });
       }
 
       private int _search (SearchContext ctx, int start, int end) {
-         const int MOD = 5000;
+         const int MOD = 50000;
          int matches = 0;
          var query = ctx.Query;
 
@@ -988,7 +1046,7 @@ namespace Bitmanager.BigFile {
             if (selectedlines != null) flags |= _ExportFlags.Filter;
             if (lines != null) flags |= _ExportFlags.Lines;
             Exception err = null;
-            DateTime startTime = DateTime.Now;
+            DateTime startTime = DateTime.UtcNow;
             var ctx = threadCtx.NewInstanceForThread ();
 
             int N = 0;

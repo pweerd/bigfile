@@ -32,7 +32,7 @@ namespace Bitmanager.BigFile {
       public readonly LogFile LogFile;
       public Result (LogFile logfile, DateTime started, Exception err) {
          this.LogFile = logfile;
-         this.Duration = DateTime.Now - started;
+         this.Duration = DateTime.UtcNow - started;
          for (Exception x = err; x != null; x = x.InnerException) {
             if (x is TaskCanceledException) {
                this.Cancelled = true;
@@ -59,10 +59,12 @@ namespace Bitmanager.BigFile {
    public class SearchResult : Result {
       public readonly int NumMatches;
       public readonly int NumSearchTerms;
-      public SearchResult (LogFile logfile, DateTime started, Exception err, int matches, int numSearchTerms)
+      public readonly int FirstHit;
+      public SearchResult (LogFile logfile, DateTime started, Exception err, int matches, int firstHit, int numSearchTerms)
           : base (logfile, started, err) {
          this.NumMatches = matches;
          this.NumSearchTerms = numSearchTerms;
+         this.FirstHit = firstHit;
       }
    }
 
