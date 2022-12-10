@@ -238,7 +238,7 @@ namespace Bitmanager.BigFile {
          base.OnMouseMove (e);
          int row = base.GetRowAndColFromLocation (e.X, e.Y, out var col);
          //logger.Log ("MouseMove: row={0}, col={1}", row, col);
-         if (row < 0 || col != 0) {
+         if (row < 0 || (col != 0 && e.X > 15)) { //also show the tooltip if we scrolled to the right and the mouse is over the first 15 pixels
             if (_rowTooltip != null) _rowTooltip.Stop ();
          } else {
             if (_rowTooltip == null) _rowTooltip = new RowToolTip (this, null);//, logger.Clone("tooltip"));

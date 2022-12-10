@@ -294,8 +294,8 @@ namespace Bitmanager.BigFile {
             return;
          }
 
-         sb.AppendFormat ("\n\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion);
-         sb.Append ("\nYou can install Bitmanager's core components from https://bitmanager.nl/distrib");
+         sb.AppendFormat (Invariant.Culture, "\n\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion)
+            .Append ("\nYou can install Bitmanager's core components from https://bitmanager.nl/distrib");
          String msg = sb.ToString ();
          btnWarning.ToolTipText = msg;
          btnWarning.Visible = true;

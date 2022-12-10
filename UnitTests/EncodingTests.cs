@@ -20,6 +20,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Bitmanager.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Bitmanager.BigFile.Tests {
@@ -33,7 +34,7 @@ namespace Bitmanager.BigFile.Tests {
          sb.Append ("Long line: ");
          for (int i = 0; i < 100; i++) sb.Append ("0123456789 abcdefghijklmnopqrstuvwxyz ").Append ((char)0x0102).Append ((char)0x0153).Append ((char)0x0154);
          sb.Append ('\n');
-         for (int i = 1; i < 100; i++) sb.AppendFormat ("Line {0}\n", i);
+         for (int i = 1; i < 100; i++) sb.AppendFormat (Invariant.Culture, "Line {0}\n", i);
          text = sb.ToString ();
       }
 

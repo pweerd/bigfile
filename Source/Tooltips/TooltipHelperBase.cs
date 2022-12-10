@@ -53,7 +53,6 @@ namespace Bitmanager.BigFile {
          this.duration = duration;
          this.delay = delay;
          timer = new Timer ();
-         timer.Interval = delay;
          timer.Tick += Timer_Tick;
          timer.Enabled = false;
 
@@ -62,6 +61,7 @@ namespace Bitmanager.BigFile {
          tooltip.BorderStyle = BorderStyle.FixedSingle;
          tooltip.Visible = false;
          tooltip.AutoSize = true;
+         tooltip.Font = parent.Parent.Font;
          Parent.Controls.Add (tooltip);
       }
 
@@ -81,6 +81,7 @@ namespace Bitmanager.BigFile {
 
       //The interval needs to be different, otherwise the timer is not restarted
       private void restartTimer (int duration) {
+         if (duration == -1) return;
          timer.Interval = (timer.Interval == duration) ? duration + 1 : duration;
          timer.Enabled = true;
       }
@@ -125,7 +126,7 @@ namespace Bitmanager.BigFile {
          logger?.Log ("TooltipHelperBase::START ({0}, {1}), visible={2}", x, y, visible);
          this.X = x;
          this.Y = y;
-         if (visible) _show (GetText (), x, y, duration);
+         if (visible || delay==0) _show (GetText (), x, y, duration);
          else restartTimer (delay);
       }
 

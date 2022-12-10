@@ -192,7 +192,7 @@ namespace Bitmanager.BigFile {
          sb.AppendFormat ("Fields separated by {0}:\n", sepAsText);
          int i = 0;
          foreach (String x in s.Split (sep)) {
-            sb.AppendFormat ("[{0:d2}]: '{1}'\n", i, x);
+            sb.AppendFormat (Invariant.Culture, "[{0:d2}]: '{1}'\n", i, x);
             i++;
          }
          return sb.ToString ();

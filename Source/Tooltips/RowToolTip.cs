@@ -32,7 +32,7 @@ namespace Bitmanager.BigFile {
    public class RowToolTip : TooltipHelperBase {
       private readonly GridLines _grid;
       private int row;
-      public RowToolTip (GridLines grid, Logger logger) : base (grid, 2000, 10000, logger) {
+      public RowToolTip (GridLines grid, Logger logger) : base (grid, 0, -1, logger) {
          _grid = grid;
          row = int.MinValue;
       }
