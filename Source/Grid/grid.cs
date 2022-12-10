@@ -376,13 +376,13 @@ namespace Bitmanager.Grid {
 
 
       protected override void OnPaint (PaintEventArgs e) {
-         long virtualX = e.ClipRectangle.X + HorizontalOffset;
-         long virtualY = e.ClipRectangle.Y + VerticalOffset;
-         long virtualXEnd = virtualX + e.ClipRectangle.Width;
+         long virtualX = HorizontalOffset;
+         long virtualY = VerticalOffset;
+         long virtualXEnd = virtualX + _clientWidth;
 
          long rh = RowHeight;
          int rowStart = (int)(virtualY / rh);
-         int rowEnd = 1+(int)((virtualY + e.ClipRectangle.Height) / rh);
+         int rowEnd = 1+(int)((virtualY + _clientHeight) / rh);
          if (rowEnd > _rowCount) rowEnd = _rowCount;
 
          int colStart = 0;
@@ -391,7 +391,7 @@ namespace Bitmanager.Grid {
          for (; colEnd > colStart && _columns[colEnd-1].GlobalOffset > virtualXEnd; colEnd--) ;
 
          //logger.Log ("clip=({0}, {1}), ({2}, {3})", e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height);
-         _displayBuffer.Init (e.ClipRectangle.Height, e.ClipRectangle.Width);
+         _displayBuffer.Init (_clientHeight, _clientWidth);
          //logger.Log ("rows=({0}, {1}), cols=({2}, {3})", rowStart, rowEnd, colStart, colEnd);
 
          Rectangle bufRect = new Rectangle (0, 0, 0, (int)rh);
@@ -413,7 +413,7 @@ namespace Bitmanager.Grid {
                y += (int)rh;
             }
          }
-         Gdi32.BitBlt (_graphicsHdc, e.ClipRectangle.X, e.ClipRectangle.Y, e.ClipRectangle.Width, e.ClipRectangle.Height, _displayBuffer.Hdc, 0, 0, Gdi32.TernaryRasterOperations.SRCCOPY);
+         Gdi32.BitBlt (_graphicsHdc, 0, 0, _clientWidth, _clientHeight, _displayBuffer.Hdc, 0, 0, Gdi32.TernaryRasterOperations.SRCCOPY);
       }
 
       public void GotoCell (int row, int col=-1, bool select=true) {

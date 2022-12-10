@@ -62,7 +62,8 @@ namespace Bitmanager.Grid {
          rc.Left += rect.Left;
          rc.Right += rect.Left;
 
-         FrameRect (hdc, ref rc, GetStockObject (4));
+         //For debugging puposes, draw a frame around the text
+         //FrameRect (hdc, ref rc, GetStockObject (4));
 
 
 
