@@ -164,8 +164,6 @@ namespace Bitmanager.BigFile {
       }
 
       FileHistory fileHistory, directoryHistory;
-
-      ToolStripToolTipHelpers tooltipHelpers;
       GridLines gridLines;
 
       private void FormMain_Load (object sender, EventArgs e) {
@@ -230,28 +228,20 @@ namespace Bitmanager.BigFile {
 
          var sb = new StringBuilder ();
          sb.Append ("You can enter boolean expressions (AND, OR, NOT) in the search bar.");
-         sb.Append ("\nAlso, you can specify search-types by using : like cs:Paris, to do a case sensitive search for Paris");
+         sb.Append ("\nAlso, you can specify search-types by using a colon. Like cs:Paris, to do a case sensitive search for Paris");
          sb.Append ("\nFollowing types are supported:");
          sb.Append ("\n- cs: for case-sensitive search (default is non case sensitive)");
          sb.Append ("\n- csr: for case-sensitive regex search");
          sb.Append ("\n- r: for case-insensitive regex search");
-         sb.Append ("\n\nExample: \"with blank\" AND r:en$");
+         sb.Append ("\n\nExample: \"string with blanks\" AND r:en$");
          sb.Append ("\nRedoing searches for previous parts are extremely fast.");
          sb.Append ("\nCancel by <esc> or clicking in progress bar");
 
          btnSearch.ToolTipText = sb.ToString ();
+         btnSearch.Tag = new TooltipTimes (4000, 30000);
          cbSearch.ToolTipText = btnSearch.ToolTipText;
-
-         tooltipHelpers = new ToolStripToolTipHelpers ();
-         tooltipHelpers.Add (new ToolStripToolTipHelper (this.toolStrip, cbSplit));
-         //var tth = new ToolStripToolTipHelper (this.toolStrip, cbSearch);
-         //tth.ToolTipInterval = 20000;
-         //tth.Tooltip.ReshowDelay = 4000;
-         //tooltipHelpers.Add (tth);
-         tooltipHelpers.Add (this.toolStrip, (tth) => {
-            tth.ToolTipInterval = 20000;
-            tth.Tooltip.ReshowDelay = 3000;
-         });
+         cbSearch.Tag = btnSearch.Tag;
+         new ToolStripToolTipHelper (toolStrip, Globals.TooltipLogger);
 
          checkWarnings ();
 
@@ -1033,7 +1023,10 @@ namespace Bitmanager.BigFile {
 
 
       private void dropdownEncoding_SelectedIndexChanged (object sender, EventArgs e) {
-         if (lf != null) lf.SetEncoding (getCurrentEncoding ());
+         if (lf != null) {
+            lf.SetEncoding (getCurrentEncoding ());
+            gridLines.Invalidate ();
+         }
       }
 
       private void btnResetSearch_Click (object sender, EventArgs e) {

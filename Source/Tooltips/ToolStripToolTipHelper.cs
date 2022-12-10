@@ -28,171 +28,72 @@ using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 
 namespace Bitmanager.BigFile {
-   public class ToolStripToolTipHelpers {
-      private List<ToolStripToolTipHelper> helpers;
+   public class ToolStripToolTipHelper : TooltipHelperBase {
+      protected readonly ToolStrip target;
+      protected readonly int defDelay, defDuration;
+      protected ToolStripItem mouseOverItem = null;
 
-      public ToolStripToolTipHelpers () {
-         helpers = new List<ToolStripToolTipHelper> ();
-      }
-
-      public void Add (ToolStrip strip, Action<ToolStripToolTipHelper> customizer) {
-         foreach (ToolStripItem item in strip.Items) {
-            if (String.IsNullOrEmpty (item.ToolTipText)) continue;
-            if (isPresent (item)) continue;
-
-            var tth = new ToolStripToolTipHelper (strip, item);
-            if (customizer != null) customizer(tth);
-            helpers.Add (tth);
-         }
-      }
-      public void Add (ToolStripToolTipHelper helper) {
-         if (!isPresent (helper.targetItem)) helpers.Add (helper);
-      }
-
-      private bool isPresent (ToolStripItem item) {
-         foreach (var h in helpers) {
-            if (h.targetItem == item) return true;
-         }
-         return false;
-      }
-   }
-
-
-   public class ToolStripToolTipHelper {
-      internal readonly ToolStrip target;
-      internal readonly ToolStripItem targetItem;
-
-      ToolStripItem mouseOverItem = null;
-      Point mouseOverPoint;
-      private readonly Timer timer;
-      public readonly ToolTip Tooltip;
-      public int ToolTipInterval = 4000;
-      public string ToolTipText;
-      public bool ToolTipShowUp;
-
-      private readonly Logger logger;
-
-      public ToolStripToolTipHelper (ToolStrip target, ToolStripItem targetItem = null) {
-         logger = Globals.TooltipLogger;
+      public ToolStripToolTipHelper (ToolStrip target, Logger logger = null): base(target.Parent, 1000, 4000, logger) {
+         defDelay = delay;
+         defDuration = duration; 
          this.target = target;
-         this.targetItem = targetItem;
-
-         if (targetItem != null) {
-            targetItem.MouseMove += Item_MouseMove;
-            targetItem.MouseEnter += Item_MouseEnter;
-            targetItem.MouseDown += Item_MouseDown;
-            targetItem.MouseLeave += Item_MouseLeave;
-         } else {
-            target.MouseMove += Target_MouseMove;
-            target.MouseDown += Target_MouseDown;
-            target.MouseLeave += Target_MouseLeave;
-         }
          target.ShowItemToolTips = false;
 
-         timer = new Timer ();
-         timer.Enabled = false;
-         timer.Interval = 2000;// SystemInformation.MouseHoverTime;
-         timer.Tick += new EventHandler (timer_Tick);
-         Tooltip = new ToolTip ();
+         foreach (ToolStripItem x in target.Items) {
+            x.MouseEnter += Item_MouseEnter;
+            x.MouseDown += Item_MouseDown;
+            x.MouseLeave += Item_MouseLeave;
+         }
+         //tooltip.Font = new Font (tooltip.Font.FontFamily, tooltip.Font.Size + 1);
       }
-      protected virtual void Target_MouseMove (Object sender, MouseEventArgs mea) {
-         ToolStripItem newMouseOverItem = target.GetItemAt (mea.Location);
-         //logger.Log("MM: {0}", tos(newMouseOverItem));
 
-         if (mouseOverItem != newMouseOverItem ||
-             (Math.Abs (mouseOverPoint.X - mea.X) > SystemInformation.MouseHoverSize.Width || (Math.Abs (mouseOverPoint.Y - mea.Y) > SystemInformation.MouseHoverSize.Height))) {
-            mouseOverItem = newMouseOverItem;
-            mouseOverPoint = mea.Location;
-            if (Tooltip != null)
-               Tooltip.Hide (target);
-            timer.Stop ();
-            timer.Start ();
-            //logger.Log("MM: {0}, start timer", tos(newMouseOverItem));
+      protected override string GetText () {
+         return mouseOverItem.ToolTipText.TrimToNull();
+      }
+
+
+      private void checkAndStart (ToolStripItem item) {
+         logger?.Log ("checkAndStart: new={0}, existing={1}", mouseOverItem?.Name, item?.Name);
+         if (item == null || String.IsNullOrEmpty(item.ToolTipText)) Stop ();
+         else {
+            if (item == mouseOverItem) return;
+            stop ();
+            mouseOverItem = item;
+            var bounds = item.Bounds;
+            logger?.Log ("Bounds={0}", bounds);
+            var times = item.Tag as TooltipTimes;
+            if (times==null) {
+               duration = defDuration;
+               delay = defDelay;
+            } else {
+               duration = times.Duration;
+               delay = times.Delay;
+            }
+            Start (bounds.Left, target.Bottom);
          }
       }
-      protected virtual void Item_MouseMove (Object sender, MouseEventArgs mea) {
-         mouseOverPoint = mea.Location;
+      private void stop() {
+         if (mouseOverItem != null) {
+            Stop ();
+            logger?.Log ("ToolStripItem:stop");
+         }
+         mouseOverItem = null;
+      }
+
+      #region events
+      protected virtual void Item_MouseLeave (Object sender, EventArgs e) {
+         stop ();
       }
       protected virtual void Item_MouseEnter (Object sender, EventArgs e) {
-         ToolStripItem newMouseOverItem = (ToolStripItem)sender;
-         //logger.Log("enter: {0}", tos(newMouseOverItem));
-
-         if (mouseOverItem != newMouseOverItem) {
-            mouseOverItem = newMouseOverItem;
-            Tooltip.Hide (target);
-            timer.Stop ();
-            timer.Start ();
-            //logger.Log("MMI: {0}, start timer", tos(newMouseOverItem));
-         }
-      }
-
-      private String tos (ToolStripItem x) {
-         if (x == null) return "null";
-         return String.Format ("{0}: {1}", x.Name, x.GetType ().Name);
-      }
-
-      protected virtual void Target_MouseDown (Object sender, MouseEventArgs mea) {
-         ToolStripItem newMouseOverItem = target.GetItemAt (mea.Location);
-         if (newMouseOverItem != null) {
-            Tooltip.Hide (target);
-         }
+         logger?.Log ("Item_MouseEnter over {0}", ((ToolStripItem)sender).Name);
+         checkAndStart (sender as ToolStripItem);
       }
       protected virtual void Item_MouseDown (Object sender, MouseEventArgs mea) {
-         ToolStripItem newMouseOverItem = (ToolStripItem)sender;
-         if (newMouseOverItem != null) {
-            Tooltip.Hide (target);
-         }
+         logger?.Log ("Item_MouseDown over {0}", ((ToolStripItem)sender).Name);
+         stop ();
       }
+#endregion events
 
-      protected virtual void Target_MouseLeave (Object sender, EventArgs e) {
-         timer.Stop ();
-         Tooltip.Hide (target);
-         mouseOverPoint = new Point (-50, -50);
-         mouseOverItem = null;
-      }
-      protected virtual void Item_MouseLeave (Object sender, EventArgs e) {
-         //logger.Log("Leave: {0}, stop", tos(sender as ToolStripItem));
-         timer.Stop ();
-         Tooltip.Hide (target);
-         mouseOverPoint = new Point (-50, -50);
-         mouseOverItem = null;
-      }
-
-      void timer_Tick (object sender, EventArgs e) {
-         timer.Stop ();
-         timer.Interval = Tooltip.ReshowDelay;
-         Cursor cursor = Cursor.Current;
-         if (cursor == null) return; //cursor is null if the mouse is invisible
-         try {
-            //logger.Log("Timer: {0}", tos(mouseOverItem));
-            Point currentMouseOverPoint;
-            if (ToolTipShowUp)
-               currentMouseOverPoint = target.PointToClient (new Point (Control.MousePosition.X, Control.MousePosition.Y - cursor.Size.Height + cursor.HotSpot.Y));
-            else
-               currentMouseOverPoint = target.PointToClient (new Point (Control.MousePosition.X, Control.MousePosition.Y + cursor.Size.Height - cursor.HotSpot.Y));
-
-            showToolTip (currentMouseOverPoint);
-         } catch { }
-      }
-
-      protected virtual bool canDoToolTip (ToolStripItem x) {
-         var ddi = x as ToolStripDropDownItem;
-         return ddi == null || !ddi.DropDown.Visible;
-      }
-      protected virtual void showToolTip (Point currentMouseOverPoint) {
-         //logger.Log("Show: {0}", tos(mouseOverItem));
-         String txt = ToolTipText;
-
-         if (mouseOverItem != null) {
-            if (!canDoToolTip (mouseOverItem)) return;
-            if (txt == null) txt = mouseOverItem.ToolTipText;
-         }
-
-         //logger.Log("Show: {0}, txt={1}", tos(mouseOverItem), txt);
-         if (String.IsNullOrEmpty (txt)) return;
-
-         Tooltip.Show (txt, target, currentMouseOverPoint, ToolTipInterval);
-      }
 
    }
 }

@@ -33,15 +33,14 @@ namespace Bitmanager.BigFile {
    /// </summary>
    public abstract class TooltipHelperBase : IDisposable {
       protected readonly Logger logger;
-      protected enum TooltipState { Hidden, Shown };
       protected readonly Timer timer;
       protected readonly Label tooltip;
       protected bool Visible { 
          get { return tooltip.Visible; }
          set { tooltip.Visible = value; }
       }
-      protected int delay;
-      protected int duration;
+      public int delay;
+      public int duration;
 
       public readonly Control Parent;
       public int X { get; private set; }
@@ -61,7 +60,10 @@ namespace Bitmanager.BigFile {
          tooltip.BorderStyle = BorderStyle.FixedSingle;
          tooltip.Visible = false;
          tooltip.AutoSize = true;
-         tooltip.Font = parent.Parent.Font;
+         tooltip.Padding = new Padding (3);
+         Control controlForFont = parent.Parent;
+         if (controlForFont == null) controlForFont = parent;
+         tooltip.Font = controlForFont.Font;
          Parent.Controls.Add (tooltip);
       }
 
@@ -108,6 +110,7 @@ namespace Bitmanager.BigFile {
 
          if (needReposY) tooltip.Top = y;
          if (needReposX) tooltip.Left = x;
+         tooltip.BringToFront ();
       }
       private void _hide () {
          timer.Enabled = false;

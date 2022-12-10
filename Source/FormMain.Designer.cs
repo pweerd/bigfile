@@ -63,6 +63,7 @@ namespace Bitmanager.BigFile
          this.menuTools = new System.Windows.Forms.ToolStripMenuItem();
          this.menuFindMultis = new System.Windows.Forms.ToolStripMenuItem();
          this.menuFindSingles = new System.Windows.Forms.ToolStripMenuItem();
+         this.menuResetMatched = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
          this.gotoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
          this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -105,18 +106,17 @@ namespace Bitmanager.BigFile
          this.cbEncoding = new System.Windows.Forms.ToolStripComboBox();
          this.cbFontSize = new System.Windows.Forms.ToolStripComboBox();
          this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+         this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
+         this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
          this.cbSplit = new System.Windows.Forms.ToolStripComboBox();
          this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
          this.txtMaxLoad = new System.Windows.Forms.ToolStripTextBox();
-         this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
-         this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
          this.cbZipEngine = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
          this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.contextMenuCopy = new System.Windows.Forms.ToolStripMenuItem();
-         this.menuResetMatched = new System.Windows.Forms.ToolStripMenuItem();
          this.menuStrip.SuspendLayout();
          this.statusStrip.SuspendLayout();
          this.toolStrip.SuspendLayout();
@@ -216,26 +216,33 @@ namespace Bitmanager.BigFile
          // menuFindMultis
          // 
          this.menuFindMultis.Name = "menuFindMultis";
-         this.menuFindMultis.Size = new System.Drawing.Size(180, 22);
+         this.menuFindMultis.Size = new System.Drawing.Size(159, 22);
          this.menuFindMultis.Text = "Find multi lines";
          this.menuFindMultis.Click += new System.EventHandler(this.menuFindMultis_Click);
          // 
          // menuFindSingles
          // 
          this.menuFindSingles.Name = "menuFindSingles";
-         this.menuFindSingles.Size = new System.Drawing.Size(180, 22);
+         this.menuFindSingles.Size = new System.Drawing.Size(159, 22);
          this.menuFindSingles.Text = "Find single lines";
          this.menuFindSingles.Click += new System.EventHandler(this.menuFindSingles_Click);
+         // 
+         // menuResetMatched
+         // 
+         this.menuResetMatched.Name = "menuResetMatched";
+         this.menuResetMatched.Size = new System.Drawing.Size(159, 22);
+         this.menuResetMatched.Text = "Reset matched";
+         this.menuResetMatched.Click += new System.EventHandler(this.menuResetMatched_Click);
          // 
          // toolStripSeparator5
          // 
          this.toolStripSeparator5.Name = "toolStripSeparator5";
-         this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
+         this.toolStripSeparator5.Size = new System.Drawing.Size(156, 6);
          // 
          // gotoToolStripMenuItem
          // 
          this.gotoToolStripMenuItem.Name = "gotoToolStripMenuItem";
-         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.gotoToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.gotoToolStripMenuItem.Text = "Goto (Ctrl-G)";
          this.gotoToolStripMenuItem.Click += new System.EventHandler(this.gotoToolStripMenuItem_Click);
          // 
@@ -246,7 +253,7 @@ namespace Bitmanager.BigFile
             this.exportSelectedToolStripMenuItem,
             this.exportMatchedToolStripMenuItem});
          this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-         this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.exportToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.exportToolStripMenuItem.Text = "Export";
          // 
          // exportAllToolStripMenuItem
@@ -282,7 +289,7 @@ namespace Bitmanager.BigFile
             this.clearByMatchedToolStripMenuItem,
             this.clearByNonMatchedToolStripMenuItem});
          this.selectToolStripMenuItem.Name = "selectToolStripMenuItem";
-         this.selectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.selectToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.selectToolStripMenuItem.Text = "Select";
          // 
          // allToolStripMenuItem
@@ -342,26 +349,26 @@ namespace Bitmanager.BigFile
          // toolStripCopyMenuItem
          // 
          this.toolStripCopyMenuItem.Name = "toolStripCopyMenuItem";
-         this.toolStripCopyMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.toolStripCopyMenuItem.Size = new System.Drawing.Size(159, 22);
          this.toolStripCopyMenuItem.Text = "Copy (Ctrl-C)";
          this.toolStripCopyMenuItem.Click += new System.EventHandler(this.toolStripCopyMenuItem_Click);
          // 
          // toolStripMenuItem2
          // 
          this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-         this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
+         this.toolStripMenuItem2.Size = new System.Drawing.Size(156, 6);
          // 
          // menuToolsConfiguration
          // 
          this.menuToolsConfiguration.Name = "menuToolsConfiguration";
-         this.menuToolsConfiguration.Size = new System.Drawing.Size(180, 22);
+         this.menuToolsConfiguration.Size = new System.Drawing.Size(159, 22);
          this.menuToolsConfiguration.Text = "Options";
          this.menuToolsConfiguration.Click += new System.EventHandler(this.menuToolsConfiguration_Click);
          // 
          // registerShellextToolStripMenuItem
          // 
          this.registerShellextToolStripMenuItem.Name = "registerShellextToolStripMenuItem";
-         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+         this.registerShellextToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
          this.registerShellextToolStripMenuItem.Text = "Register shellext";
          this.registerShellextToolStripMenuItem.Click += new System.EventHandler(this.registerShellextToolStripMenuItem_Click);
          // 
@@ -380,21 +387,21 @@ namespace Bitmanager.BigFile
          this.menuViewAll.Checked = true;
          this.menuViewAll.CheckState = System.Windows.Forms.CheckState.Checked;
          this.menuViewAll.Name = "menuViewAll";
-         this.menuViewAll.Size = new System.Drawing.Size(180, 22);
+         this.menuViewAll.Size = new System.Drawing.Size(136, 22);
          this.menuViewAll.Text = "View all";
          this.menuViewAll.Click += new System.EventHandler(this.menuView_Click);
          // 
          // menuViewMatched
          // 
          this.menuViewMatched.Name = "menuViewMatched";
-         this.menuViewMatched.Size = new System.Drawing.Size(180, 22);
+         this.menuViewMatched.Size = new System.Drawing.Size(136, 22);
          this.menuViewMatched.Text = "Matched";
          this.menuViewMatched.Click += new System.EventHandler(this.menuView_Click);
          // 
          // menuViewUnmatched
          // 
          this.menuViewUnmatched.Name = "menuViewUnmatched";
-         this.menuViewUnmatched.Size = new System.Drawing.Size(180, 22);
+         this.menuViewUnmatched.Size = new System.Drawing.Size(136, 22);
          this.menuViewUnmatched.Text = "Unmatched";
          this.menuViewUnmatched.Click += new System.EventHandler(this.menuView_Click);
          // 
@@ -477,13 +484,13 @@ namespace Bitmanager.BigFile
             this.cbEncoding,
             this.cbFontSize,
             this.toolStripSeparator3,
+            this.cbZipEntries,
+            this.toolStripSeparator4,
             this.toolStripLabel1,
             this.cbSplit,
             this.toolStripLabel2,
             this.txtMaxLoad,
-            this.toolStripSeparator4,
             this.btnResplit,
-            this.cbZipEntries,
             this.cbZipEngine});
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
          this.toolStrip.Name = "toolStrip";
@@ -500,7 +507,6 @@ namespace Bitmanager.BigFile
          this.btnWarning.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.btnWarning.Name = "btnWarning";
          this.btnWarning.Size = new System.Drawing.Size(28, 28);
-         this.btnWarning.Text = "toolStripButton1";
          this.btnWarning.ToolTipText = "Important warnings detected. Click to view.";
          this.btnWarning.Click += new System.EventHandler(this.btnWarning_Click);
          // 
@@ -541,6 +547,7 @@ namespace Bitmanager.BigFile
          this.btnResetSearch.Name = "btnResetSearch";
          this.btnResetSearch.Size = new System.Drawing.Size(28, 28);
          this.btnResetSearch.Text = "toolStripButton3";
+         this.btnResetSearch.ToolTipText = "Reset all searches";
          this.btnResetSearch.Click += new System.EventHandler(this.btnResetSearch_Click);
          // 
          // toolStripSeparator2
@@ -558,7 +565,7 @@ namespace Bitmanager.BigFile
             "Utf16BE",
             "Windows"});
          this.cbEncoding.Name = "cbEncoding";
-         this.cbEncoding.Size = new System.Drawing.Size(93, 31);
+         this.cbEncoding.Size = new System.Drawing.Size(80, 31);
          this.cbEncoding.ToolTipText = "Codepage selection";
          this.cbEncoding.SelectedIndexChanged += new System.EventHandler(this.dropdownEncoding_SelectedIndexChanged);
          // 
@@ -575,6 +582,20 @@ namespace Bitmanager.BigFile
          this.toolStripSeparator3.Name = "toolStripSeparator3";
          this.toolStripSeparator3.Size = new System.Drawing.Size(6, 31);
          // 
+         // cbZipEntries
+         // 
+         this.cbZipEntries.DropDownWidth = 300;
+         this.cbZipEntries.Name = "cbZipEntries";
+         this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
+         this.cbZipEntries.ToolTipText = "Select entry in the zip-file";
+         this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
+         // 
+         // toolStripSeparator4
+         // 
+         this.toolStripSeparator4.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+         this.toolStripSeparator4.Name = "toolStripSeparator4";
+         this.toolStripSeparator4.Size = new System.Drawing.Size(6, 31);
+         // 
          // toolStripLabel1
          // 
          this.toolStripLabel1.Name = "toolStripLabel1";
@@ -584,7 +605,7 @@ namespace Bitmanager.BigFile
          // cbSplit
          // 
          this.cbSplit.Name = "cbSplit";
-         this.cbSplit.Size = new System.Drawing.Size(100, 31);
+         this.cbSplit.Size = new System.Drawing.Size(75, 31);
          this.cbSplit.Text = "2048";
          this.cbSplit.ToolTipText = "Automatic split lines larger than this value";
          // 
@@ -600,12 +621,6 @@ namespace Bitmanager.BigFile
          this.txtMaxLoad.Size = new System.Drawing.Size(100, 31);
          this.txtMaxLoad.ToolTipText = "Maximum size to load. For instance 1GB.";
          // 
-         // toolStripSeparator4
-         // 
-         this.toolStripSeparator4.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
-         this.toolStripSeparator4.Name = "toolStripSeparator4";
-         this.toolStripSeparator4.Size = new System.Drawing.Size(6, 31);
-         // 
          // btnResplit
          // 
          this.btnResplit.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -614,13 +629,6 @@ namespace Bitmanager.BigFile
          this.btnResplit.Name = "btnResplit";
          this.btnResplit.Size = new System.Drawing.Size(28, 28);
          this.btnResplit.Text = "Re-split";
-         // 
-         // cbZipEntries
-         // 
-         this.cbZipEntries.DropDownWidth = 300;
-         this.cbZipEntries.Name = "cbZipEntries";
-         this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
-         this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
          // 
          // cbZipEngine
          // 
@@ -658,13 +666,6 @@ namespace Bitmanager.BigFile
          this.contextMenuCopy.Size = new System.Drawing.Size(102, 22);
          this.contextMenuCopy.Text = "Copy";
          this.contextMenuCopy.Click += new System.EventHandler(this.contextMenuCopy_Click);
-         // 
-         // menuResetMatched
-         // 
-         this.menuResetMatched.Name = "menuResetMatched";
-         this.menuResetMatched.Size = new System.Drawing.Size(180, 22);
-         this.menuResetMatched.Text = "Reset matched";
-         this.menuResetMatched.Click += new System.EventHandler(this.menuResetMatched_Click);
          // 
          // FormMain
          // 
