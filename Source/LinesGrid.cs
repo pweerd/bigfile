@@ -193,7 +193,7 @@ namespace Bitmanager.BigFile {
 
          int line = lf == null ? -1 : lf.PartialToLineNumber (partial);
          var sb = new StringBuilder ();
-         sb.AppendFormat (Invariant.Culture, "Grid row-index={0}, partial-line={1}, line={2}", row, partial, line);
+         sb.AppendFormat (Invariant.Culture, "line={2}, Grid row-index={0}, partial-line={1}", row, partial, line);
          if (line >= 0) {
             int partialByteLen = lf.GetPartialLineLengthInBytes (partial);
             int lineByteLen = lf.GetLineLengthInBytes (line);

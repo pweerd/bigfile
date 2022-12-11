@@ -69,7 +69,7 @@ namespace Bitmanager.BigFile {
          cbViewAs.SelectedIndex = lastViewAsIndex;
          if (other != null) initialParentLocation = other.initialParentLocation;
          StartPosition = FormStartPosition.Manual;
-
+         initialParentLocation = new Point (int.MinValue, int.MinValue);
       }
 
       /// <summary>
@@ -86,10 +86,9 @@ namespace Bitmanager.BigFile {
       /// </summary>
       public void ShowLine (Point location, Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)//, String lastQueryText)
       {
-         if (location != initialParentLocation) {
-            initialParentLocation = location;
-            DesktopLocation = new Point (location.X + 100, location.Y + 100);
-         }
+         if (initialParentLocation.X == int.MinValue) initialParentLocation = location;
+         DesktopLocation = new Point (initialParentLocation.X + 100, initialParentLocation.Y + 100);
+
          this.settings = c;
          if (lastQuery == null)
             searchNodes = new List<SearchNode> ();
