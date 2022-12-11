@@ -241,7 +241,7 @@ namespace Bitmanager.BigFile {
          btnSearch.Tag = new TooltipTimes (4000, 30000);
          cbSearch.ToolTipText = btnSearch.ToolTipText;
          cbSearch.Tag = btnSearch.Tag;
-         new ToolStripToolTipHelper (toolStrip, Globals.TooltipLogger);
+         new ToolStripToolTipHelper (toolStrip, null);
 
          checkWarnings ();
 
@@ -807,7 +807,7 @@ namespace Bitmanager.BigFile {
             setEncodingComboFromEncoding (result.LogFile.DetectedEncoding.Current);
 
             var lf = result.LogFile;
-            String part1 = String.Format ("{0:n0} lines / {1}", lf.PartialLineCount, Pretty.PrintSize (lf.Size));
+            String part1 = String.Format ("{0:n0} lines / {1}", lf.LineCount, Pretty.PrintSize (lf.Size));
 
             if (result.Error != null) {
                statusLabelMain.Text = part1 + " [ERROR]";
