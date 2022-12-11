@@ -44,7 +44,6 @@ namespace Bitmanager.Grid {
 
       private readonly Graphics _graphics;
       private readonly IntPtr _graphicsHdc;
-      private readonly CellBuffer _cellBuffer;
       private readonly DisplayBuffer _displayBuffer;
       private FontManager _fontManager;
       private long _maxHorizontalOffset, _maxVerticalOffset;
@@ -62,6 +61,7 @@ namespace Bitmanager.Grid {
 
 
       public RawGrid () {
+         DoubleBuffered = false;
          _columns = new ();
          hScrollBar = new HScrollBar ();
          hScrollBar.Dock = DockStyle.Bottom;
@@ -70,7 +70,6 @@ namespace Bitmanager.Grid {
          _graphics = CreateGraphics ();
          _graphicsHdc = _graphics.GetHdc ();
          _fontManager = new FontManager ();
-         _cellBuffer = new CellBuffer ();
          _displayBuffer = new DisplayBuffer (_graphicsHdc, _fontManager);
 
          Font = new Font ("Microsoft Sans Serif", 12);
@@ -156,11 +155,13 @@ namespace Bitmanager.Grid {
       }
       public int RowCount { get { return _rowCount; }
          set {
-            _focusRow = -1;
-            _rowCount = value < 0 ? 0: value;
-            OnRowCountChanged (_rowCount);
-            RecomputeScrollBars ();
-            Invalidate ();
+            if (_rowCount != value) {
+               _rowCount = value < 0 ? 0 : value;
+               _focusRow = _rowCount > 0 ? 0 : -1;
+               OnRowCountChanged (_rowCount);
+               RecomputeScrollBars ();
+               Invalidate ();
+            }
          }
       }
 
@@ -425,25 +426,18 @@ namespace Bitmanager.Grid {
       }
 
       public void MakeCellVisible (int row, int col = -1, bool select = true) {
-         int visibleRows = _clientHeight / RowHeight;
+         int rowHeight = RowHeight;
          if (row < 0) row = 0;
          else if (row >= _rowCount) row = _rowCount - 1;
 
-         long vOffset = RowHeight * (long)row;
-         long offset = vOffset - _verticalOffset;
+         long vOffset = rowHeight * (long)row;
 
-         if (visibleRows < 3) {
-            VerticalOffset = vOffset;
-            goto SELECT;
-         }
          if (vOffset < _verticalOffset) {
-            vOffset -= 2 * RowHeight;
             VerticalOffset = vOffset;
             goto SELECT;
          }
-         if (vOffset + RowHeight - VerticalOffset > _clientHeight) {
-            vOffset -= (_clientHeight - 3 * RowHeight);
-            VerticalOffset = vOffset;
+         if (vOffset + rowHeight - VerticalOffset > _clientHeight) {
+            VerticalOffset = vOffset - (_clientHeight - rowHeight);
             goto SELECT;
          }
 
@@ -451,7 +445,6 @@ namespace Bitmanager.Grid {
          if (select) SelectedIndex = row;
          _focusRow = row;
 
-      MAKE_COL_VISIBLE:
          if (col < 0 ) goto EXIT_RTN;
          if (col >= _columns.Count) col = _columns.Count - 1;
          HorizontalOffset = _columns[col].GlobalOffset;
@@ -500,6 +493,7 @@ namespace Bitmanager.Grid {
       }
 
       protected override void OnKeyDown (KeyEventArgs e) {
+         int visibleRows;
          base.OnKeyDown (e);
          if (e.Handled || _rowCount==0 || _columns.Count==0) return;
          switch (e.KeyCode) {
@@ -512,20 +506,23 @@ namespace Bitmanager.Grid {
                   VerticalOffset = _maxVerticalOffset;
                   HorizontalOffset = 0;
                } else {
-                  logger.Log ("offset1={0}, offset2={1}", _columns[^1].GlobalOffsetPlusWidth - _clientWidth, (int)(.5 + hScrollBar.Maximum * hScrollBarMultiplier));
-                  //HorizontalOffset = _columns[^1].GlobalOffsetPlusWidth - _clientWidth;// (int) (.5 + hScrollBar.Maximum * hScrollBarMultiplier);
                   HorizontalOffset = _maxHorizontalOffset;
                }
                break;
             case Keys.Up:
                MakeCellVisible (_focusRow - 1, -1, true);
                break;
-
             case Keys.Down:
                MakeCellVisible (_focusRow + 1, -1, true);
                break;
-               //case Keys.PageUp:
-               //case Keys.PageDown:
+            case Keys.PageUp:
+               visibleRows = _clientHeight / RowHeight -1;
+               MakeCellVisible (_focusRow - visibleRows, -1, true);
+               break;
+            case Keys.PageDown:
+               visibleRows = _clientHeight / RowHeight - 1;
+               MakeCellVisible (_focusRow + visibleRows, -1, true);
+               break;
          }
       }
       protected override void OnKeyUp (KeyEventArgs e) {
