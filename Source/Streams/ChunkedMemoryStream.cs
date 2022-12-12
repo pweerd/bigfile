@@ -30,8 +30,11 @@ using System.IO;
 using Bitmanager.Core;
 
 namespace Bitmanager.IO {
-   /// <summary>Creates a stream whose backing store is memory.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
-   /// <filterpriority>2</filterpriority>
+
+   /// <summary>
+   /// Creates a stream whose backing store is memory.
+   /// Instead of using 1 contigious buffer, we use a list of buffers 
+   /// </summary>
    public class ChunkedMemoryStream : Stream, IDirectStream {
       private List<byte[]> _buffers;
       private long _position;
