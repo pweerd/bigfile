@@ -61,10 +61,17 @@ namespace Bitmanager.BigFile {
          tooltip.Visible = false;
          tooltip.AutoSize = true;
          tooltip.Padding = new Padding (3);
+         tooltip.KeyPress += Tooltip_KeyPress;
          Control controlForFont = parent.Parent;
          if (controlForFont == null) controlForFont = parent;
          tooltip.Font = controlForFont.Font;
          Parent.Controls.Add (tooltip);
+      }
+
+      private void Tooltip_KeyPress (object sender, KeyPressEventArgs e) {
+         if (e.KeyChar == 3) { //CTRL-C
+            Clipboard.SetText (tooltip.Text);
+         }
       }
 
       protected void Timer_Tick (object sender, EventArgs e) {
@@ -111,6 +118,7 @@ namespace Bitmanager.BigFile {
          if (needReposY) tooltip.Top = y;
          if (needReposX) tooltip.Left = x;
          tooltip.BringToFront ();
+         tooltip.Focus ();
       }
       private void _hide () {
          timer.Enabled = false;
