@@ -221,8 +221,8 @@ namespace Bitmanager.BigFile.Tests {
          Assert.AreEqual (4757, logFile.GetLine (2).Length);
 
          //Checking longest line
-         Assert.AreEqual (5, logFile.LongestPartialIndex);
-         Assert.AreEqual (7464, logFile.GetPartialLine (logFile.LongestPartialIndex).Length);
+         Assert.AreEqual (5, logFile.LongestPartialLine.Index);
+         Assert.AreEqual (8478, logFile.LongestPartialLine.Length);
          Assert.AreEqual (5, logFile.LongestLineIndex);
          Assert.AreEqual (7464, logFile.GetLine (logFile.LongestLineIndex).Length);
 
@@ -240,16 +240,16 @@ namespace Bitmanager.BigFile.Tests {
 
          Assert.AreEqual (90, logFile.PartialLineCount);
          Assert.AreEqual (0, logFile.GetPartialLineOffset (0));
-         Assert.AreEqual (1018, logFile.GetPartialLineOffset (1));
-         Assert.AreEqual (2042, logFile.GetPartialLineOffset (2));
+         Assert.AreEqual (1024, logFile.GetPartialLineOffset (1));
+         Assert.AreEqual (2049, logFile.GetPartialLineOffset (2));
 
-         Assert.AreEqual (940, logFile.GetPartialLine (0).Length);
-         Assert.AreEqual (965, logFile.GetPartialLine (1).Length);
+         Assert.AreEqual (946, logFile.GetPartialLine (0).Length);
+         Assert.AreEqual (966, logFile.GetPartialLine (1).Length);
          Assert.AreEqual (882, logFile.GetPartialLine (2).Length);
 
          //Checking longest partial line
-         Assert.AreEqual (56, logFile.LongestPartialIndex);
-         Assert.AreEqual (859, logFile.GetPartialLine (logFile.LongestPartialIndex).Length);
+         Assert.AreEqual (44, logFile.LongestPartialLine.Index);
+         Assert.AreEqual (1025, logFile.LongestPartialLine.Length);
 
          //Checking longest  line
          Assert.AreEqual (5, logFile.LongestLineIndex);

@@ -49,7 +49,8 @@ namespace Bitmanager.BigFile {
       public bool IsClosed { get { return closed; } }
 
       private List<Tuple<int, int>> curMatches;
-      private int lineIndex;
+      private int internalLineIndex;
+      private int publicLineIndex;
       private int partialIndex;
       private int matchIdx;
       private Point initialParentLocation;
@@ -115,7 +116,8 @@ namespace Bitmanager.BigFile {
 
       private void setIndexes (int partial, int line) {
          partialIndex = partial;
-         lineIndex = line;
+         internalLineIndex = line;
+         publicLineIndex = line + lf.SkippedLines;
       }
 
       private void setLine (int partialLineNo) {
@@ -137,9 +139,9 @@ namespace Bitmanager.BigFile {
          setIndexes (partialLineNo, lf.PartialToLineNumber (partialLineNo));
 
          bool truncated;
-         curLine = lf.GetLine (lineIndex, out truncated);
-         Text = String.Format (truncated ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, lineIndex);
-         logger.Log ("SetLine ({0}): loading full line {1}...", partialLineNo, lineIndex);
+         curLine = lf.GetLine (internalLineIndex, out truncated);
+         Text = String.Format (truncated ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, publicLineIndex);
+         logger.Log ("SetLine ({0}): loading full line {1}...", partialLineNo, publicLineIndex);
 
          loadLineInControl ();
          logger.Log ("SetLine (): loaded {0} chars in control", curLine.Length);
@@ -420,11 +422,11 @@ namespace Bitmanager.BigFile {
       }
 
       private void gotoNextLine () {
-         setLine (lf.PartialFromLineNumber (lf.NextLineNumber (lineIndex, filter)));
+         setLine (lf.PartialFromLineNumber (lf.NextLineNumber (internalLineIndex, filter)));
       }
 
       private void gotoPrevLine () {
-         setLine (lf.PartialFromLineNumber (lf.PrevLineNumber (lineIndex, filter)));
+         setLine (lf.PartialFromLineNumber (lf.PrevLineNumber (internalLineIndex, filter)));
       }
 
       private void FormLine_Load (object sender, EventArgs e) {

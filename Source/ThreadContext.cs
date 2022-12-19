@@ -26,7 +26,7 @@ using Bitmanager.Core;
 using Bitmanager.IO;
 
 namespace Bitmanager.BigFile {
-   public partial class ThreadContext {
+   public class ThreadContext {
       public Encoding Encoding = Encoding.UTF8;
       public readonly IDirectStream DirectStream;
       private readonly List<long> partialLines;  //Not owned!!
@@ -138,7 +138,6 @@ namespace Bitmanager.BigFile {
 
       private unsafe String byteBufferViaCharBufferToString (int bytes, ICharReplacer replacer) {
          int N = Encoding.GetChars (byteBuffer, 0, bytes, charBuffer, 0);
-         int j = 0;
 
          //Strip the cr/lf at the beginning/end, and eventual replace some chars
          fixed (char* pBuf = charBuffer) {

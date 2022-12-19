@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 
 namespace Bitmanager.IO {
    public interface IDirectStream {
-      int ReadByte (long offset);
+      void SetOffsetOfFirstBuffer (long offset);
       int Read (long offset, byte[] buffer, int bufOffset, int count);
       void Close ();
       void PrepareForNewInstance ();
@@ -78,11 +78,6 @@ namespace Bitmanager.IO {
          BaseStream.Close ();
       }
 
-      public virtual int ReadByte (long offset) {
-         BaseStream.Position = offset;
-         return BaseStream.ReadByte ();
-      }
-
       public virtual int Read (long offset, byte[] buffer, int bufOffset, int count) {
          BaseStream.Position = offset;
          return BaseStream.Read (buffer, bufOffset, count);
@@ -91,6 +86,10 @@ namespace Bitmanager.IO {
       public virtual void Close () {
          //Logs.ErrorLog.Log("Closed at: {0}", Environment.StackTrace);
          BaseStream.Close ();
+      }
+
+      public void SetOffsetOfFirstBuffer (long offset) {
+         throw new NotImplementedException ();
       }
    }
 

@@ -28,6 +28,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 using Bitmanager.Core;
+using Bitmanager.BigFile;
 
 namespace Bitmanager.IO {
 
@@ -37,6 +38,7 @@ namespace Bitmanager.IO {
    /// </summary>
    public class ChunkedMemoryStream : Stream, IDirectStream {
       private List<byte[]> _buffers;
+      private long _offsetOfFirstBuffer;
       private long _position;
       private long _length;
       private readonly long _chunckSize;
@@ -63,26 +65,17 @@ namespace Bitmanager.IO {
          this._isOpen = other._isOpen;
          this._buffers = new List<byte[]> (other._buffers);
          this._length = other._length;
+         this._offsetOfFirstBuffer = other._offsetOfFirstBuffer;
       }
 
-      public virtual void PrepareForNewInstance () {
-      }
-
-      public virtual IDirectStream NewInstanceForThread () {
-         return new ChunkedMemoryStream (this);
-      }
-
-      public virtual void CloseInstance () {
-         _buffers.Clear ();
-         _length = 0;
-         _position = 0;
-      }
 
       /// <summary>
       /// Create a compressing chuncked memory stream
       /// </summary>
       public CompressedChunkedMemoryStream CreateCompressedChunkedMemoryStream (Logger logger = null) {
-         return new CompressedChunkedMemoryStream ((int)_chunckSize, _buffers, _position, _length, logger);
+         var ret = new CompressedChunkedMemoryStream ((int)_chunckSize, _buffers, _position, _length, logger);
+         ret.SetOffsetOfFirstBuffer(this._offsetOfFirstBuffer);
+         return ret;
       }
 
       public override bool CanRead { get { return this._isOpen; } }
@@ -144,37 +137,6 @@ namespace Bitmanager.IO {
          return len;
       }
 
-      public virtual int Read (long position, byte[] buffer, int offset, int count) {
-         long longCount = this._length - position;
-         int totalBytesToProcess = longCount > count ? count : (int)longCount;
-
-         if (totalBytesToProcess <= 0)
-            return 0;
-
-         int chunckIx = (int)(position / _chunckSize);
-         int chunckOffset = (int)(position % _chunckSize);
-         int todo = totalBytesToProcess;
-         while (true) {
-            int bytesToProcess = (int)(_chunckSize - chunckOffset);
-            if (bytesToProcess > todo) bytesToProcess = todo;
-
-            byte[] chunck = _buffers[chunckIx];
-            if (bytesToProcess <= 8) {
-               int num = bytesToProcess;
-               while (--num >= 0)
-                  buffer[offset + num] = chunck[chunckOffset + num];
-            } else
-               Buffer.BlockCopy (chunck, chunckOffset, buffer, offset, bytesToProcess);
-
-            todo -= bytesToProcess;
-            if (todo <= 0) break;
-            offset += bytesToProcess;
-            ++chunckIx;
-            chunckOffset = 0;
-         }
-         return totalBytesToProcess;
-      }
-
 
 
       /// <summary>Reads a byte from the current stream.</summary>
@@ -188,15 +150,6 @@ namespace Bitmanager.IO {
          int chunckIx = (int)(_position / _chunckSize);
          int chunckOffset = (int)(_position % _chunckSize);
          ++_position;
-         return _buffers[chunckIx][chunckOffset];
-      }
-
-      public virtual int ReadByte (long position) {
-         long longCount = this._length - position;
-         if (longCount <= 0) return -1;
-
-         int chunckIx = (int)(position / _chunckSize);
-         int chunckOffset = (int)(position % _chunckSize);
          return _buffers[chunckIx][chunckOffset];
       }
 
@@ -318,6 +271,60 @@ namespace Bitmanager.IO {
             stream.Write (_buffers[i], 0, rest);
       }
 
+      #region IDirectStream implementation
+      public void SetOffsetOfFirstBuffer (long offset) {
+         BigFile.Globals.StreamLogger.Log ("{0}:SetOffsetOfFirstBuffer ({1}, 0x{1:X})", this.GetType ().Name, offset);
+         if (offset < 0) throw new BMException ("Negative offset is unexpected");
+         this._offsetOfFirstBuffer= offset;
+      }
 
+      public virtual int Read (long position, byte[] buffer, int offset, int count) {
+         position -= _offsetOfFirstBuffer;
+         BigFile.Globals.StreamLogger.Log ("{0}:Read ({3}, inp {1}, 0x{1:X}, offs {2}, 0x{2:X})", this.GetType ().Name, position + _offsetOfFirstBuffer, _offsetOfFirstBuffer, position);
+         if (position < 0) throw new BMException ("Position [0x{0:X}] is before first stored data [{1:X}].", position + _offsetOfFirstBuffer, _offsetOfFirstBuffer);
+         
+         long longCount = this._length - position;
+         int totalBytesToProcess = longCount > count ? count : (int)longCount;
+
+         if (totalBytesToProcess <= 0)
+            return 0;
+
+         int chunckIx = (int)(position / _chunckSize);
+         int chunckOffset = (int)(position % _chunckSize);
+         int todo = totalBytesToProcess;
+         while (true) {
+            int bytesToProcess = (int)(_chunckSize - chunckOffset);
+            if (bytesToProcess > todo) bytesToProcess = todo;
+
+            byte[] chunck = _buffers[chunckIx];
+            if (bytesToProcess <= 8) {
+               int num = bytesToProcess;
+               while (--num >= 0)
+                  buffer[offset + num] = chunck[chunckOffset + num];
+            } else
+               Buffer.BlockCopy (chunck, chunckOffset, buffer, offset, bytesToProcess);
+
+            todo -= bytesToProcess;
+            if (todo <= 0) break;
+            offset += bytesToProcess;
+            ++chunckIx;
+            chunckOffset = 0;
+         }
+         return totalBytesToProcess;
+      }
+      public virtual void PrepareForNewInstance () {
+      }
+
+      public virtual IDirectStream NewInstanceForThread () {
+         return new ChunkedMemoryStream (this);
+      }
+
+      public virtual void CloseInstance () {
+         _buffers.Clear ();
+         _length = 0;
+         _position = 0;
+         _offsetOfFirstBuffer = 0;
+      }
+      #endregion
    }
 }

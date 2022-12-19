@@ -32,6 +32,7 @@ namespace Bitmanager.BigFile {
       public static readonly Logger MainLogger;
       public static readonly Logger SettingsLogger;
       public static readonly Logger TooltipLogger;
+      public static readonly Logger StreamLogger;
 
       public static readonly String LoadDir;
       public static readonly bool IsDebug;
@@ -46,6 +47,7 @@ namespace Bitmanager.BigFile {
          MainLogger.Log ();
          SettingsLogger = MainLogger.Clone ("settings");
          TooltipLogger = Globals.MainLogger.Clone ("tt");
+         StreamLogger = Globals.MainLogger.Clone ("stream");
 
 
          LoadDir = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);

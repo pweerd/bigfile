@@ -44,6 +44,7 @@ namespace Bitmanager.IO {
       private readonly List<byte[]> _buffers;
       private readonly Stack<byte[]> _recycledBuffers;
 
+      private long _offsetOfFirstBuffer;
       private long _position;
       private long _length;
       private readonly byte[] _decompressBuffer;
@@ -115,6 +116,7 @@ namespace Bitmanager.IO {
          this._recycledBuffers = new Stack<byte[]> ();
          this._length = other._length;
          this._position = other._position;
+         this._offsetOfFirstBuffer= other._offsetOfFirstBuffer;
          this._mode = other._mode;
          this._decompressBuffer = new byte[_chunckSize];
          this._compressor = other._compressor;
@@ -124,20 +126,6 @@ namespace Bitmanager.IO {
          this._logger = other._logger;
       }
 
-      public virtual void PrepareForNewInstance () {
-         FinalizeCompressor ();
-      }
-
-      public virtual IDirectStream NewInstanceForThread () {
-         return new CompressedChunkedMemoryStream (this);
-      }
-
-      public virtual void CloseInstance () {
-         _buffers.Clear ();
-         _recycledBuffers.Clear ();
-         _length = 0;
-         _position = 0;
-      }
 
 
       public long GetCompressedSize () {
@@ -313,38 +301,6 @@ namespace Bitmanager.IO {
          return len;
       }
 
-      public virtual int Read (long position, byte[] buffer, int offset, int count) {
-         this._mode = Mode._Reading;
-         long longCount = this._length - position;
-         int totalBytesToProcess = longCount > count ? count : (int)longCount;
-
-         if (totalBytesToProcess <= 0)
-            return 0;
-
-         int chunckIx = (int)(position / _chunckSize);
-         int chunckOffset = (int)(position % _chunckSize);
-         int todo = totalBytesToProcess;
-         while (true) {
-            int bytesToProcess = (int)(_chunckSize - chunckOffset);
-            if (bytesToProcess > todo) bytesToProcess = todo;
-
-            byte[] chunck = getDecompressedBuffer (chunckIx);
-
-            if (bytesToProcess <= 8) {
-               int num = bytesToProcess;
-               while (--num >= 0)
-                  buffer[offset + num] = chunck[chunckOffset + num];
-            } else
-               Buffer.BlockCopy (chunck, chunckOffset, buffer, offset, bytesToProcess);
-
-            todo -= bytesToProcess;
-            if (todo <= 0) break;
-            offset += bytesToProcess;
-            ++chunckIx;
-            chunckOffset = 0;
-         }
-         return totalBytesToProcess;
-      }
 
 
 
@@ -360,16 +316,6 @@ namespace Bitmanager.IO {
          int chunckIx = (int)(_position / _chunckSize);
          int chunckOffset = (int)(_position % _chunckSize);
          ++_position;
-         return getDecompressedBuffer (chunckIx)[chunckOffset];
-      }
-
-      public virtual int ReadByte (long position) {
-         this._mode = Mode._Reading;
-         long longCount = this._length - position;
-         if (longCount <= 0) return -1;
-
-         int chunckIx = (int)(position / _chunckSize);
-         int chunckOffset = (int)(position % _chunckSize);
          return getDecompressedBuffer (chunckIx)[chunckOffset];
       }
 
@@ -519,5 +465,64 @@ namespace Bitmanager.IO {
             stream.Write (_buffers[i], 0, rest);
       }
 
+      #region IDirectStream implementation
+      public void SetOffsetOfFirstBuffer (long offset) {
+         BigFile.Globals.StreamLogger.Log ("{0}:SetOffsetOfFirstBuffer ({1}, 0x{1:X})", this.GetType ().Name, offset);
+         if (offset < 0) throw new BMException ("Negative offset is unexpected");
+         this._offsetOfFirstBuffer = offset;
+      }
+      public virtual int Read (long position, byte[] buffer, int offset, int count) {
+         position -= _offsetOfFirstBuffer;
+         BigFile.Globals.StreamLogger.Log ("{0}:Read ({3}, inp {1}, 0x{1:X}, offs {2}, 0x{2:X})", this.GetType ().Name, position + _offsetOfFirstBuffer, _offsetOfFirstBuffer, position);
+         if (position < 0) throw new BMException ("Position [0x{0:X}] is before first stored data [{1:X}].", position + _offsetOfFirstBuffer, _offsetOfFirstBuffer);
+
+         this._mode = Mode._Reading;
+         long longCount = this._length - position;
+         int totalBytesToProcess = longCount > count ? count : (int)longCount;
+
+         if (totalBytesToProcess <= 0)
+            return 0;
+
+         int chunckIx = (int)(position / _chunckSize);
+         int chunckOffset = (int)(position % _chunckSize);
+         int todo = totalBytesToProcess;
+         while (true) {
+            int bytesToProcess = (int)(_chunckSize - chunckOffset);
+            if (bytesToProcess > todo) bytesToProcess = todo;
+
+            byte[] chunck = getDecompressedBuffer (chunckIx);
+
+            if (bytesToProcess <= 8) {
+               int num = bytesToProcess;
+               while (--num >= 0)
+                  buffer[offset + num] = chunck[chunckOffset + num];
+            } else
+               Buffer.BlockCopy (chunck, chunckOffset, buffer, offset, bytesToProcess);
+
+            todo -= bytesToProcess;
+            if (todo <= 0) break;
+            offset += bytesToProcess;
+            ++chunckIx;
+            chunckOffset = 0;
+         }
+         return totalBytesToProcess;
+      }
+
+      public virtual void PrepareForNewInstance () {
+         FinalizeCompressor ();
+      }
+
+      public virtual IDirectStream NewInstanceForThread () {
+         return new CompressedChunkedMemoryStream (this);
+      }
+
+      public virtual void CloseInstance () {
+         _buffers.Clear ();
+         _recycledBuffers.Clear ();
+         _length = 0;
+         _position = 0;
+         _offsetOfFirstBuffer = 0;
+      }
+      #endregion
    }
 }

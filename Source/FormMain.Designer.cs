@@ -19,10 +19,8 @@
 
 using System.ComponentModel;
 
-namespace Bitmanager.BigFile
-{
-   partial class FormMain
-   {
+namespace Bitmanager.BigFile {
+   partial class FormMain {
       /// <summary>
       /// Required designer variable.
       /// </summary>
@@ -32,13 +30,11 @@ namespace Bitmanager.BigFile
       /// Clean up any resources being used.
       /// </summary>
       /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-      protected override void Dispose(bool disposing)
-      {
-         if (disposing && (components != null))
-         {
-            components.Dispose();
+      protected override void Dispose (bool disposing) {
+         if (disposing && (components != null)) {
+            components.Dispose ();
          }
-         base.Dispose(disposing);
+         base.Dispose (disposing);
       }
 
       #region Windows Form Designer generated code
@@ -47,8 +43,7 @@ namespace Bitmanager.BigFile
       /// Required method for Designer support - do not modify
       /// the contents of this method with the code editor.
       /// </summary>
-      private void InitializeComponent()
-      {
+      private void InitializeComponent () {
          this.components = new System.ComponentModel.Container();
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
          this.menuStrip = new System.Windows.Forms.MenuStrip();
@@ -111,7 +106,7 @@ namespace Bitmanager.BigFile
          this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
          this.cbSplit = new System.Windows.Forms.ToolStripComboBox();
          this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
-         this.txtMaxLoad = new System.Windows.Forms.ToolStripTextBox();
+         this.txtLoadLimits = new System.Windows.Forms.ToolStripTextBox();
          this.btnResplit = new System.Windows.Forms.ToolStripButton();
          this.cbZipEngine = new System.Windows.Forms.ToolStripComboBox();
          this.panelMain = new System.Windows.Forms.Panel();
@@ -489,7 +484,7 @@ namespace Bitmanager.BigFile
             this.toolStripLabel1,
             this.cbSplit,
             this.toolStripLabel2,
-            this.txtMaxLoad,
+            this.txtLoadLimits,
             this.btnResplit,
             this.cbZipEngine});
          this.toolStrip.Location = new System.Drawing.Point(0, 24);
@@ -612,14 +607,13 @@ namespace Bitmanager.BigFile
          // toolStripLabel2
          // 
          this.toolStripLabel2.Name = "toolStripLabel2";
-         this.toolStripLabel2.Size = new System.Drawing.Size(56, 28);
-         this.toolStripLabel2.Text = "Max load";
+         this.toolStripLabel2.Size = new System.Drawing.Size(65, 28);
+         this.toolStripLabel2.Text = "Load limits";
          // 
-         // txtMaxLoad
+         // txtLoadLimits
          // 
-         this.txtMaxLoad.Name = "txtMaxLoad";
-         this.txtMaxLoad.Size = new System.Drawing.Size(100, 31);
-         this.txtMaxLoad.ToolTipText = "Maximum size to load. For instance 1GB.";
+         this.txtLoadLimits.Name = "txtLoadLimits";
+         this.txtLoadLimits.Size = new System.Drawing.Size(100, 31);
          // 
          // btnResplit
          // 
@@ -762,12 +756,12 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ToolStripMenuItem toolStripCopyMenuItem;
       private ToolStripComboBox cbFontSize;
       private ToolStripLabel toolStripLabel2;
-      private ToolStripTextBox txtMaxLoad;
+      private ToolStripTextBox txtLoadLimits;
       private ToolStripSeparator toolStripSeparator4;
-        private ToolStripMenuItem menuFindMultis;
-        private ToolStripMenuItem menuFindSingles;
-        private ToolStripSeparator toolStripSeparator5;
-        private ToolStripMenuItem menuResetMatched;
-    }
+      private ToolStripMenuItem menuFindMultis;
+      private ToolStripMenuItem menuFindSingles;
+      private ToolStripSeparator toolStripSeparator5;
+      private ToolStripMenuItem menuResetMatched;
+   }
 }
 

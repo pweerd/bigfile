@@ -97,7 +97,7 @@ namespace Bitmanager.BigFile {
          return base.MeasureTextWidth (txt);
       }
       
-      private PartialLineLength getWidestLine () {
+      private PartialLineStats getWidestLine () {
          int maxIndex=-1;
          int maxWidth = 0;
      
@@ -107,14 +107,14 @@ namespace Bitmanager.BigFile {
             maxIndex = ll.Index;
             maxWidth = w;
          }
-         return new PartialLineLength(maxIndex, maxWidth);
+         return new PartialLineStats(maxIndex, maxWidth);
       }
       protected void updateColumnWidths() {
          if (lf != null && RowCount > 0) {
-            int lastIndex = GridRowToRow (RowCount - 1);
-            if (lastIndex < 0) lastIndex = lf.PartialLineCount - 1;
-            lastIndex = lf.PartialToLineNumber (lastIndex);
-            int w = base.MeasureTextWidth (lastIndex.ToString ());
+            int lastPartial = GridRowToRow (RowCount - 1);
+            if (lastPartial < 0) lastPartial = lf.PartialLineCount - 1;
+            int lastLine = lf.PartialToLineNumber (lastPartial) + lf.SkippedLines;
+            int w = base.MeasureTextWidth (lastLine.ToString ());
             SetColumnWidth (0, Math.Max(50, 10 + w), false);
             logger.Log ("Set col-0 width: {0}", w);
 
@@ -165,8 +165,8 @@ namespace Bitmanager.BigFile {
          int flags = lf.GetLineFlags (row);
          if (col == 0) {
             if ((flags & LineFlags.CONTINUATION) == 0) {
-               int lineNo = lf.GetOptRealLineNumber (row);
-               if (lineNo >= 0) ret.Text = Invariant.Format ("{0}", lineNo);
+               int lineNo = lf.OptPartialToLineNumber (row);
+               if (lineNo >= 0) ret.Text = Invariant.Format ("{0}", lineNo+lf.SkippedLines);
             }
          } else {
             if ((flags & LineFlags.MATCHED) != 0 && _settings != null) {
@@ -189,22 +189,28 @@ namespace Bitmanager.BigFile {
 
 
       public String GetTooltipForRow (int row) {
+         if (lf == null || lf.PartialLineCount == 0) return null;
+
+
          int partial = GridRowToRow (row);
+         int line = lf.PartialToLineNumber (partial);
+         int skipped = lf.SkippedLines;
+         int partialByteLen = lf.GetPartialLineLengthInBytes (partial);
+         int lineByteLen = lf.GetLineLengthInBytes (line);
+         int partialCharLen = lf.GetPartialLineLengthInChars (partial);
+         int lineCharLen = lf.GetLineLengthInBytes (line);
+         long offset = lf.GetLineOffset (line);
 
-         int line = lf == null ? -1 : lf.PartialToLineNumber (partial);
          var sb = new StringBuilder ();
-         sb.AppendFormat (Invariant.Culture, "line={2}, Grid row-index={0}, partial-line={1}", row, partial, line);
-         if (line >= 0) {
-            int partialByteLen = lf.GetPartialLineLengthInBytes (partial);
-            int lineByteLen = lf.GetLineLengthInBytes (line);
-            int partialCharLen = lf.GetPartialLineLengthInChars (partial);
-            int lineCharLen = lf.GetLineLengthInBytes (line);
-            sb.AppendFormat (Invariant.Culture, "\nPartialChars={0} ({1} bytes)", partialCharLen, partialByteLen);
-            sb.AppendFormat (Invariant.Culture, "\nLinesChars={0} ({1} bytes)", lineCharLen, lineByteLen);
-         }
-         return sb.ToString();
-      }
+         sb.AppendFormat (Invariant.Culture, "Line: {0}", line + skipped);
+         if (skipped > 0) sb.AppendFormat (Invariant.Culture, " (internal={0})", line);
+         sb.AppendFormat (Invariant.Culture, ", Grid-index: {0}", row);
+         sb.AppendFormat (Invariant.Culture, ", Chars: {0} ({1} bytes)", lineCharLen, lineByteLen);
 
+         sb.AppendFormat (Invariant.Culture, "\nOffset: {0} (0x{0:X}), pretty: {1}", offset, Pretty.PrintSize (offset));
+         sb.AppendFormat (Invariant.Culture, "\nPartial index: {0}, chars: {1} ({2} bytes)", partial, partialCharLen, partialByteLen);
+         return sb.ToString ();
+      }
 
 
 

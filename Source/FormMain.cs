@@ -55,7 +55,7 @@ namespace Bitmanager.BigFile {
       public Settings Settings => settings;
       private ParserNode<SearchContext> lastQuery;
       private readonly SelectionHandler selectionHandler;
-      private float initialFontSize;
+      private readonly float initialFontSize;
 
       public static Form Self;
 
@@ -241,6 +241,18 @@ namespace Bitmanager.BigFile {
          btnSearch.Tag = new TooltipTimes (4000, 30000);
          cbSearch.ToolTipText = btnSearch.ToolTipText;
          cbSearch.Tag = btnSearch.Tag;
+
+         sb.Clear ();
+         sb.Append ("Limits are specified as <skip>/<size>, or just skip.");
+         sb.Append ("\n    <skip> can be a number (#lines to skip) or a size (eg: 10MB)");
+         sb.Append ("\n    <size> is the maximum load size, like 4GB");
+         sb.Append ("\n\nExamples:");
+         sb.Append ("\n    \"1000\" skips 1000 lines and loads the rest");
+         sb.Append ("\n    \"1000/4GB\" skips 1000 lines and loads a maximum of 4GB");
+         sb.Append ("\n    \"4GB/3GB\" skips the lines in the 1st 4GB and loads a maximum of 3GB");
+         txtLoadLimits.ToolTipText = sb.ToString ();
+         txtLoadLimits.Tag = new TooltipTimes (1000, 30000);
+
          new ToolStripToolTipHelper (toolStrip, null);
 
          checkWarnings ();
@@ -390,13 +402,23 @@ namespace Bitmanager.BigFile {
       /// </summary>
       private void LoadFile (string filePath, String zipEntry = null) {
          long maxLoadSize = long.MaxValue;
-         String tmp = txtMaxLoad.Text;
-         if (!String.IsNullOrEmpty (tmp)) {
-            tmp = tmp.Trim ();
-            if (!String.IsNullOrEmpty (tmp)) maxLoadSize = Pretty.ParseSize (tmp);
+         long skip = 0;
+         String tmp = txtLoadLimits.Text.TrimToNull();
+         if (tmp != null) {
+            String[] args = tmp.Split ('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            switch (args.Length) {
+               case 1:
+                  skip = toSkip (args[0]);
+                  break;
+               case 2:
+                  skip = toSkip (args[0]);
+                  long x = args[1].Length == 0 ? 0 : Pretty.ParseSize (args[1]);
+                  if (x > 0) maxLoadSize = x;
+                  break;
+            }
          }
-         int maxPartial = Invariant.ToInt32 (cbSplit.Text);
-         if (maxPartial < 0) maxPartial = 10 * 1024 * 1024;
+
+         int maxPartial = Invariant.ToInt32 (cbSplit.Text, 0);
 
          FormGoToLine.ResetGoto ();
          fileHistory.Add (filePath);
@@ -412,7 +434,14 @@ namespace Bitmanager.BigFile {
          statusLabelMain.Text = "Loading...";
          setSearchStatus (String.Empty);
          isFirstPartialLog = true;
-         new LogFile (this, settings, getCurrentEncoding (), maxPartial, maxLoadSize).Load (filePath, cancellationTokenSource.Token, zipEntry);
+         new LogFile (this, settings, getCurrentEncoding (), maxPartial, maxLoadSize, skip).Load (filePath, cancellationTokenSource.Token, zipEntry);
+      }
+
+      private static long toSkip (String txt) {
+         if (String.IsNullOrEmpty (txt)) return 0;
+         long tmp;
+         if (Invariant.TryParse (txt, out tmp)) return tmp;
+         return -Pretty.ParseSize (txt);
       }
 
       private void setSearchStatus (String txt, int count = 1) {
@@ -807,17 +836,23 @@ namespace Bitmanager.BigFile {
             setEncodingComboFromEncoding (result.LogFile.DetectedEncoding.Current);
 
             var lf = result.LogFile;
-            String part1 = String.Format ("{0:n0} lines / {1}", lf.LineCount, Pretty.PrintSize (lf.Size));
+            var sb = new StringBuilder ();
+            sb.AppendFormat (Invariant.Culture, "{0:n0} lines / {1}", lf.LineCount, Pretty.PrintSize (lf.Size));
+            if (lf.SkippedLines > 0) {
+               sb.AppendFormat (Invariant.Culture, ", ({0:n0} skipped)", lf.SkippedLines);
+            }
 
             if (result.Error != null) {
-               statusLabelMain.Text = part1 + " [ERROR]";
+               sb.Append (" [ERROR]");
+               statusLabelMain.Text = sb.ToString();
                result.ThrowIfError ();
             } else if (result.Cancelled) {
-               statusLabelMain.Text = part1 + " [PARTIAL LOADED]";
+               sb.Append (" [PARTIAL LOADED]");
             } else {
-               String duration = Pretty.PrintElapsedMs ((int)result.Duration.TotalMilliseconds);
-               statusLabelMain.Text = part1 + ", # Duration: " + duration;
+               sb.Append (", # Duration: ");
+               sb.Append (Pretty.PrintElapsedMs ((int)result.Duration.TotalMilliseconds));
             }
+            statusLabelMain.Text = sb.ToString ();
 
             //The logfile will not be set if we had errors. The state of the logfile is unpredictable then...
             if (result.Error == null) setLogFile (result.LogFile);
@@ -829,8 +864,12 @@ namespace Bitmanager.BigFile {
             logger.Log (); //Separate by empty line
             logger.Log ("Detected: {0}", cloned.DetectedEncoding.Current);
             setEncodingComboFromEncoding (cloned.DetectedEncoding.Current);
-            setLogFile (cloned);
-            statusLabelMain.Text = String.Format ("Loading...  {0:n0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize (cloned.Size));
+            if (lf.IsSkipping) {
+               statusLabelMain.Text = Invariant.Format ("Skipping...  {0:n0} lines / {1} so far.", cloned.SkippedLines, Pretty.PrintSize (cloned.SkippedSize));
+            } else {
+               setLogFile (cloned);
+               statusLabelMain.Text = String.Format ("Loading...  {0:n0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize (cloned.Size));
+            }
          }), null);
       }
 
@@ -903,7 +942,7 @@ namespace Bitmanager.BigFile {
          bool select = true;
          if (type == GotoType.Row) goto HANDLE_GOTO;
 
-         if (type == GotoType.Line) index = lf.PartialFromLineNumber (index);
+         if (type == GotoType.Line) index = lf.PartialFromLineNumber (index - lf.SkippedLines);
 
          if (gridLines.Filter != null) {
             int tmp = gridLines.RowToGridRow (index, true);
