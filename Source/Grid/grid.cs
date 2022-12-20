@@ -188,6 +188,8 @@ namespace Bitmanager.Grid {
          const int MAX_VALUE = (int.MaxValue - 10000) & ~16;
          const int MAX_VALUE2 = int.MaxValue - 1;
          if (_clientHeight <= 0 || _clientWidth <= 0) {
+            vScrollBar.Value = 0;
+            hScrollBar.Value = 0;
             _verticalOffset = 0;
             _maxVerticalOffset = 0;
             _horizontalOffset = 0;
@@ -199,7 +201,7 @@ namespace Bitmanager.Grid {
          vScrollBarMultiplier = 1.0;
          int max = MAX_VALUE; 
          int rowHeight = RowHeight;
-         int rowsPerWindow = (_clientHeight+rowHeight-1) / rowHeight;
+         int rowsPerWindow = _clientHeight / rowHeight;
          long neededPixels = Math.Max (0, (rowHeight * (long)_rowCount) - _clientHeight);
          _maxVerticalOffset = neededPixels;
          if (_verticalOffset > neededPixels) _verticalOffset = neededPixels;
@@ -218,9 +220,10 @@ namespace Bitmanager.Grid {
          }
 
          int smallChange = rowHeight;
-         int largeChange = ((rowsPerWindow - 1) * rowHeight);
-         vScrollBar.SmallChange = adjustMultiplierUp (smallChange, vScrollBarMultiplier, max);
-         vScrollBar.LargeChange = adjustMultiplierDown (largeChange, vScrollBarMultiplier, max);
+         int largeChange = rowsPerWindow * rowHeight;
+         vScrollBar.Value = 0;
+         vScrollBar.SmallChange = adjustMultiplierUp (smallChange, vScrollBarMultiplier, MAX_VALUE2);
+         vScrollBar.LargeChange = adjustMultiplierDown (largeChange, vScrollBarMultiplier, MAX_VALUE2);
          vScrollBar.Maximum = adjustMultiplierUp (neededPixels + largeChange, vScrollBarMultiplier, MAX_VALUE2);
          logger.Log ("Max (V): {0}, mult={1}, small={2}, {3}, {4}, large={5}, {6}, {7}, max={8}, {9}, {10}", max, vScrollBarMultiplier,
             smallChange, vScrollBar.SmallChange, vScrollBarMultiplier * vScrollBar.SmallChange,
@@ -249,8 +252,9 @@ namespace Bitmanager.Grid {
          smallChange = _clientWidth / 10;
          largeChange = _clientWidth - 10;
 
-         hScrollBar.SmallChange = adjustMultiplierUp(smallChange, hScrollBarMultiplier, max);
-         hScrollBar.LargeChange = adjustMultiplierDown (largeChange, hScrollBarMultiplier, max);
+         hScrollBar.Value = 0;
+         hScrollBar.SmallChange = adjustMultiplierUp(smallChange, hScrollBarMultiplier, MAX_VALUE2);
+         hScrollBar.LargeChange = adjustMultiplierDown (largeChange, hScrollBarMultiplier, MAX_VALUE2);
          hScrollBar.Maximum = adjustMultiplierUp (neededPixels + _clientWidth, hScrollBarMultiplier, MAX_VALUE2);
          logger.Log ("Max (H): {0}, mult={1}, small={2}, {3}, {4}, large={5}, {6}, {7}, max={8}, {9}, {10}", max, hScrollBarMultiplier,
             smallChange, hScrollBar.SmallChange, hScrollBarMultiplier * hScrollBar.SmallChange,
@@ -258,7 +262,7 @@ namespace Bitmanager.Grid {
             neededPixels, hScrollBar.Maximum, hScrollBarMultiplier * hScrollBar.Maximum);
 
       EXIT_RTN:
-         logger.Log ("MaxVerticalOffset={0}, max height={1}, clientH={2}", _maxVerticalOffset, _rowCount*(long)rowHeight, _clientHeight);
+         logger.Log ("MaxVerticalOffset={0}, max height={1}, clientH={2} ({3} rowpixels)", _maxVerticalOffset, _rowCount*(long)rowHeight, _clientHeight, rowsPerWindow * rowHeight);
          logger.Log ("MaxHorizontalOffset={0}, max width={1}, clientW={2}", _maxHorizontalOffset, _columns[^1].GlobalOffsetPlusWidth, _clientWidth);
          return;
       }
