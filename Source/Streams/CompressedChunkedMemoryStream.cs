@@ -473,7 +473,7 @@ namespace Bitmanager.IO {
       }
       public virtual int Read (long position, byte[] buffer, int offset, int count) {
          position -= _offsetOfFirstBuffer;
-         BigFile.Globals.StreamLogger.Log ("{0}:Read ({3}, inp {1}, 0x{1:X}, offs {2}, 0x{2:X})", this.GetType ().Name, position + _offsetOfFirstBuffer, _offsetOfFirstBuffer, position);
+         //BigFile.Globals.StreamLogger.Log ("{0}:Read ({3}, inp {1}, 0x{1:X}, offs {2}, 0x{2:X})", this.GetType ().Name, position + _offsetOfFirstBuffer, _offsetOfFirstBuffer, position);
          if (position < 0) throw new BMException ("Position [0x{0:X}] is before first stored data [{1:X}].", position + _offsetOfFirstBuffer, _offsetOfFirstBuffer);
 
          this._mode = Mode._Reading;

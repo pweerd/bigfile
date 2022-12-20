@@ -547,8 +547,8 @@ namespace Bitmanager.BigFile {
                if (loadedDataOffset < 0) {
                   loadedDataOffset = buffer.Position;
                   ((IDirectStream)mem).SetOffsetOfFirstBuffer (buffer.Position);
-                  long offs = partialLines[0] >> LineFlags.FLAGS_SHIFT;
-                  Globals.StreamLogger.Log ("First line={0}, offset={1}", offs, offs-buffer.Position);
+                  //long offs = partialLines[0] >> LineFlags.FLAGS_SHIFT;
+                  //Globals.StreamLogger.Log ("First line={0}, offset={1}", offs, offs-buffer.Position);
                }
             }
 

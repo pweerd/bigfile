@@ -236,7 +236,7 @@ namespace Bitmanager.BigFile {
       RowToolTip _rowTooltip;
 
       protected override void OnMouseLeave (EventArgs e) {
-         logger.Log ("Mouseleave");
+         //logger.Log ("Mouseleave");
          base.OnMouseLeave (e);
          if (_rowTooltip != null) _rowTooltip.Stop ();
       }
