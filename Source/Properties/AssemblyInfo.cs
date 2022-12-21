@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2022, De Bitmanager
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("De Bitmanager")]
 [assembly: AssemblyProduct("BigFile")]
-[assembly: AssemblyCopyright("Copyright Â© 2022 De Bitmanager")]
+[assembly: AssemblyCopyright("Copyright © 2022 De Bitmanager")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("1.0.2022.1221")]
-[assembly: AssemblyFileVersion("1.0.2022.1221")]
+[assembly: AssemblyVersion("1.1.2022.1221")]
+[assembly: AssemblyFileVersion("1.1.2022.1221")]

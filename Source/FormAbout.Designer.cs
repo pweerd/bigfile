@@ -81,7 +81,7 @@ namespace Bitmanager.BigFile
          // 
          this.lblApp.AutoSize = true;
          this.lblApp.BackColor = System.Drawing.Color.White;
-         this.lblApp.Font = new System.Drawing.Font("Verdana", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+         this.lblApp.Font = new System.Drawing.Font("Verdana", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
          this.lblApp.Location = new System.Drawing.Point(90, 42);
          this.lblApp.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.lblApp.Name = "lblApp";
@@ -125,7 +125,7 @@ namespace Bitmanager.BigFile
          this.Controls.Add(this.pictureBox1);
          this.Controls.Add(this.pictureBox2);
          this.Controls.Add(this.btnClose);
-         this.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+         this.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
          this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
          this.Margin = new System.Windows.Forms.Padding(2);

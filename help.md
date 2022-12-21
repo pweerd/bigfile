@@ -1,4 +1,4 @@
-﻿# BigFile (V1.0.2022.1221)
+# BigFile (V1.1.2022.1221)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems. Typical used as a viewer for:
 
@@ -15,8 +15,10 @@ The following provides a brief help guide for the core operations of BigFile.
 
 ## History
 
-BigFile is inspired by Woanware's LogViewer (https://github.com/woanware/LogViewer)
+BigFile is inspired by Mark Woan's LogViewer (https://github.com/woanware/LogViewer)
 Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.
+
+
 
 ## Opening a file
 
@@ -30,7 +32,23 @@ The load process is done in the background but regularly sends a partial loaded 
 
 All background processing can be cancelled by pressing the escape-key, or by clicking in the progress bar.
 
+#### Limiting the load size
+The header contains a box 'load limits'. You can specify how many lines (or bytes) to skip before start loading. Also you can specify how many bytes should be loaded as a maximum.
+
+The format is `<skip>/<max load size>`
+
+| Examples  |                                                              |
+| --------- | ------------------------------------------------------------ |
+| 10000     | Skips the first 10000 lines                                  |
+| 10000/1gb | Skips the first 10000 lines and then loads a maximum of 1 gigabyte |
+| /1gb      | Skips nothing, but loads a maximum of 1 gigabyte             |
+| 100kb      | Skips 100 kilobytes and then loads everything from there             |
+| 1g/1g      | Skips 1 gigabyte and then loads a maximum of 1 gigabyte            |
+
+
+
 <a name="search"></a>
+
 ## Search
 If the searchbox contains any of AND, OR, NOT, the search is considered to be a boolean search. Otherwise it is a 1-term search.
 Also, search types can be specified via a ':'.
@@ -61,6 +79,8 @@ When the first match is encountered, the view is positioned to the first hit, wh
 
 In the mean time you can navigate to the next search by pressing '/' or F3 in the view window.
 
+
+
 ## Navigation
 
 Bigfile mimics some of the less shortcuts. Shortcuts are:
@@ -76,12 +96,16 @@ Bigfile mimics some of the less shortcuts. Shortcuts are:
 - CTRL-G
   Goto a line number
 
+
+
 ## Filtering
 
 There are two modes for filtering; hide matched and show matched. Filtering and filter clearing is accessed via the list context menu.
 
 - **Show matched**: Hides all lines where there is not a search match; therefore only show the matched lines
 - **Hide matched**: Hides the lines that matched the search; therefore only show the lines that don't match
+
+
 
 ## Detail view
 
@@ -111,6 +135,7 @@ Search terms follow the same [syntax](#search) as in the main window, with the e
   goto the next line.
 
 
+
 ## Memory
 
 Non zip/gz files can be served from disk or from memory. Compressed files are always served from memory.
@@ -119,13 +144,17 @@ Because the content is splitted into lines, the content needs to be read complet
 
 For very large files it is difficult to keep them in memory. Bigfile uses LZW compression to compress large chunks of memory. Because LZW is extremely fast, this combination is typically faster when the system would need to swap memory.
 
-On my laptop Bigfile loads a 2GB gz json file in ~1 minute into memory (raw: 15GB, LZW compressed ~3GB).
+On my laptop Bigfile loads a 2GB gz json file in ~20 secongs into memory (raw: 15GB, LZW compressed ~3GB).
 
 The exact behavior can be configured via tools->settings.
 
-## Copy Line
+
+
+## Copy Line(s)
 
 The selected line's contents can be copied to the clipboard via the list context menu. There is a maximum limit of 10000 lines. Also, big lines (> 10MB) will be truncated to prevent an out-of-memory
+
+
 
 ## Export
 
@@ -142,15 +171,20 @@ Currently, exported lines are terminated by a windows crlf.
 
 The export functionality is accessed via the 'tools' menu.
 
+
+
 ## Command line
 
 The 1st parameter is the file or directory to be opened. If the parameter indicates a directory, an open file dialog box is shown with the supplied directory as initial directory.
 
+
+
 ## Credits
 
 - Mark Woan (https://www.woanware.co.uk)
+- Tomasz Rewak ( https://github.com/TomaszRewak/DynamicGrid)
+I used his Grid as a starting point.
 - SharpZipLib (<https://github.com/icsharpcode/SharpZipLib>)
-- ObjectListView (<http://objectlistview.sourceforge.net/cs/index.html>)
 - LZ4 - Fast LZ compression algorithm (<http://fastcompression.blogspot.com/p/lz4.html>)
 - ZLib (<https://github.com/madler/zlib>)
 - Icons8 (https://icons8.com)
@@ -159,7 +193,14 @@ The 1st parameter is the file or directory to be opened. If the parameter indica
 
 ## Changes
 
-#### V1.0.2022.1221 (June 2022)
+#### V1.1.2022.1221
+- Replaced the grid completely, in order to support more than 100M lines (the limit of a ListView).
+Also, the grid is *much* faster.
+- Better line-width calculations.
+- Possibility to skip the first  lines/bytes and to limit the \#bytes to load.
+- Showing tooltips with row-properties.
+
+#### V1.0.2022.0621 (June 2022)
 
 - Moved to NetCore
 - Fixed duplicate entries in file history.
