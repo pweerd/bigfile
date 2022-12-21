@@ -207,7 +207,7 @@ namespace Bitmanager.BigFile {
          sb.AppendFormat (Invariant.Culture, ", Grid-index: {0}", row);
          sb.AppendFormat (Invariant.Culture, ", Chars: {0} ({1} bytes)", lineCharLen, lineByteLen);
 
-         sb.AppendFormat (Invariant.Culture, "\nOffset: {0} (0x{0:X}), pretty: {1}", offset, Pretty.PrintSize (offset));
+         sb.AppendFormat (Invariant.Culture, "\nOffset: {0} (0x{0:X}, {1})", offset, Pretty.PrintSize (offset));
          sb.AppendFormat (Invariant.Culture, "\nPartial index: {0}, chars: {1} ({2} bytes)", partial, partialCharLen, partialByteLen);
          return sb.ToString ();
       }

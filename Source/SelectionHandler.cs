@@ -40,6 +40,7 @@ namespace Bitmanager.BigFile {
    /// NB: the rows in this class are grid-indexes. They must be translated into partial lines by our caller!
    /// </summary>
    public class SelectionHandler {
+      private const bool DUMP_STACK = false;
       private enum InducedBy { Other, Mouse, Keypress, Self };
       public event SelectionEventHandler OnToggleSelection;
       public event SelectionEventHandler OnAddSelection;
@@ -92,7 +93,6 @@ namespace Bitmanager.BigFile {
          switch (e.KeyCode) {
             default: return;
             case Keys.A:
-               logger.Log ();
                logger.Log ("KeyDown: key={0}, prev={1} complex={2}", e.KeyCode, prevRow, complex);
                if (e.Control) {
                   complex = false;
@@ -114,7 +114,6 @@ namespace Bitmanager.BigFile {
                break;
          }
 
-         logger.Log ();
          logger.Log ("KeyDown: key={0}, prev={1} complex={2}", e.KeyCode, prevRow, complex);
          if (e.Shift) {
             if (prevRow >= 0) inducedBy = InducedBy.Keypress;
@@ -127,7 +126,6 @@ namespace Bitmanager.BigFile {
 
       private void Grid_MouseDown (object sender, System.Windows.Forms.MouseEventArgs e) {
          if (e.Button != MouseButtons.Left) return;
-         logger.Log ();
          logger.Log ("LMouseDown: prev={0} complex={1}, mods={2}", prevRow, complex, Control.ModifierKeys);
          inducedBy = InducedBy.Mouse;
          int row = Grid.GetRowFromLocation (e.Y);
@@ -214,6 +212,7 @@ namespace Bitmanager.BigFile {
 
       private void dump (String fmt, params Object[] args) {
          logger.Log (fmt, args);
+         if (!DUMP_STACK) return;
          String[] stack = Environment.StackTrace.Split ('\n');
          int N = stack.Length;
          if (N > 7) N = 7;
