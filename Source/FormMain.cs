@@ -411,7 +411,7 @@ namespace Bitmanager.BigFile {
          String tmp = cbLoadLimits.Text.TrimToNull();
          if (tmp != null) {
             cbLoadLimits.AddHistory (tmp);
-            String[] args = tmp.Split ('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            String[] args = tmp.Split ('/', StringSplitOptions.TrimEntries);
             switch (args.Length) {
                case 1:
                   skip = toSkip (args[0]);

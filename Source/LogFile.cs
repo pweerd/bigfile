@@ -97,7 +97,9 @@ namespace Bitmanager.BigFile {
       private readonly int maxPartialSize;
       #endregion
 
-      private readonly long maxLoadSize;
+      private readonly long initialMaxLoadSize; //maxLoadSize interferes with skipping. Only after skipping, the maxLoadSize is known.
+      private long actualMaxLoadSize;
+
       private CancellationToken ct;
       private bool disposed;
       public bool Disposed { get { return disposed; } }
@@ -107,14 +109,17 @@ namespace Bitmanager.BigFile {
             throw new TaskCanceledException ();
       }
       private void checkCancelled (long pos) {
-         if (disposed || ct.IsCancellationRequested || pos >= maxLoadSize)
+         if (disposed || ct.IsCancellationRequested || pos >= actualMaxLoadSize)
             throw new TaskCanceledException ();
       }
 
       public LogFile (ILogFileCallback cb, Settings settings, Encoding enc, int maxPartialSize, long maxLoadSize=0, long toSkip = 0) {
-         this.maxLoadSize = maxLoadSize > 0 ? maxLoadSize : long.MaxValue;
-         if (toSkip == 0) skipMode = SkipMode.None;
-         else if (toSkip < 0) {
+         this.initialMaxLoadSize = maxLoadSize > 0 ? maxLoadSize : long.MaxValue;
+         this.actualMaxLoadSize = long.MaxValue;
+         if (toSkip == 0) {
+            skipMode = SkipMode.None;
+            actualMaxLoadSize = initialMaxLoadSize;
+         }  else if (toSkip < 0) {
             skipMode = SkipMode.Size;
             skipSize = -toSkip;
          } else {
@@ -146,7 +151,8 @@ namespace Bitmanager.BigFile {
          this.encoding = other.encoding;
          this.detectedEncoding = other.detectedEncoding;
          this.zipEntries = other.zipEntries;
-         this.maxLoadSize = other.maxLoadSize;
+         this.initialMaxLoadSize = other.initialMaxLoadSize;
+         this.actualMaxLoadSize = other.actualMaxLoadSize;
          this.skippedLines = other.skippedLines;
          this.skipMode= other.skipMode;
          int maxBufferSize = finalizeAdministration ();
@@ -724,6 +730,7 @@ namespace Bitmanager.BigFile {
 
          TERMINATE_SKIPPING:
             skipMode = SkipMode.None;
+            this.actualMaxLoadSize = initialMaxLoadSize < (long.MaxValue - (position + i)) ? initialMaxLoadSize + (position + i) : long.MaxValue;
             partialLines[0] = (position + i) << LineFlags.FLAGS_SHIFT;
             partialPosLimit = maxPartialSize + i;
             goto NORMAL_LINE_PROCESSING;
