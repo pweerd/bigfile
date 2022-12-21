@@ -1,5 +1,5 @@
 
-BigFile (c) 2019 - De Bitmanager (https://bitmanager.nl)
+BigFile (c) 2022 - De Bitmanager (https://bitmanager.nl)
 
 BigFile is inspired by Woanware's LogViewer (https://github.com/woanware/LogViewer)
 Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.
@@ -12,12 +12,13 @@ The biggest changes are:
 - Encoding can be changed dynamically
 - Searches can contain boolean expressions
 - Multi-threaded search, as well as caching previous searches
+- Super fast grid that supports 2 billion rows (the ListView stopped at 100M)
 
 The project can be downloaded from https://github.com/pweerd/bigfile
 
 Credits:
 - Mark Woan (https://www.woanware.co.uk)
+- Tomasz Rewak ( https://github.com/TomaszRewak/DynamicGrid)
 - SharpZipLib (https://github.com/icsharpcode/SharpZipLib)
-- ObjectListView (http://objectlistview.sourceforge.net/cs/index.html)
 - LZ4 - Fast LZ compression algorithm (http://fastcompression.blogspot.com/p/lz4.html)
 - Icons8 (https://icons8.com)
