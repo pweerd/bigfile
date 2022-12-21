@@ -33,19 +33,9 @@ namespace Bitmanager.Grid {
       public int Height { get; private set; }
 
 
-      private Color _backColor;
-      private Color _foreColor;
-      private HorizontalAlignment _textAlignment;
-      private FontStyle _fontStyle;
-
-
       public DisplayBuffer (IntPtr parentHdc, FontManager fmgr) {
          _parentHdc = parentHdc;
          _fontManager = fmgr;
-         _backColor = Color.White;
-         _foreColor = Color.Black;
-         _textAlignment = HorizontalAlignment.Left;
-         _fontStyle = FontStyle.Regular;
       }
       public void Init (int h, int w) {
          if (h > _maxHeight || w > _maxWidth) {
@@ -54,40 +44,24 @@ namespace Bitmanager.Grid {
             Dispose ();
             _buffer = BufferedGraphicsManager.Current.Allocate (_parentHdc, new Rectangle (0, 0, _maxWidth, _maxHeight));
             Hdc = _buffer.Graphics.GetHdc ();
-            Gdi32.SetBackgroundColor (Hdc, _backColor);
-            Gdi32.SetForegroundColor (Hdc, _foreColor);
-            Gdi32.SetTextAlignemnt (Hdc, _textAlignment);
-            Gdi32.SelectObject (Hdc, _fontManager.GetHdc (_fontStyle));
          }
          Height = h;
          Width = w;
-         Gdi32.SelectObject (Hdc, _fontManager.GetHdc (_fontStyle));
       }
 
       public void setBackColor (Color c) {
-         if (_backColor != c) {
-            _backColor = c;
-            Gdi32.SetBackgroundColor (Hdc, c);
-         }
+         Gdi32.SetBackgroundColor (Hdc, c);
       }
       public void setForeColor (Color c) {
-         if (_foreColor != c) {
-            _foreColor = c;
-            Gdi32.SetForegroundColor (Hdc, c);
-         }
+         Gdi32.SetForegroundColor (Hdc, c);
       }
+
       public void setTextAlignment (HorizontalAlignment textAlignment) {
-         if (_textAlignment != textAlignment) {
-            _textAlignment = textAlignment;
-            Gdi32.SetTextAlignemnt (Hdc, textAlignment);
-         }
+         Gdi32.SetTextAlignemnt (Hdc, textAlignment);
       }
 
       public void setFontStyle (FontStyle fontStyle) {
-         if (fontStyle != _fontStyle) {
-            _fontStyle = fontStyle;
-            Gdi32.SelectObject (Hdc, _fontManager.GetHdc (fontStyle));
-         }
+         Gdi32.SelectObject (Hdc, _fontManager.GetHdc (fontStyle));
       }
 
       public void Dispose () {
