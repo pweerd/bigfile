@@ -101,6 +101,11 @@ namespace Bitmanager.BigFile {
          selectionHandler.OnAddSelection += selectionHandler_Add;
          selectionHandler.OnRemoveSelection += selectionHandler_Remove;
          selectionHandler.OnToggleSelection += selectionHandler_Toggle;
+
+         foreach (var c in this.toolStrip.Items) {
+            var cb = c as ToolStripComboBox;
+            if (cb != null) cb.DropDown += AdjustDropDownWidth;
+         }
       }
 
       #region FONT_TICKERS
@@ -250,8 +255,8 @@ namespace Bitmanager.BigFile {
          sb.Append ("\n    \"1000\" skips 1000 lines and loads the rest");
          sb.Append ("\n    \"1000/4GB\" skips 1000 lines and loads a maximum of 4GB");
          sb.Append ("\n    \"4GB/3GB\" skips the lines in the 1st 4GB and loads a maximum of 3GB");
-         txtLoadLimits.ToolTipText = sb.ToString ();
-         txtLoadLimits.Tag = new TooltipTimes (1000, 30000);
+         cbLoadLimits.ToolTipText = sb.ToString ();
+         cbLoadLimits.Tag = new TooltipTimes (1000, 30000);
 
          new ToolStripToolTipHelper (toolStrip, null);
 
@@ -403,8 +408,9 @@ namespace Bitmanager.BigFile {
       private void LoadFile (string filePath, String zipEntry = null) {
          long maxLoadSize = long.MaxValue;
          long skip = 0;
-         String tmp = txtLoadLimits.Text.TrimToNull();
+         String tmp = cbLoadLimits.Text.TrimToNull();
          if (tmp != null) {
+            cbLoadLimits.AddHistory (tmp);
             String[] args = tmp.Split ('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             switch (args.Length) {
                case 1:
@@ -419,6 +425,7 @@ namespace Bitmanager.BigFile {
          }
 
          int maxPartial = Invariant.ToInt32 (cbSplit.Text, 0);
+         cbSplit.AddHistory (cbSplit.Text);
 
          FormGoToLine.ResetGoto ();
          fileHistory.Add (filePath);
@@ -864,7 +871,7 @@ namespace Bitmanager.BigFile {
             logger.Log (); //Separate by empty line
             logger.Log ("Detected: {0}", cloned.DetectedEncoding.Current);
             setEncodingComboFromEncoding (cloned.DetectedEncoding.Current);
-            if (lf.IsSkipping) {
+            if (cloned.IsSkipping) {
                statusLabelMain.Text = Invariant.Format ("Skipping...  {0:n0} lines / {1} so far.", cloned.SkippedLines, Pretty.PrintSize (cloned.SkippedSize));
             } else {
                setLogFile (cloned);
@@ -1205,6 +1212,20 @@ namespace Bitmanager.BigFile {
             rk.SetValue ("", String.Format ("\"{0}\"  \"%1\"", exe));
          }
 
+      }
+
+      private void AdjustDropDownWidth (object sender, EventArgs e) {
+         var cb = sender as ToolStripComboBox;
+         if (cb == null) return;
+
+         var font = cb.Font;
+         int width = cb.Width - SystemInformation.VerticalScrollBarWidth;
+         foreach (var obj in cb.Items) {
+            int w = TextRenderer.MeasureText (obj.ToString(), font).Width;
+            if (w > width) width = w;
+         }
+         width += SystemInformation.VerticalScrollBarWidth;
+         cb.DropDownWidth = width;
       }
    }
 

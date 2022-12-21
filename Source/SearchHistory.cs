@@ -107,4 +107,19 @@ namespace Bitmanager.BigFile {
          return searchNodes.Parse (s);
       }
    }
+
+   public static class ComboboxExtensions {
+      public static void AddHistory (this ToolStripComboBox cb, Object item, int max=int.MaxValue) {
+         if (item == null) return;
+         String key = item.ToString ();
+         var dict = new Dictionary<String, Object> ();
+         dict[key] = item;
+         foreach (var x in cb.Items) dict[x.ToString ()] = x;
+         cb.Items.Clear ();
+         foreach (var kvp in dict) {
+            cb.Items.Add (kvp.Value);
+            if (--max <= 0) break;
+         }
+      }
+   }
 }
