@@ -266,20 +266,13 @@ namespace Bitmanager.BigFile {
          if (width > 300) Width = width;
          if (height > 200) Height = height;
 
-         //In NetCore the cmdline contains the dll as the first param
-         var lexer = new Lexer (Environment.CommandLine);
-         int i = 1;
-         Lexer.Token t;
-         while (true) {
-            t = lexer.NextToken ();
-            if (t == null || t.Type == Lexer.TokenType.Eof) break;
-            if (t.Type != Lexer.TokenType.Value) continue;
-            if (--i < 0) {
-               String startFile = t.Text;
-               if (File.Exists (startFile)) LoadFile (startFile);
-               else if (Directory.Exists (startFile)) ShowOpenDialogAndLoad (startFile);
-               break;
-            };
+         //Parse the arguments from our main entrypoint
+         var args = Program.Arguments;
+         if (args.Length>0) {
+            String startFile = args[0];
+            if (File.Exists (startFile)) LoadFile (startFile);
+            else if (Directory.Exists (startFile)) ShowOpenDialogAndLoad (startFile);
+            else statusLabelMain.Text = Invariant.Format ("ERROR: {0} does not exist.", startFile);
          }
       }
 
@@ -836,30 +829,32 @@ namespace Bitmanager.BigFile {
             indicateFinished ();
             setSearchStatus ("");
             menuFileClose.Enabled = true;
-            logger.Log ("Detected2: {0}", result.LogFile.DetectedEncoding.Current.CodePage);
-            setEncodingComboFromEncoding (result.LogFile.DetectedEncoding.Current);
-
-            var lf = result.LogFile;
             var sb = new StringBuilder ();
-            sb.AppendFormat (Invariant.Culture, "{0:n0} lines / {1}", lf.LineCount, Pretty.PrintSize (lf.Size));
-            if (lf.SkippedLines > 0) {
-               sb.AppendFormat (Invariant.Culture, ", ({0:n0} skipped)", lf.SkippedLines);
-            }
 
             if (result.Error != null) {
                sb.Append (" [ERROR]");
                statusLabelMain.Text = sb.ToString();
                result.ThrowIfError ();
-            } else if (result.Cancelled) {
+            } 
+
+            var lf = result.LogFile;
+            logger.Log ("Detected2: {0}", lf.DetectedEncoding.Current.CodePage);
+            setEncodingComboFromEncoding (lf.DetectedEncoding.Current);
+
+            sb.AppendFormat (Invariant.Culture, "{0:n0} lines / {1}", lf.LineCount, Pretty.PrintSize (lf.Size));
+            if (lf.SkippedLines > 0) {
+               sb.AppendFormat (Invariant.Culture, ", ({0:n0} skipped)", lf.SkippedLines);
+            }
+
+            if (result.Cancelled) {
                sb.Append (" [PARTIAL LOADED]");
             } else {
                sb.Append (", # Duration: ");
                sb.Append (Pretty.PrintElapsedMs ((int)result.Duration.TotalMilliseconds));
             }
             statusLabelMain.Text = sb.ToString ();
+            setLogFile (lf);
 
-            //The logfile will not be set if we had errors. The state of the logfile is unpredictable then...
-            if (result.Error == null) setLogFile (result.LogFile);
          }), null);
       }
 

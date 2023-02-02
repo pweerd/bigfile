@@ -26,11 +26,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("De Bitmanager")]
 [assembly: AssemblyProduct("BigFile")]
-[assembly: AssemblyCopyright("Copyright © 2022 De Bitmanager")]
+[assembly: AssemblyCopyright("Copyright © 2023 De Bitmanager")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("1.1.2022.1221")]
-[assembly: AssemblyFileVersion("1.1.2022.1221")]
+[assembly: AssemblyVersion("1.1.2023.0202")]
+[assembly: AssemblyFileVersion("1.1.2023.0202")]

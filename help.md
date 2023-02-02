@@ -1,4 +1,4 @@
-# BigFile (V1.1.2022.1221)
+﻿# BigFile (V1.1.2023.0202)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems. Typical used as a viewer for:
 
@@ -193,7 +193,7 @@ I used his Grid as a starting point.
 
 ## Changes
 
-#### V1.1.2022.1221
+#### V1.1.2023.0202
 - Replaced the grid completely, in order to support more than 100M lines (the limit of a ListView).
 Also, the grid is *much* faster.
 - Better line-width calculations.
