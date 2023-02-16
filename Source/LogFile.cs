@@ -173,7 +173,7 @@ namespace Bitmanager.BigFile {
 
 
       /// <summary>
-      /// Given a partial line number, get the next partial line number. 
+      /// Given a partial line number, get the next partial line number.
       /// If the line is beyond the end, PartialLineCount is returned.
       /// If a partialFilter is supplied, only lines within that filter are used.
       /// </summary>
@@ -203,7 +203,7 @@ namespace Bitmanager.BigFile {
       }
 
       /// <summary>
-      /// Given a line number, get the previous line number. 
+      /// Given a line number, get the previous line number.
       /// If the line is before the start, -1 is returned.
       /// If a partialFilter is supplied, only lines within that filter are used.
       /// </summary>
@@ -231,7 +231,7 @@ namespace Bitmanager.BigFile {
 
 
       /// <summary>
-      /// Given a line number, get the next line number. 
+      /// Given a line number, get the next line number.
       /// If the line is beyond the end, LineCount is returned.
       /// If a partialFilter is supplied, only lines within that filter are used.
       /// </summary>
@@ -248,7 +248,7 @@ namespace Bitmanager.BigFile {
       }
 
       /// <summary>
-      /// Given a line number, get the previous line number. 
+      /// Given a line number, get the previous line number.
       /// If the line is before the start, -1 is returned.
       /// If a partialFilter is supplied, only lines within that filter are used.
       /// </summary>
@@ -277,7 +277,7 @@ namespace Bitmanager.BigFile {
       }
 
       /// <summary>
-      /// Administrates the longest (partial) line and returns the buffersize that is needed to hold the max (partial)line. 
+      /// Administrates the longest (partial) line and returns the buffersize that is needed to hold the max (partial)line.
       /// </summary>
       private int finalizeAdministration () {
          //dumpOffsets (20);
@@ -365,7 +365,7 @@ namespace Bitmanager.BigFile {
 
 
       /// <summary>
-      /// Get a list of indexes for partial lines that are matched 
+      /// Get a list of indexes for partial lines that are matched
       /// </summary>
       public List<int> GetMatchedList (int contextLines) {
          var ret = new List<int> ();
@@ -454,6 +454,8 @@ namespace Bitmanager.BigFile {
          }
          throw new BMException ("Cannot find '{0}' in archive '{1}'.", e.FullName, e.ArchiveName);
       }
+
+
       /// <summary>
       /// Load a .zip file.
       /// This is done by taking the largest file and stream that into memory
@@ -477,6 +479,31 @@ namespace Bitmanager.BigFile {
                using (var threadedReader = new ThreadedIOBlockReader (entryStrm, true, 64 * 1024))
                   loadStreamIntoMemory (threadedReader, new LoadProgress (this, -1), false);
             }
+         }
+      }
+
+
+      /// <summary>
+      /// Load a .7zip file.
+      /// This is done by taking the largest file and stream that into memory
+      /// </summary>
+      private void loadSevenZipFile (String fn, String zipEntryName) {
+         var entries = SevenZipInputStream.GetEntries (fn);
+         zipEntries = new ZipEntries ();
+         foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
+         zipEntries.Sort (cbCmpEntryLen);
+
+         if (zipEntries.Count > 0) {
+            if (zipEntryName == null)
+               zipEntries.SelectedEntry = 0;
+            else {
+               zipEntries.SelectedEntry = zipEntries.FindIndex (x => x.FullName == zipEntryName);
+               if (zipEntries.SelectedEntry < 0) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
+            }
+
+            using (var entryStrm = new SevenZipInputStream (fn + "::" + zipEntries[zipEntries.SelectedEntry].FullName))
+            using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
+               loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
          }
       }
 
@@ -614,7 +641,7 @@ namespace Bitmanager.BigFile {
          long mask = x & LineFlags.FLAGS_MASK;
          logger.Log ("-- {0}: o={1} (0x{1:X}), len={2}, flags=0x{3:X}", i, offs, offs-prev, mask);
          return offs;
-      
+
 
 }
       private void loadNormalFile (string fn) {
@@ -674,7 +701,7 @@ namespace Bitmanager.BigFile {
 
       static byte[] setLimiters (byte[] arr, int v, String seps) {
          for (int i=0; i<seps.Length; i++) {
-            arr[(int)seps[i]] = (byte)v;   
+            arr[(int)seps[i]] = (byte)v;
          }
          return arr;
       }
@@ -683,11 +710,11 @@ namespace Bitmanager.BigFile {
 
       /// <summary>
       /// Optimized line splitter
-      /// 
+      ///
       /// A separator byte[] is used to remove a switch statement
       /// The 1st chance limiters are important for json and xml. We don't use a comma or a dot here, since
       /// that would potentialy result in splitted numbers
-      /// 
+      ///
       /// Always returns position+count
       /// </summary>
       private unsafe long addLinesForBuffer (long position, byte[] buf, int count) {
@@ -787,13 +814,23 @@ namespace Bitmanager.BigFile {
             partialsEncountered = false;
             this.fileName = Path.GetFullPath (fn);
             this.ct = ct;
+            String ext = Path.GetExtension (fileName).ToLowerInvariant ();
             try {
-               if (String.Equals (".gz", Path.GetExtension (fileName), StringComparison.OrdinalIgnoreCase))
-                  loadGZipFile (fileName);
-               else if (zipEntry != null || String.Equals (".zip", Path.GetExtension (fileName), StringComparison.OrdinalIgnoreCase))
-                  loadZipFile (fileName, zipEntry);
-               else
-                  loadNormalFile (fileName);
+               switch (ext) {
+                  case ".gz":
+                     loadGZipFile (fileName);
+                     break;
+                  case ".7z":
+                     loadSevenZipFile (fileName, zipEntry);
+                     break;
+                  case ".zip":
+                     loadZipFile (fileName, zipEntry);
+                     break;
+                  default:
+                     if (zipEntry != null) loadZipFile (fileName, zipEntry);
+                     else loadNormalFile (fileName);
+                     break;
+               }
                logger.Log ("-- Loaded. Size={0}, #Lines={1}", Pretty.PrintSize (GetPartialLineOffset (partialLines.Count - 1)), partialLines.Count - 1);
             } catch (Exception ex) {
                err = ex;
@@ -1101,7 +1138,7 @@ namespace Bitmanager.BigFile {
       /// Export the selected lines to the supplied filePath
       /// If selectedLines==null, all lines will be copied
       /// This will be one by just copying the bytes. So, no encoding is involved
-      /// 
+      ///
       /// SelectedLines should contain line-indexes, not partial line indexes
       /// </summary>
       [Flags]

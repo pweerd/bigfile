@@ -21,6 +21,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Bitmanager.Core;
+using Bitmanager.IO;
 
 namespace Bitmanager.BigFile {
    /// <summary>
@@ -47,6 +48,14 @@ namespace Bitmanager.BigFile {
          Length = e.Length;
          ArchiveName = archiveName;
          _tos = Invariant.Format ("{0} ({1})", e.FullName, Pretty.PrintSize (e.Length));
+      }
+
+      public ZipEntry (String archiveName, SevenZipEntry e) {
+         Name = Path.GetFileName(e.Name);
+         FullName = e.Name;
+         Length = e.Size;
+         ArchiveName = archiveName;
+         _tos = Invariant.Format ("{0} ({1})", e.Name, Pretty.PrintSize (e.Size));
       }
 
       public override String ToString () {
