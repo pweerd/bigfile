@@ -63,6 +63,7 @@ namespace Bitmanager.BigFile {
       }
 
       public void SetMaxBufferSize (int size) {
+         if (size < 4096) size = 4096;
          byteBuffer = new byte[size];
          charBuffer = new char[size];
       }

@@ -294,8 +294,8 @@ namespace Bitmanager.BigFile {
 
          var prique = new LargestLines ();
 
-         long prevPartial = partialLines[0];
-         long prevLine = partialLines[0];
+         long prevPartial = partialLines[0] >> LineFlags.FLAGS_SHIFT;
+         long prevLine = prevPartial;
          int maxLineLen = 0;
          int maxLineIdx = 0;
          int len;
