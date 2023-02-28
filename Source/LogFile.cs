@@ -647,7 +647,7 @@ namespace Bitmanager.BigFile {
       private void loadNormalFile (string fn) {
          var directStream = new DirectFileStreamWrapper (fn, 4096);
          var fileStream = directStream.BaseStream;
-         var rdr = new ThreadedIOBlockReader (fileStream, true, 64 * 1024);
+         var rdr = new ThreadedIOBlockReader (fileStream, true, 64 * 1024, 4);
 
          long totalLength = fileStream.Length;
          var loadProgress = new LoadProgress (this, fileStream.Length);
@@ -824,6 +824,7 @@ namespace Bitmanager.BigFile {
                      loadSevenZipFile (fileName, zipEntry);
                      break;
                   case ".zip":
+                     //loadSevenZipFile (fileName, zipEntry);
                      loadZipFile (fileName, zipEntry);
                      break;
                   default:
