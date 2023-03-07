@@ -1206,6 +1206,27 @@ namespace Bitmanager.BigFile {
 
       }
 
+      private void cbZipEntries_KeyPress (object sender, KeyPressEventArgs e) {
+         if (e.KeyChar  == '\r' ) {
+            var items = cbZipEntries.Items;
+            var txt = cbZipEntries.Text;
+            if (String.IsNullOrEmpty (txt)) return;
+            int i = 0;
+            String archiveName = null;
+            foreach (ZipEntry x in items) {
+               archiveName = x.ArchiveName;
+               if (String.Equals(x.Name, txt, StringComparison.OrdinalIgnoreCase) || String.Equals (x.FullName, txt, StringComparison.OrdinalIgnoreCase)) {
+                  cbZipEntries.SelectedIndex = i;
+                  return;
+               }
+               i++;
+            }
+            var ze = new ZipEntry (archiveName, txt);
+            items.Add (ze);
+            cbZipEntries.SelectedIndex = i;
+         }
+      }
+
       private void AdjustDropDownWidth (object sender, EventArgs e) {
          var cb = sender as ToolStripComboBox;
          if (cb == null) return;

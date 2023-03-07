@@ -29,6 +29,8 @@ using System.Runtime;
 using System.IO.Compression;
 using System.Linq;
 using System.Collections.ObjectModel;
+using System.IO.IsolatedStorage;
+using Bitmanager.Storage;
 
 namespace Bitmanager.BigFile {
 
@@ -542,6 +544,38 @@ namespace Bitmanager.BigFile {
          }
       }
 
+      private void loadStorage (string fn, string zipEntryName) {
+         using (var stor = new FileStorage (fn, FileOpenMode.Read)) {
+            FileEntry fileEntry = null;
+            if (zipEntryName != null) {
+               fileEntry = stor.GetFileEntry (zipEntryName);
+               if (fileEntry==null) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
+            }
+
+            var fileEntries = stor.Entries;
+            zipEntries = new ZipEntries ();
+            int i = 0;
+            foreach (var e in stor.Entries) {
+               if (++i < 100 || e==fileEntry) zipEntries.Add (new ZipEntry (fn, e));
+            }
+            zipEntries.Sort (cbCmpEntryLen);
+
+            if (zipEntries.Count > 0) {
+               if (fileEntry == null) {
+                  fileEntry = stor.GetFileEntry (zipEntries[0].FullName);
+                  zipEntries.SelectedEntry = 0;
+               } else {
+                  zipEntries.SelectedEntry = zipEntries.FindIndex (x => x.FullName == fileEntry.Name);
+               }
+               using (var entryStrm = stor.GetStream (fileEntry))
+               using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
+                  loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+            }
+         }
+      }
+
+
+
       /// <summary>
       /// Tries to load a stream into a compressed memory buffer.
       /// If compression fails, we fallback to a non-compressed memory buffer.
@@ -828,6 +862,10 @@ namespace Bitmanager.BigFile {
                      loadZipFile (fileName, zipEntry);
                      break;
                   default:
+                     if (FileStorage.IsPossibleAndExistingStorageFile(fileName)) {
+                        loadStorage (FileName, zipEntry);
+                        break;
+                     }
                      if (zipEntry != null) loadZipFile (fileName, zipEntry);
                      else loadNormalFile (fileName);
                      break;

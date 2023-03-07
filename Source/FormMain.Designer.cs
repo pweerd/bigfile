@@ -574,6 +574,7 @@ namespace Bitmanager.BigFile {
          this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
          this.cbZipEntries.ToolTipText = "Select entry in the zip-file";
          this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
+         this.cbZipEntries.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cbZipEntries_KeyPress);
          // 
          // toolStripSeparator4
          // 
