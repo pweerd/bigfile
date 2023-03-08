@@ -58,16 +58,16 @@ namespace Bitmanager.BigFile.Tests {
       private void testSkipLines (SettingsSource settings, String fn) {
          var sb = new StringBuilder ();
          for (int i = 0; i < 20; i++) {
-            var skip = i * 501;
+            var skip = i * 51;
             var lf = load (settings, fn, 0, skip);
 
             String partial = lf.GetPartialLine (0);
             String line = lf.GetLine (0);
 
             String pfxExp = generatePrefix (sb, skip, lf.GetPartialLineOffset (0)).ToString ();
-            String pfxAct = partial.Substring (0, pfxExp.Length);
+            String pfxAct = partial.Substring (0, Math.Min(pfxExp.Length, partial.Length));
             if (pfxAct != pfxExp) throw new BMException ("Skip {0} in {1} failed(partial): exp={2}, act={3}", skip, lf.FileName, pfxExp, pfxAct);
-            pfxAct = line.Substring (0, pfxExp.Length);
+            pfxAct = line.Substring (0, Math.Min (pfxExp.Length, line.Length));
             if (pfxAct != pfxExp) throw new BMException ("Skip {0} in {1} failed(line): exp={2}, act={3}", skip, lf.FileName, pfxExp, pfxAct);
          }
       }

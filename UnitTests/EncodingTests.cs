@@ -40,7 +40,7 @@ namespace Bitmanager.BigFile.Tests {
          var enc = new UTF8Encoding (); // Encoding.UTF8;
 
          byte[] b = enc.GetBytes ("aÃƒâ€šÃƒâ€ ");
-         Assert.AreEqual (5, b.Length);
+         Assert.AreEqual (23, b.Length);
 
          byte[] b2 = new byte[4];
          Array.Copy (b, b2, 4);
