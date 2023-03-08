@@ -311,10 +311,12 @@ namespace Bitmanager.BigFile {
             closeError = true;
             cancel ();
             settingsSource.Save ();
-            SettingsSource.SaveFormPosition (Left, Top, Width, Height);
+
+            //Only save positions when we are not maximized or minimized
+            if (this.WindowState == FormWindowState.Normal) SettingsSource.SaveFormPosition (Left, Top, Width, Height);
+            
             fileHistory.Save ();
             directoryHistory.Save ();
-            //PW onnodig? clearAll ();
          }
       }
 
