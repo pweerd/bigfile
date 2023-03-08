@@ -38,6 +38,19 @@ namespace Bitmanager.BigFile.Tests {
       }
 
       [TestMethod]
+      public void TestBreaks() {
+         var cb = new CB ();
+
+         //Non partial
+         var logFile = new LogFile (cb, settingsSource.ActualizeDefaults (), null, 256);
+         logFile.Load (dataDir + "linebreaks.txt", CancellationToken.None).Wait ();
+         cb.Result?.ThrowIfError ();
+
+         Assert.AreEqual (18, logFile.LineCount);
+         Assert.AreEqual (20, logFile.PartialLineCount);
+      }
+
+      [TestMethod]
       public void TestZipError () {
          String result = "ok";
          try {

@@ -64,8 +64,10 @@ namespace Bitmanager.BigFile {
 
       public void SetMaxBufferSize (int size) {
          if (size < 4096) size = 4096;
-         byteBuffer = new byte[size];
-         charBuffer = new char[size];
+         if (byteBuffer==null || byteBuffer.Length < size) {
+            charBuffer = new char[size];
+            byteBuffer = new byte[size];
+         }
       }
 
       public int ReadPartialLineBytesInBuffer (int from, int until) {

@@ -1,0 +1,18 @@
+File with some empty lines
+
+
+
+
+
+
+
+
+
+
+
+
+255                                                                                                                                                                                                                        And lines around the automatic split
+256                                                                                                                                                                                                                         And lines around the automatic split
+257                                                                                                                                                                                                                          And lines around the automatic split
+258                                                                                                                                                                                                                           And lines around the automatic split
+Total #lines should be 18, total partials should be 20

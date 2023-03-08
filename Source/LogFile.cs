@@ -31,6 +31,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.IO.IsolatedStorage;
 using Bitmanager.Storage;
+using System.Reflection;
 
 namespace Bitmanager.BigFile {
 
@@ -741,6 +742,16 @@ namespace Bitmanager.BigFile {
       }
       static byte[] seps = setLimiters (setLimiters (new byte[256], 1, ">:"), 2, " \t.,;");
 
+      //Diagnostic stuff
+      int lineNo = -1;
+      private void dbgIncLineNo () {
+         ++lineNo;
+      }
+      static String dbgGetLine (byte[] buf, int offset) {
+         int max = buf.Length - offset;
+         if (max > 128) max = 128;
+         return Encoding.Latin1.GetString (buf, offset, max);
+      }
 
       /// <summary>
       /// Optimized line splitter
@@ -797,14 +808,24 @@ namespace Bitmanager.BigFile {
             NORMAL_LINE_PROCESSING:
             while (true) {
                int N = Math.Min (partialPosLimit, count);
-               for (; i < N; i++) {
-                  if (p[i] != (byte)10) continue;
-                  ++i; //skip the lf
+               while (i < N) {
+                  if (p[i++] != (byte)10) continue;
+                  //dbgIncLineNo();
                   AddLine (position + i);
                   partialPosLimit = maxPartialSize + i;  //PartialLimit is the end-position
                   N = Math.Min (partialPosLimit, count);
                }
                if (i >= count) break; //Line too long and spans buffers: exit
+
+               //Its is possible that the linebreak was exactly at the end of the partial line
+               if (p[i] == (byte)10) {
+                  //dbgIncLineNo ();
+                  ++i; //Skip the lf itself
+                  AddLine (position + i);
+                  partialPosLimit = maxPartialSize + i;  //PartialLimit is the end-position
+                  N = Math.Min (partialPosLimit, count);
+                  continue;
+               }
 
                //OK, we have an unvoluntary line break
                int end = i;
@@ -826,7 +847,7 @@ namespace Bitmanager.BigFile {
                ++end;
                AddPartialLine (position + end);
                partialPosLimit = maxPartialSize + end;
-               i++;
+               //dbgIncLineNo ();
             }
          }
          EXIT_RTN:
@@ -1030,6 +1051,41 @@ namespace Bitmanager.BigFile {
             }
          }
          return new SearchResult (this, started, null, count, firstHit, 0);
+      }
+
+
+      public void CheckNewlines () {
+         logger.Log ("Check new lines.");
+         threadCtx.DirectStream.PrepareForNewInstance ();
+         threadCtx.SetMaxBufferSize (1024 * 1024);
+         int detected = 0;
+         if (lines != null) {
+            logger.Log ("Check new lines via lines (partials encountered).");
+            for (int i=0; i < lines.Count-1; i++) {
+               if ((i % 1000000) == 0) logger.Log ("Checked {0} lines...", i);
+               if (i == 12667)
+                  i += 0;
+               int len = threadCtx.ReadPartialLineBytesInBuffer (lines[i], lines[i + 1]);
+               if (hasNewLine (i, threadCtx.ByteBuffer, len)) ++detected;
+            }
+         } else {
+            logger.Log ("Check new lines via partials (no partials encountered).");
+            for (int i = 0; i < partialLines.Count - 1; i++) {
+               if ((i % 1000000) == 0) logger.Log ("Checked {0} lines...", i);
+               int len = threadCtx.ReadPartialLineBytesInBuffer (i, i+1);
+               if (hasNewLine (i, threadCtx.ByteBuffer, len)) ++detected;
+            }
+         }
+         logger.Log ("Total detected newlines: {0}", detected);
+      }
+
+      private bool hasNewLine (int line, byte[] buf, int len) {
+         int i;
+         for (i = 0; i < len - 1; i++) if (buf[i] == (byte)10) break;
+         if (i >= len - 1) return false;
+
+         logger.Log ("-- newline detected at line={0} at offset {1}, len={2}", line, i, len);
+         return true;
       }
 
       public Task Search (ParserNode<SearchContext> query, CancellationToken ct) {
