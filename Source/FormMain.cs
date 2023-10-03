@@ -34,6 +34,7 @@ using System.Reflection;
 using Microsoft.Win32;
 using Bitmanager.Grid;
 using static Bitmanager.BigFile.GridLines;
+using Bitmanager.Text;
 
 namespace Bitmanager.BigFile {
    /// <summary>
@@ -134,13 +135,6 @@ namespace Bitmanager.BigFile {
          gridLines.Focus ();
       }
       #endregion
-
-
-      private void showZipEntries (bool visible) {
-         cbZipEntries.Visible = visible;
-         toolStripSeparator3.Visible = visible;
-         if (!visible) cbZipEntries.Items.Clear ();
-      }
 
       private void setEncodingComboFromEncoding (Encoding c) {
          int ix = 0;
@@ -378,19 +372,6 @@ namespace Bitmanager.BigFile {
             else
                LoadFile (fn);
          }
-      }
-
-      /// <summary>
-      /// Handles the loading of a different entry in a zip file
-      /// </summary>
-      private void cbZipEntries_SelectedIndexChanged (object sender, EventArgs e) {
-         var cb = (ToolStripComboBox)sender;
-         int idx = cb.SelectedIndex;
-         if (idx < 0) return;
-         if (lf != null && lf.ZipEntries != null && lf.ZipEntries.SelectedEntry == idx) return;
-
-         var entry = (ZipEntry)cb.Items[idx];
-         LoadFile (entry.ArchiveName, entry.FullName);
       }
 
 
@@ -817,13 +798,56 @@ namespace Bitmanager.BigFile {
          if (lf.ZipEntries == null || lf.ZipEntries.Count == 0) {
             showZipEntries (false);
          } else {
-            cbZipEntries.Items.Clear ();
-            foreach (var e in lf.ZipEntries) cbZipEntries.Items.Add (e);
+            if (zipEntriesAutoCompleter == null) {
+               zipEntriesAutoCompleter = new AutoCompleter (cbZipEntries.TextBox, null, 20, true);
+               zipEntriesAutoCompleter.SelectionChanged += ZipEntriesAutoCompleter_SelectionChanged;
+            }
 
-            cbZipEntries.SelectedIndex = lf.ZipEntries.SelectedEntry;
+            bool same = sameAutoCompleteEntries (lf.ZipEntries);
+            logger.Log ("Existing AC={0}, new={1}, same={2}", zipEntriesAutoCompleter.Count, lf.ZipEntries.Count, same);
+            if (!same) {
+               zipEntriesAutoCompleter.Disable ();
+               try {
+                  zipEntriesAutoCompleter.Clear ();
+                  foreach (var e in lf.ZipEntries) zipEntriesAutoCompleter.UncheckedAdd (createAcItem (e));
+                  zipEntriesAutoCompleter.SelectedItem = zipEntriesAutoCompleter[lf.ZipEntries.SelectedItemIndex];
+               } finally {
+                  zipEntriesAutoCompleter.Enable ();
+               }
+            }
+
             showZipEntries (true);
          }
       }
+
+      private bool sameAutoCompleteEntries(ZipEntries zipEntries) {
+         if (zipEntriesAutoCompleter.Count != zipEntries.Count) return false;
+         if (zipEntries.Count == 0) return true;
+         return object.ReferenceEquals (zipEntries[0], zipEntriesAutoCompleter[0].Tag);
+      }
+
+      private AutoCompleter zipEntriesAutoCompleter;
+      private void showZipEntries (bool visible) {
+         cbZipEntries.Visible = visible;
+         toolStripSeparator3.Visible = visible;
+         if (!visible) {
+            zipEntriesAutoCompleter?.Clear ();
+         }
+      }
+
+      private static IAutoCompleteItem createAcItem (ZipEntry e) {
+         var ret = new AutoCompleteItem (e.ToString (), false);
+         ret.Tag= e;
+         return ret;
+      }
+
+      private void ZipEntriesAutoCompleter_SelectionChanged (SelectionChangedArgs args) {
+         if (args.Item == null || !cbZipEntries.Visible || args.Sender.Disabled) return;
+
+         var entry = (ZipEntry)args.Item.Tag;
+         LoadFile (entry.ArchiveName, entry.FullName);
+      }
+
 
 
       void ILogFileCallback.OnLoadComplete (Result result) {
@@ -1208,26 +1232,6 @@ namespace Bitmanager.BigFile {
 
       }
 
-      private void cbZipEntries_KeyPress (object sender, KeyPressEventArgs e) {
-         if (e.KeyChar  == '\r' ) {
-            var items = cbZipEntries.Items;
-            var txt = cbZipEntries.Text;
-            if (String.IsNullOrEmpty (txt)) return;
-            int i = 0;
-            String archiveName = null;
-            foreach (ZipEntry x in items) {
-               archiveName = x.ArchiveName;
-               if (String.Equals(x.Name, txt, StringComparison.OrdinalIgnoreCase) || String.Equals (x.FullName, txt, StringComparison.OrdinalIgnoreCase)) {
-                  cbZipEntries.SelectedIndex = i;
-                  return;
-               }
-               i++;
-            }
-            var ze = new ZipEntry (archiveName, txt);
-            items.Add (ze);
-            cbZipEntries.SelectedIndex = i;
-         }
-      }
 
       private void AdjustDropDownWidth (object sender, EventArgs e) {
          var cb = sender as ToolStripComboBox;

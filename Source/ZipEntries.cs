@@ -29,7 +29,31 @@ namespace Bitmanager.BigFile {
    /// Holds a list of ZipEntries and the index of the currently selected item
    /// </summary>
    public class ZipEntries : List<ZipEntry> {
-      public int SelectedEntry = -1;
+      public int SelectedItemIndex = -1;
+
+      public void SortAndSelect (string archiveName, string entryName) {
+         long max = -1;
+         int ixMax = -1;
+         Sort (ZipEntry.SortSize);
+
+         if (string.IsNullOrEmpty (entryName)) {
+            for (int i = 0; i < Count; i++) {
+               if (this[i].Length <= max) continue;
+               max = this[i].Length;
+               ixMax = i;
+            }
+            SelectedItemIndex = ixMax;
+         } else {
+            SelectedItemIndex = FindIndex (x => x.FullName == entryName);
+            if (SelectedItemIndex < 0) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", entryName, archiveName);
+         }
+      }
+
+      public ZipEntry SelectedItem {
+         get {
+            return SelectedItemIndex < 0 ? null : this[SelectedItemIndex];
+         }
+      }
    }
 
    /// <summary>
@@ -73,6 +97,15 @@ namespace Bitmanager.BigFile {
          FullName = txt;
          Length = 0;
          _tos = txt;
+      }
+
+      public static int SortName (ZipEntry x, ZipEntry y) {
+         return String.Compare (x._tos, y._tos, StringComparison.OrdinalIgnoreCase);
+      }
+      public static int SortSize (ZipEntry x, ZipEntry y) {
+         if (x.Length > y.Length) return -1;
+         if (x.Length < y.Length) return 1;
+         return String.CompareOrdinal (x.Name, y.Name);
       }
 
       public override String ToString () {

@@ -170,7 +170,7 @@ namespace Bitmanager.BigFile {
          if (fileName != other.fileName) return false;
          if (zipEntries == null && other.zipEntries == null) return true;
          if (zipEntries != null && other.zipEntries != null)
-            return zipEntries.SelectedEntry == other.zipEntries.SelectedEntry;
+            return zipEntries.SelectedItemIndex == other.zipEntries.SelectedItemIndex;
          return false;
       }
 
@@ -446,11 +446,6 @@ namespace Bitmanager.BigFile {
          return ret;
       }
 
-      static int cbCmpEntryLen (ZipEntry a, ZipEntry b) {
-         if (a.Length > b.Length) return -1;
-         if (a.Length < b.Length) return 1;
-         return String.CompareOrdinal (a.Name, b.Name);
-      }
       static ZipArchiveEntry getZipArchiveEntry (ReadOnlyCollection<ZipArchiveEntry> entries, ZipEntry e) {
          foreach (var zae in entries) {
             if (zae.FullName == e.FullName) return zae;
@@ -469,16 +464,10 @@ namespace Bitmanager.BigFile {
             var entries = archive.Entries;
             zipEntries = new ZipEntries ();
             foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
-            zipEntries.Sort (cbCmpEntryLen);
 
             if (zipEntries.Count > 0) {
-               if (zipEntryName == null)
-                  zipEntries.SelectedEntry = 0;
-               else {
-                  zipEntries.SelectedEntry = zipEntries.FindIndex (x => x.FullName == zipEntryName);
-                  if (zipEntries.SelectedEntry < 0) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
-               }
-               using (var entryStrm = getZipArchiveEntry (entries, zipEntries[zipEntries.SelectedEntry]).Open ())
+               zipEntries.SortAndSelect (fn, zipEntryName);
+               using (var entryStrm = getZipArchiveEntry (entries, zipEntries.SelectedItem).Open ())
                using (var threadedReader = new ThreadedIOBlockReader (entryStrm, true, 64 * 1024))
                   loadStreamIntoMemory (threadedReader, new LoadProgress (this, -1), false);
             }
@@ -494,17 +483,10 @@ namespace Bitmanager.BigFile {
          var entries = SevenZipInputStream.GetEntries (fn);
          zipEntries = new ZipEntries ();
          foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
-         zipEntries.Sort (cbCmpEntryLen);
 
          if (zipEntries.Count > 0) {
-            if (zipEntryName == null)
-               zipEntries.SelectedEntry = 0;
-            else {
-               zipEntries.SelectedEntry = zipEntries.FindIndex (x => x.FullName == zipEntryName);
-               if (zipEntries.SelectedEntry < 0) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
-            }
-
-            using (var entryStrm = new SevenZipInputStream (fn + "::" + zipEntries[zipEntries.SelectedEntry].FullName))
+            zipEntries.SortAndSelect (fn, zipEntryName);
+            using (var entryStrm = new SevenZipInputStream (fn + "::" + zipEntries.SelectedItem.FullName))
             using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
                loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
          }
@@ -557,18 +539,12 @@ namespace Bitmanager.BigFile {
             zipEntries = new ZipEntries ();
             int i = 0;
             foreach (var e in stor.Entries) {
-               if (++i < 100 || e==fileEntry) zipEntries.Add (new ZipEntry (fn, e));
+               if (++i < 50000 || e==fileEntry) zipEntries.Add (new ZipEntry (fn, e));
             }
-            zipEntries.Sort (cbCmpEntryLen);
 
             if (zipEntries.Count > 0) {
-               if (fileEntry == null) {
-                  fileEntry = stor.GetFileEntry (zipEntries[0].FullName);
-                  zipEntries.SelectedEntry = 0;
-               } else {
-                  zipEntries.SelectedEntry = zipEntries.FindIndex (x => x.FullName == fileEntry.Name);
-               }
-               using (var entryStrm = stor.GetStream (fileEntry))
+               zipEntries.SortAndSelect (fn, zipEntryName);
+               using (var entryStrm = stor.GetStream (zipEntries.SelectedItem.FullName))
                using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
                   loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
             }
@@ -920,6 +896,7 @@ namespace Bitmanager.BigFile {
             }
          });
       }
+
 
       public void Dispose () {
          disposed = true;

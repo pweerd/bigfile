@@ -98,7 +98,7 @@ namespace Bitmanager.BigFile {
          this.cbEncoding = new System.Windows.Forms.ToolStripComboBox();
          this.cbFontSize = new System.Windows.Forms.ToolStripComboBox();
          this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-         this.cbZipEntries = new System.Windows.Forms.ToolStripComboBox();
+         this.cbZipEntries = new System.Windows.Forms.ToolStripTextBox();
          this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
          this.cbSplit = new System.Windows.Forms.ToolStripComboBox();
@@ -573,8 +573,8 @@ namespace Bitmanager.BigFile {
          this.cbZipEntries.Name = "cbZipEntries";
          this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
          this.cbZipEntries.ToolTipText = "Select entry in the zip-file";
-         this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
-         this.cbZipEntries.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cbZipEntries_KeyPress);
+         //this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
+         //this.cbZipEntries.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cbZipEntries_KeyPress);
          // 
          // toolStripSeparator4
          // 
@@ -728,7 +728,7 @@ namespace Bitmanager.BigFile {
       private System.Windows.Forms.ToolStripButton btnWarning;
       private System.Windows.Forms.ToolStripButton btnResetSearch;
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-      private System.Windows.Forms.ToolStripComboBox cbZipEntries;
+      private System.Windows.Forms.ToolStripTextBox cbZipEntries;
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
       private System.Windows.Forms.ToolStripLabel toolStripLabel1;
       private System.Windows.Forms.ToolStripComboBox cbSplit;
