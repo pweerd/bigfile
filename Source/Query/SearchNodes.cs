@@ -65,6 +65,8 @@ namespace Bitmanager.BigFile.Query
                return ComparerType.Regex;
             case "rc":
             case "rcs":
+            case "cr":
+            case "csr":
                field = "rcs";
                return ComparerType.Regex | ComparerType.CaseSensitive;
             default: throw new BMException("Unexpected type [{0}].", field);

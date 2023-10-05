@@ -504,13 +504,15 @@ namespace Bitmanager.BigFile {
          // 
          // toolLabelSearch
          // 
+         this.toolLabelSearch.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.toolLabelSearch.Name = "toolLabelSearch";
-         this.toolLabelSearch.Size = new System.Drawing.Size(42, 28);
+         this.toolLabelSearch.Size = new System.Drawing.Size(47, 28);
          this.toolLabelSearch.Text = "Search";
          // 
          // cbSearch
          // 
          this.cbSearch.AutoToolTip = true;
+         this.cbSearch.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.cbSearch.Name = "cbSearch";
          this.cbSearch.Size = new System.Drawing.Size(408, 31);
          this.cbSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cbSearch_KeyPress);
@@ -545,6 +547,7 @@ namespace Bitmanager.BigFile {
          // cbEncoding
          // 
          this.cbEncoding.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+         this.cbEncoding.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.cbEncoding.Items.AddRange(new object[] {
             "Utf8",
             "Utf16LE",
@@ -558,6 +561,7 @@ namespace Bitmanager.BigFile {
          // cbFontSize
          // 
          this.cbFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+         this.cbFontSize.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.cbFontSize.Name = "cbFontSize";
          this.cbFontSize.Size = new System.Drawing.Size(75, 31);
          this.cbFontSize.ToolTipText = "Modify fontsize";
@@ -570,11 +574,10 @@ namespace Bitmanager.BigFile {
          // 
          // cbZipEntries
          // 
+         this.cbZipEntries.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.cbZipEntries.Name = "cbZipEntries";
          this.cbZipEntries.Size = new System.Drawing.Size(184, 31);
          this.cbZipEntries.ToolTipText = "Select entry in the zip-file";
-         //this.cbZipEntries.SelectedIndexChanged += new System.EventHandler(this.cbZipEntries_SelectedIndexChanged);
-         //this.cbZipEntries.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cbZipEntries_KeyPress);
          // 
          // toolStripSeparator4
          // 
@@ -584,12 +587,14 @@ namespace Bitmanager.BigFile {
          // 
          // toolStripLabel1
          // 
+         this.toolStripLabel1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.toolStripLabel1.Name = "toolStripLabel1";
-         this.toolStripLabel1.Size = new System.Drawing.Size(65, 28);
+         this.toolStripLabel1.Size = new System.Drawing.Size(71, 28);
          this.toolStripLabel1.Text = "Linesplitter";
          // 
          // cbSplit
          // 
+         this.cbSplit.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.cbSplit.Name = "cbSplit";
          this.cbSplit.Size = new System.Drawing.Size(75, 31);
          this.cbSplit.Text = "2048";
@@ -597,12 +602,14 @@ namespace Bitmanager.BigFile {
          // 
          // toolStripLabel2
          // 
+         this.toolStripLabel2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.toolStripLabel2.Name = "toolStripLabel2";
-         this.toolStripLabel2.Size = new System.Drawing.Size(65, 28);
+         this.toolStripLabel2.Size = new System.Drawing.Size(71, 28);
          this.toolStripLabel2.Text = "Load limits";
          // 
          // cbLoadLimits
          // 
+         this.cbLoadLimits.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
          this.cbLoadLimits.Name = "cbLoadLimits";
          this.cbLoadLimits.Size = new System.Drawing.Size(100, 31);
          // 
