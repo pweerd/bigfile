@@ -28,6 +28,8 @@ namespace Bitmanager.BigFile {
    /// </summary>
    public class Settings {
       public readonly SettingsSource Source;
+      public readonly string ExtensionsBySevenZip;
+
       public readonly long TotalPhysicalMemory;
       public readonly long AvailablePhysicalMemory;
 
@@ -42,9 +44,12 @@ namespace Bitmanager.BigFile {
       public readonly int MaxLineLength;
       public readonly int MaxCopyLines;
       public readonly int MaxCopySize;
+      public readonly LoaderSelector LoaderSelector;
 
       public Settings (SettingsSource src) {
          Source = src;
+         ExtensionsBySevenZip = src.ExtensionsBySevenZip;
+         LoaderSelector = new LoaderSelector (ExtensionsBySevenZip);
          TotalPhysicalMemory = src.TotalPhysicalMemory;
          AvailablePhysicalMemory = src.AvailablePhysicalMemory;
          Color tmp = src.HighlightColor;
@@ -73,6 +78,7 @@ namespace Bitmanager.BigFile {
          logger.Log ("-- CompressMemoryIfBigger: {0} ({1})", CompressMemoryIfBigger, Pretty.PrintSize (CompressMemoryIfBigger));
          logger.Log ("-- LoadMemoryIfBigger: {0} ({1})", LoadMemoryIfBigger, Pretty.PrintSize (LoadMemoryIfBigger));
          logger.Log ("-- PhysicalMem: total={0}, available={1}", Pretty.PrintSize (TotalPhysicalMemory), Pretty.PrintSize (AvailablePhysicalMemory));
+         logger.Log ("-- ExtensionsBy7Z: {0}", ExtensionsBySevenZip);
       }
    }
 
@@ -82,6 +88,7 @@ namespace Bitmanager.BigFile {
    /// Save/load settings in registry
    /// </summary>
    public class SettingsSource {
+      public const string DEF_7Z = "7z;arj;bz2;bzip2;cab;img;iso;jar;lha;lzh;lzma;pkg;rar;tar.gz;tbz;tbz2;tgz;zar";
       public const String AUTO = @"Auto";
       public Settings Settings { get; private set; }
       private const String _KEY = @"software\bitmanager\bigfile";
@@ -99,6 +106,7 @@ namespace Bitmanager.BigFile {
 
       public readonly IntSetting MaxCopyLines = new IntSetting ("max_copy_lines", "100000");
       public readonly SizeSetting MaxCopySize = new SizeSetting ("max_copy_size", "100MB");
+      public readonly StringSetting ExtensionsBySevenZip = new StringSetting ("extensions_by_7z", DEF_7Z);
 
       public SettingsSource (bool autoLoad = false) {
          if (autoLoad)
@@ -130,6 +138,7 @@ namespace Bitmanager.BigFile {
             SearchThreads.Load (key);
             LoadMemoryIfBigger.Load (key);
             CompressMemoryIfBigger.Load (key);
+            ExtensionsBySevenZip.Load(key);
 
             FormLine.LoadState (key);
          }
@@ -147,6 +156,7 @@ namespace Bitmanager.BigFile {
             SearchThreads.Save (key);
             LoadMemoryIfBigger.Save (key);
             CompressMemoryIfBigger.Save (key);
+            ExtensionsBySevenZip.Save (key);
 
             FormLine.SaveState (key);
          }
@@ -163,6 +173,7 @@ namespace Bitmanager.BigFile {
          logger.Log ("-- {0}", SearchThreads);
          logger.Log ("-- {0}", CompressMemoryIfBigger);
          logger.Log ("-- {0}", LoadMemoryIfBigger);
+         logger.Log ("-- {0}", ExtensionsBySevenZip);
          logger.Log ("-- PhysicalMem: total={0}, available={1}", Pretty.PrintSize (TotalPhysicalMemory), Pretty.PrintSize (AvailablePhysicalMemory));
          if (Settings != null) Settings.Dump ();
       }

@@ -110,6 +110,24 @@ namespace Bitmanager.BigFile {
    }
 
    /// <summary>
+   /// IntSetting.
+   /// The converted actual value is an int
+   /// </summary>
+   public class StringSetting : Setting<string> {
+      public StringSetting (String name, String def, String initial = null) : base (name, def, initial) { }
+
+      protected override string convertStr (string s) {
+         return s;
+      }
+      public static implicit operator string (StringSetting x) {
+         return x.value;
+      }
+      public override string ToString () {
+         return Invariant.Format ("{0}: {1})", Name, value);
+      }
+   }
+
+   /// <summary>
    /// ThreadsSetting.
    /// If the raw value <= 0, it is the relative #threads and needs to be added to the #cores
    /// Otherwise it is the #threads itself

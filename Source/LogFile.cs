@@ -550,63 +550,72 @@ namespace Bitmanager.BigFile {
 
       /// <summary>
       /// Load a .7zip file.
-      /// This is done by taking the largest file and stream that into memory
+      /// We reset the background state to foreground, since, if we are terminated, 7z is still running
       /// </summary>
       private void loadSevenZipFile (String fn, String zipEntryName) {
-         CachedArchive ca = ArchiveCache.Instance.Get (fn);
-         if (ca == null) {
-            var entries = SevenZipInputStream.GetEntries (fn);
-            zipEntries = new ZipEntries ();
-            foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
+         Thread cur = Thread.CurrentThread;
+         bool isBackground = cur.IsBackground;
+         cur.IsBackground = false;  //Make sure that the process is kept alive as long as this thread is alive
+         try {
+            CachedArchive ca = ArchiveCache.Instance.Get (fn);
+            if (ca == null) {
+               var entries = SevenZipInputStream.GetEntries (fn);
+               zipEntries = new ZipEntries ();
+               foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
 
-            if (zipEntries.Count > 0) zipEntries.SortAndSelect (fn, null);
-            ca = new CachedArchive (fn, null, zipEntries);
-            ArchiveCache.Instance.Add (ca);
-         }
+               if (zipEntries.Count > 0) zipEntries.SortAndSelect (fn, null);
+               ca = new CachedArchive (fn, null, zipEntries);
+               ArchiveCache.Instance.Add (ca);
+            }
 
-         zipEntries = ca.Entries;
-         if (zipEntries.Count == 0)
-            loadEmpty ();
-         else {
-            zipEntries.SortAndSelect (fn, zipEntryName);
-            using (var entryStrm = new SevenZipInputStream (fn + "::" + zipEntries.SelectedItem.FullName))
-            using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
-               loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+            zipEntries = ca.Entries;
+            if (zipEntries.Count == 0)
+               loadEmpty ();
+            else {
+               zipEntries.SortAndSelect (fn, zipEntryName);
+               using (var entryStrm = new SevenZipInputStream (fn + "::" + zipEntries.SelectedItem.FullName))
+               using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
+                  loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+            }
+         } finally {
+            cur.IsBackground = isBackground;
          }
       }
 
       /// <summary>
       /// Load a gz file.
-      /// This is done by unzipping it into memory and serving the UI from the memorystream
       /// Unzip is preferrable done by starting gzip, and otherwise by using sharpzlib
       /// </summary>
       private void loadGZipFile (String fn) {
-         Stream strm = null;
-         Thread cur = Thread.CurrentThread;
-         bool isBackground = cur.IsBackground;
-         cur.IsBackground = false;  //Make sure that the process is kept alive as long as this thread is alive
-         try {
-            if (Globals.CanInternalGZip && (DbgStr == null || DbgStr == "intern")) {
+         if (!Globals.CanInternalGZip || (DbgStr != null && DbgStr != "intern")) {
+            loadGZipFileViaSharpZlib (fn);
+         } else {
+            Stream strm = null;
+            try {
                logger.Log ("Loading '{0}' via internal Zlib.DLL", fn);
                strm = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024);
                var gz = new GZipDecompressStream (strm, false, 64 * 1024);
                strm = gz;
+               using (var rdr = new ThreadedIOBlockReader (strm, false, 64 * 1024))
+                  loadStreamIntoMemory (rdr, new LoadProgress (this, -1), false);
+            } finally {
+               strm?.Dispose ();
             }
+         }
+      }
 
-            if (strm == null) {
-               logger.Log ("Loading '{0}' via SharpZipLib.", fn);
-               strm = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024);
-               var gz = new ICSharpCode.SharpZipLib.GZip.GZipInputStream (strm, 64 * 1024);
-               gz.IsStreamOwner = true;
-               strm = gz;
-            }
+      private void loadGZipFileViaSharpZlib (String fn) {
+         Stream strm = null;
+         try {
+            logger.Log ("Loading '{0}' via SharpZipLib.", fn);
+            strm = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024);
+            var gz = new ICSharpCode.SharpZipLib.GZip.GZipInputStream (strm, 64 * 1024);
+            gz.IsStreamOwner = true;
+            strm = gz;
             using (var rdr = new ThreadedIOBlockReader (strm, false, 64 * 1024))
                loadStreamIntoMemory (rdr, new LoadProgress (this, -1), false);
-         } catch (Exception e) {
-            throw IOUtils.WrapFilenameInException (e, fn);
          } finally {
-            Utils.FreeAndNil (ref strm);
-            cur.IsBackground = isBackground; //Restore the background state
+            strm?.Dispose ();
          }
       }
 
@@ -958,34 +967,35 @@ namespace Bitmanager.BigFile {
             partialsEncountered = false;
             this.fileName = Path.GetFullPath (fn);
             this.ct = ct;
-            String ext = Path.GetExtension (fileName).ToLowerInvariant ();
             try {
-               switch (ext) {
-                  case ".gz":
+               switch (settings.LoaderSelector.GetLoaderFor(FileName)) {
+                  case LoaderSelector.Loader.NativeGZip:
                      loadGZipFile (fileName);
                      break;
-                  case ".7z":
-                  case ".bz2":
-                  case ".rar":
+                  case LoaderSelector.Loader.SevenZip:
                      loadSevenZipFile (fileName, zipEntry);
                      break;
-                  case ".zip":
-                     //loadSevenZipFile (fileName, zipEntry);
+                  case LoaderSelector.Loader.NativeZip:
                      loadZipFile (fileName, zipEntry);
                      break;
+                  case LoaderSelector.Loader.FileStorage:
+                     loadStorage (FileName, zipEntry);
+                     break;
+                  case LoaderSelector.Loader.SharpGZip:
+                     loadGZipFileViaSharpZlib (FileName);
+                     break;
+                  case LoaderSelector.Loader.SharpZip:
+                     loadZipFileViaSharpZlib (fileName, zipEntry);
+                     break;
+
                   default:
-                     if (FileStorage.IsPossibleAndExistingStorageFile(fileName)) {
-                        loadStorage (FileName, zipEntry);
-                        break;
-                     }
-                     if (zipEntry != null) loadZipFile (fileName, zipEntry);
-                     else loadNormalFile (fileName);
+                     loadNormalFile (fileName);
                      break;
                }
                logger.Log ("-- Loaded. Size={0}, #Lines={1}", Pretty.PrintSize (GetPartialLineOffset (partialLines.Count - 1)), partialLines.Count - 1);
             } catch (Exception ex) {
-               err = ex;
-               Logs.ErrorLog.Log (ex, "Exception during load: {0}", ex.Message);
+               err = IOUtils.WrapFilenameInException (ex, fn);
+               Logs.ErrorLog.Log (ex, "Exception during load: {0}", err.Message);
             } finally {
                this.ct = CancellationToken.None;
                try {

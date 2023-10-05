@@ -37,6 +37,8 @@ namespace Bitmanager.BigFile {
          cbInMemory.Text = settings.LoadMemoryIfBigger.Value;
          txtMaxCopyLines.Text = settingsSource.MaxCopyLines.Value;
          txtMaxCopySize.Text = settingsSource.MaxCopySize.Value;
+         txtHandledBySevenZip.Text = settingsSource.ExtensionsBySevenZip.Value;
+
          label6.Text = Invariant.Format ("(#cpu's: {0})", Environment.ProcessorCount);
       }
 
@@ -50,6 +52,7 @@ namespace Bitmanager.BigFile {
          settingsSource.MaxLineLength.Set (cbLineLength.Text);
          settingsSource.MaxCopyLines.Set (txtMaxCopyLines.Text);
          settingsSource.MaxCopySize.Set (txtMaxCopySize.Text);
+         settingsSource.ExtensionsBySevenZip.Set (txtHandledBySevenZip.Text);
          settingsSource.Save ();
          settingsSource.ActualizeDefaults ();
          settingsSource.Dump ("settings changed");
