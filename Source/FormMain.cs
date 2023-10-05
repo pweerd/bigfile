@@ -311,6 +311,7 @@ namespace Bitmanager.BigFile {
             
             fileHistory.Save ();
             directoryHistory.Save ();
+            ArchiveCache.Instance.Clear ();
          }
       }
 
@@ -703,6 +704,8 @@ namespace Bitmanager.BigFile {
       void ILogFileCallback.OnSearchComplete (SearchResult result) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
             gridLines.Invalidate ();
+            handleViewSelection ();
+            selectionHandler.NotifyExternalChange ();
             indicateFinished ();
 
             result.ThrowIfError ();
@@ -763,6 +766,8 @@ namespace Bitmanager.BigFile {
       }
       void ILogFileCallback.OnSearchPartial (LogFile lf, int firstMatch) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
+            gridLines.Filter = null;
+            selectionHandler.NotifyExternalChange ();
             positionToFirstHit (firstMatch);
          }), null);
       }
