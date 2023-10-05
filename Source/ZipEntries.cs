@@ -27,15 +27,24 @@ using Bitmanager.Storage;
 namespace Bitmanager.BigFile {
    /// <summary>
    /// Holds a list of ZipEntries and the index of the currently selected item
+   /// ZipEntries that have a FullName ending with / or \ (directories) are skipped
    /// </summary>
    public class ZipEntries : List<ZipEntry> {
       public int SelectedItemIndex = -1;
 
+      public new void Add(ZipEntry e) {
+         if (e.FullName.EndsWith ('/') || e.FullName.EndsWith ('\\')) return; //Directory
+         base.Add(e);
+      }
+
       public void SortAndSelect (string archiveName, string entryName) {
+         Sort (ZipEntry.SortSize);
+         Select (archiveName, entryName);
+      }
+
+      public void Select (string archiveName, string entryName) {
          long max = -1;
          int ixMax = -1;
-         Sort (ZipEntry.SortSize);
-
          if (string.IsNullOrEmpty (entryName)) {
             for (int i = 0; i < Count; i++) {
                if (this[i].Length <= max) continue;
@@ -47,6 +56,10 @@ namespace Bitmanager.BigFile {
             SelectedItemIndex = FindIndex (x => x.FullName == entryName);
             if (SelectedItemIndex < 0) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", entryName, archiveName);
          }
+      }
+
+      public int IndexOf (string entryName) {
+         return FindIndex (x => x.FullName == entryName);
       }
 
       public ZipEntry SelectedItem {
@@ -83,11 +96,11 @@ namespace Bitmanager.BigFile {
          _tos = Invariant.Format ("{0} ({1})", e.Name, Pretty.PrintSize (e.Size));
       }
 
-      public ZipEntry (string fn, FileEntry e) {
+      public ZipEntry (string archiveName, FileEntry e) {
          Name = e.Name;
          FullName = e.Name;
          Length = e.Size;
-         ArchiveName = fn;
+         ArchiveName = archiveName;
          _tos = Invariant.Format ("{0} ({1})", e.Name, Pretty.PrintSize (e.Size));
       }
 
@@ -97,6 +110,14 @@ namespace Bitmanager.BigFile {
          FullName = txt;
          Length = 0;
          _tos = txt;
+      }
+
+      public ZipEntry (string archiveName, ICSharpCode.SharpZipLib.Zip.ZipEntry e) {
+         Name = e.Name;
+         FullName = e.Name;
+         Length = e.Size;
+         ArchiveName = archiveName;
+         _tos = Invariant.Format ("{0} ({1})", e.Name, Pretty.PrintSize (e.Size));
       }
 
       public static int SortName (ZipEntry x, ZipEntry y) {

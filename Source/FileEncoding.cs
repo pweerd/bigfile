@@ -42,8 +42,11 @@ namespace Bitmanager.BigFile {
          Current = getEncodingFromBOM (buffer, out PreambleBytes);
          if (Current == null) Current = detectEncodingFromBytes (buffer);
       }
+      public FileEncoding () {
+         Current = Utf8;
+      }
 
-      static FileEncoding() {
+      static FileEncoding () {
          ExtendedLatin = Encoding.Latin1;
          Utf8 = new UTF8Encoding(false);
          Utf16 = new UnicodeEncoding (false, false);

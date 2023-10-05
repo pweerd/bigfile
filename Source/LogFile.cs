@@ -452,6 +452,12 @@ namespace Bitmanager.BigFile {
          }
          throw new BMException ("Cannot find '{0}' in archive '{1}'.", e.FullName, e.ArchiveName);
       }
+      static ICSharpCode.SharpZipLib.Zip.ZipEntry getZipArchiveEntry (ICSharpCode.SharpZipLib.Zip.ZipFile entries, ZipEntry e) {
+         foreach (ICSharpCode.SharpZipLib.Zip.ZipEntry zae in entries) {
+            if (zae.Name == e.FullName) return zae;
+         }
+         throw new BMException ("Cannot find '{0}' in archive '{1}'.", e.FullName, e.ArchiveName);
+      }
 
 
       /// <summary>
@@ -459,32 +465,109 @@ namespace Bitmanager.BigFile {
       /// This is done by taking the largest file and stream that into memory
       /// </summary>
       private void loadZipFile (String fn, String zipEntryName) {
-         using (var fs = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read))
-         using (ZipArchive archive = new ZipArchive (fs, ZipArchiveMode.Read, false, Encoding.UTF8)) {
-            var entries = archive.Entries;
-            zipEntries = new ZipEntries ();
-            foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
+         CachedArchive ca = ArchiveCache.Instance.Get (fn);
+         if (ca != null && !(ca.Archive is ZipArchive)) {
+            loadZipFileViaSharpZlib (fn, zipEntryName);
+            return;
+         }
+         FileStream fs = null;
+         ZipArchive archive = null;
+         try {
+            if (ca == null) {
+               fs = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read);
+               archive = new ZipArchive (fs, ZipArchiveMode.Read, false, Encoding.UTF8);
+               zipEntries = new ZipEntries ();
+               foreach (var e in archive.Entries) zipEntries.Add (new ZipEntry (fn, e));
 
-            if (zipEntries.Count > 0) {
-               zipEntries.SortAndSelect (fn, zipEntryName);
-               using (var entryStrm = getZipArchiveEntry (entries, zipEntries.SelectedItem).Open ())
+               if (zipEntries.Count > 0) zipEntries.SortAndSelect (fn, null);
+               ca = new CachedArchive (fn, archive, zipEntries);
+               ArchiveCache.Instance.Add (ca);
+
+               archive = null;
+               fs = null;
+            }
+         } finally {
+            archive?.Dispose ();
+            fs?.Dispose ();
+         }
+
+         try {
+            archive = (ZipArchive)ca.Archive;
+            zipEntries = ca.Entries;
+            zipEntries.Select (fn, zipEntryName);
+            if (zipEntries.Count == 0)
+               loadEmpty ();
+            else {
+               zipEntries.Select (fn, zipEntryName);
+               var entry = getZipArchiveEntry (archive.Entries, zipEntries.SelectedItem);
+               using (var entryStrm = entry.Open ())
                using (var threadedReader = new ThreadedIOBlockReader (entryStrm, true, 64 * 1024))
                   loadStreamIntoMemory (threadedReader, new LoadProgress (this, -1), false);
             }
+         } catch (Exception err) {
+            logger.Log (err, "Error while reading zip [{0}]. Fallback to SharpZLib.", fn);
+            loadZipFileViaSharpZlib (fn, zipEntryName);
          }
       }
 
+      private void loadZipFileViaSharpZlib (String fn, String zipEntryName) {
+         CachedArchive ca = ArchiveCache.Instance.Get (fn);
+         if (ca != null && !(ca.Archive is ICSharpCode.SharpZipLib.Zip.ZipFile)) ca = null;
+         FileStream fs = null;
+         ICSharpCode.SharpZipLib.Zip.ZipFile archive = null;
+         try {
+            if (ca == null) {
+               fs = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read);
+               archive = new ICSharpCode.SharpZipLib.Zip.ZipFile (fs, false);
+               zipEntries = new ZipEntries ();
+               foreach (ICSharpCode.SharpZipLib.Zip.ZipEntry e in archive) zipEntries.Add (new ZipEntry (fn, e));
+
+               if (zipEntries.Count > 0) zipEntries.SortAndSelect (fn, null);
+               ca = new CachedArchive (fn, archive, zipEntries);
+               ArchiveCache.Instance.Add (ca);
+
+               archive = null;
+               fs = null;
+            }
+         } finally {
+            (archive as IDisposable)?.Dispose ();
+            fs?.Dispose ();
+         }
+
+         archive = (ICSharpCode.SharpZipLib.Zip.ZipFile)ca.Archive;
+         zipEntries = ca.Entries;
+         zipEntries.Select (fn, zipEntryName);
+         if (zipEntries.Count == 0)
+            loadEmpty ();
+         else {
+            zipEntries.Select (fn, zipEntryName);
+            var entry = getZipArchiveEntry (archive, zipEntries.SelectedItem);
+            using (var entryStrm = archive.GetInputStream (entry))
+            using (var threadedReader = new ThreadedIOBlockReader (entryStrm, true, 64 * 1024))
+               loadStreamIntoMemory (threadedReader, new LoadProgress (this, -1), false);
+         }
+      }
 
       /// <summary>
       /// Load a .7zip file.
       /// This is done by taking the largest file and stream that into memory
       /// </summary>
       private void loadSevenZipFile (String fn, String zipEntryName) {
-         var entries = SevenZipInputStream.GetEntries (fn);
-         zipEntries = new ZipEntries ();
-         foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
+         CachedArchive ca = ArchiveCache.Instance.Get (fn);
+         if (ca == null) {
+            var entries = SevenZipInputStream.GetEntries (fn);
+            zipEntries = new ZipEntries ();
+            foreach (var e in entries) zipEntries.Add (new ZipEntry (fn, e));
 
-         if (zipEntries.Count > 0) {
+            if (zipEntries.Count > 0) zipEntries.SortAndSelect (fn, null);
+            ca = new CachedArchive (fn, null, zipEntries);
+            ArchiveCache.Instance.Add (ca);
+         }
+
+         zipEntries = ca.Entries;
+         if (zipEntries.Count == 0)
+            loadEmpty ();
+         else {
             zipEntries.SortAndSelect (fn, zipEntryName);
             using (var entryStrm = new SevenZipInputStream (fn + "::" + zipEntries.SelectedItem.FullName))
             using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
@@ -527,28 +610,49 @@ namespace Bitmanager.BigFile {
          }
       }
 
+      private void loadEmpty () {
+         addSentinelForLastPartial (0);
+      }
+
       private void loadStorage (string fn, string zipEntryName) {
-         using (var stor = new FileStorage (fn, FileOpenMode.Read)) {
-            FileEntry fileEntry = null;
-            if (zipEntryName != null) {
-               fileEntry = stor.GetFileEntry (zipEntryName);
-               if (fileEntry==null) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
-            }
+         CachedArchive ca = ArchiveCache.Instance.Get (fn);
+         FileStorage stor = null;
+         FileEntry fileEntry;
+         try {
+            if (ca == null) {
+               stor = new FileStorage (fn, FileOpenMode.Read);
 
-            var fileEntries = stor.Entries;
-            zipEntries = new ZipEntries ();
-            int i = 0;
-            foreach (var e in stor.Entries) {
-               if (++i < 50000 || e==fileEntry) zipEntries.Add (new ZipEntry (fn, e));
-            }
+               zipEntries = new ZipEntries ();
+               int i = 0;
+               foreach (var e in stor.Entries) {
+                  if (++i < 50000) zipEntries.Add (new ZipEntry (fn, e));
+               }
+               if (zipEntries.Count > 0) zipEntries.SortAndSelect (fn, null);
 
-            if (zipEntries.Count > 0) {
-               zipEntries.SortAndSelect (fn, zipEntryName);
-               using (var entryStrm = stor.GetStream (zipEntries.SelectedItem.FullName))
-               using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
-                  loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+               ca = new CachedArchive (fn, stor, zipEntries);
+               ArchiveCache.Instance.Add (ca);
+               stor = null;
+            }
+         } finally {
+            stor?.Dispose ();
+         }
+
+         stor = (FileStorage)ca.Archive;
+         zipEntries = ca.Entries;
+
+         if (zipEntryName != null) {
+            fileEntry = stor.GetFileEntry (zipEntryName);
+            if (fileEntry == null) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", zipEntryName, fn);
+            zipEntries.SelectedItemIndex = zipEntries.IndexOf (zipEntryName);
+            if (zipEntries.SelectedItemIndex < 0) {
+               zipEntries.SelectedItemIndex = zipEntries.Count;
+               zipEntries.Add (new ZipEntry (fn, fileEntry));
             }
          }
+
+         using (var entryStrm = stor.GetStream (zipEntries.SelectedItem.FullName))
+         using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
+            loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
       }
 
 
@@ -650,11 +754,11 @@ namespace Bitmanager.BigFile {
          long x = partialLines[i];
          long offs = x >> LineFlags.FLAGS_SHIFT;
          long mask = x & LineFlags.FLAGS_MASK;
-         logger.Log ("-- {0}: o={1} (0x{1:X}), len={2}, flags=0x{3:X}", i, offs, offs-prev, mask);
+         logger.Log ("-- {0}: o={1} (0x{1:X}), len={2}, flags=0x{3:X}", i, offs, offs - prev, mask);
          return offs;
+      }
 
 
-}
       private void loadNormalFile (string fn) {
          var directStream = new DirectFileStreamWrapper (fn, 4096);
          var fileStream = directStream.BaseStream;
@@ -698,10 +802,19 @@ namespace Bitmanager.BigFile {
          addSentinelForLastPartial (position);
       }
 
+      /// <summary>
+      /// Finalize loading by adding the sentinel.
+      /// Also make sure that there is at least a detected encoding
+      /// </summary>
       private void addSentinelForLastPartial (long position) {
-         long o2 = partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT;
-         if (o2 != position)
-            AddLine (position);
+         if (detectedEncoding == null) detectedEncoding = new FileEncoding ();
+         if (partialLines.Count == 0)
+            AddLine (0);
+         else {
+            long o2 = partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT;
+            if (o2 != position)
+               AddLine (position);
+         }
       }
 
       private bool onProgress (double perc) {
@@ -852,6 +965,8 @@ namespace Bitmanager.BigFile {
                      loadGZipFile (fileName);
                      break;
                   case ".7z":
+                  case ".bz2":
+                  case ".rar":
                      loadSevenZipFile (fileName, zipEntry);
                      break;
                   case ".zip":
