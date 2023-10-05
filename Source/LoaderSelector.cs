@@ -43,12 +43,12 @@ namespace Bitmanager.BigFile {
       public Loader GetLoaderFor (string fn) {
          fn = fn.ToLowerInvariant ();
          for (int i=0; i<sevenZipExts.Length; i++) {
-            if (!fn.EndsWith (sevenZipExts[i])) continue;
+            if (!fn.EndsWith (sevenZipExts[i], StringComparison.Ordinal)) continue;
             if (SevenZipInputStream.FindSevenZip (false) != null) return Loader.SevenZip;
             break;
          }
-         if (fn.EndsWith (".gz")) return Loader.NativeGZip;
-         if (fn.EndsWith (".zip")) return Loader.NativeZip;
+         if (fn.EndsWith (".gz", StringComparison.Ordinal)) return Loader.NativeGZip;
+         if (fn.EndsWith (".zip", StringComparison.Ordinal)) return Loader.NativeZip;
          if (FileStorage.IsPossibleAndExistingStorageFile (fn)) return Loader.FileStorage;
 
          return Loader.Other;
