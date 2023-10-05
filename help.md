@@ -1,4 +1,4 @@
-﻿# BigFile (V1.1.2023.1003)
+﻿# BigFile (V1.1.2023.1005)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems. Typical used as a viewer for:
 
@@ -24,7 +24,7 @@ Unfortunately BigFile diverged way too far from the original logviewer, so I dec
 
 Either use the File->Open menu item or drag and drop a file onto the list
 
-BigFile can open **.zip** and **.gz** files directly. The content will be loaded into memory and served from there. gz-files will be loaded via an internal zlib implementation if found, or via SharpZLib (slower!) .zip files will be loaded via the internal .Net zip-classes.
+BigFile can open **.zip** and **.gz** files directly. The content will be loaded into memory and served from there. These files will be loaded via the native implementation with a fallback to SharpZLib (slower!)  Also, if 7z.exe is found (via the path or 'program files'), other archive types can be loaded via 7z.exe. The supported extensions are configurable in the settings. Specifying 'zip' in these extensions will force the zip loading via 7z.
 
 In case of a zip archive, the largest sub-file will be loaded. Also, a dropdown box with all entries from the zip file is shown. Selecting a different entry from that dropdown will load the associated zip entry from the archive.
 
@@ -193,9 +193,18 @@ I used his Grid as a starting point.
 
 ## Changes
 
-#### V1.1.2023.1003
+#### V1.1.2023.1005
+
+- Many bugfixes
+- Supporting more archives via 7zip (If 7z.exe is found). Also Bitmanager's FileStorage is supported.
+- Fallback to SharpZLib if .Net's native ZipArchive fails.
+- Archive entries are accessible via an auto-complete.
+- Archives are cached (1 at the moment). This speeds up processing of archives with a lot of entries. 
+
+#### V1.1.2023.0202
+
 - Replaced the grid completely, in order to support more than 100M lines (the limit of a ListView).
-Also, the grid is *much* faster.
+  Also, the grid is *much* faster.
 - Better line-width calculations.
 - Possibility to skip the first  lines/bytes and to limit the \#bytes to load.
 - Showing tooltips with row-properties.
