@@ -251,10 +251,13 @@ namespace Bitmanager.BigFile {
          sb.AppendFormat ("00000000: {0:X4}", (int)x[0]);
          int i;
          for (i = 1; i < x.Length; i++) {
-            if ((i % 16) == 0) {
-               sb.Append ("  | ");
-               for (int j = i - 16; j < i; j++) appendChar (sb, x[j]);
-               sb.AppendFormat ("\n{0:X8}:", i);
+            if ((i % 4) == 0) {
+               if ((i % 16) == 0) {
+                  sb.Append ("  | ");
+                  for (int j = i - 16; j < i; j++) appendChar (sb, x[j]);
+                  sb.AppendFormat ("\n{0:X8}:", i);
+               } else
+                  sb.Append ("  ");
             }
             sb.AppendFormat (" {0:X4}", (int)x[i]);
          }
@@ -262,6 +265,9 @@ namespace Bitmanager.BigFile {
          if (offset > 0) {
             int end = i + 16 - offset;
             for (; i < end; i++) {
+               if ((i % 4) == 0) {
+                  sb.Append ("  ");
+               }
                sb.Append ("     ");
             }
          }
