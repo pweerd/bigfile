@@ -41,6 +41,7 @@ namespace Bitmanager.BigFile {
    public class LogFile {
       static public String DbgStr = "gzip";
       static readonly Logger logger = Globals.MainLogger.Clone ("logfile");
+      static readonly byte[] EMPTY_BYTES = new byte[0];
 
       private ThreadContext threadCtx;
       private readonly List<long> partialLines;
@@ -1549,6 +1550,20 @@ namespace Bitmanager.BigFile {
       public String GetLine (int index) {
          bool truncated;
          return GetLine (index, out truncated);
+      }
+
+      /// <summary>
+      /// Get all bytes of a complete line
+      /// </summary>
+      public byte[] GetLineBytes (int index, out bool truncated) {
+         truncated = false;
+         if (index < 0) return EMPTY_BYTES;
+         if (lines != null) {
+            if (index >= lines.Count - 1) return EMPTY_BYTES;
+            return threadCtx.GetLineBytes (lines[index], lines[index + 1], settings.MaxLineLength, out truncated);
+         }
+         if (index >= partialLines.Count - 1) return EMPTY_BYTES;
+         return threadCtx.GetLineBytes (index, index + 1, settings.MaxLineLength, out truncated);
       }
 
       public int GetLineFlags (int line) {

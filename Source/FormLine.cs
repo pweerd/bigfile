@@ -32,7 +32,7 @@ namespace Bitmanager.BigFile {
    /// Form to show one line (with highlighting and navigation)
    /// </summary>
    public partial class FormLine : Form {
-      static readonly String[] ViewAsItems = { "Auto", "Text", "Json", "Xml", "Csv" };
+      static readonly String[] ViewAsItems = { "Auto", "Text", "Json", "Xml", "Csv", "HexBytes", "HexChars" };
       private static int lastViewAsIndex;
       private static bool lastCanonicalState;
       private static bool lastExpandEncodedState;
@@ -41,7 +41,11 @@ namespace Bitmanager.BigFile {
       private List<SearchNode> searchNodes;
       private LogFile lf;
       private List<int> filter;
+
+      //Current line as a string and as bytes
       private String curLine;
+      private byte[] curLineBytes;
+
       private bool closed;
       public bool IsClosed { get { return closed; } }
 
@@ -135,9 +139,10 @@ namespace Bitmanager.BigFile {
 
          setIndexes (partialLineNo, lf.PartialToLineNumber (partialLineNo));
 
-         bool truncated;
-         curLine = lf.GetLine (internalLineIndex, out truncated);
-         Text = String.Format (truncated ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, publicLineIndex);
+         bool truncBytes, truncChars;
+         curLine = lf.GetLine (internalLineIndex, out truncChars);
+         curLineBytes = lf.GetLineBytes (internalLineIndex, out truncBytes);
+         Text = String.Format ((truncChars || truncBytes) ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, publicLineIndex);
          logger.Log ("SetLine ({0}): loading full line {1}...", partialLineNo, publicLineIndex);
 
          loadLineInControl ();
@@ -196,6 +201,75 @@ namespace Bitmanager.BigFile {
          return sb.ToString ();
       }
 
+      //Convert the backing bytes of the line into hex format
+      private static string convertToHexBytes (byte[] bytes) {
+         if (bytes == null || bytes.Length == 0) return string.Empty;
+
+         var sb = new StringBuilder (4 * bytes.Length);
+
+         sb.AppendFormat ("00000000: {0:X2}", bytes[0]);
+         int i;
+         for (i = 1; i < bytes.Length; i++) {
+            if ((i % 4) == 0) {
+               if ((i % 32) == 0) {
+                  sb.Append ("  | ");
+                  for (int j = i - 32; j < i; j++) appendChar (sb, bytes[j]);
+                  sb.AppendFormat ("\n{0:X8}: ", i);
+               } else
+                  sb.Append (' ');
+            }
+            sb.AppendFormat ("{0:X2}", bytes[i]);
+         }
+         int offset = i % 32;
+         if (offset > 0) {
+            int end = i + 32 - offset;
+            for (; i < end; i++) {
+               if ((i % 4) == 0) {
+                  sb.Append (' ');
+               }
+               sb.Append ("  ");
+            }
+         }
+         sb.Append ("  | ");
+         for (int j = i - 32; j < bytes.Length; j++) appendChar (sb, bytes[j]);
+         sb.Append ('\n');
+         return sb.ToString ();
+      }
+
+
+      //Convert the UTF16-chars in the line into hex format
+      private static string convertToHexChars (string x) {
+         if (string.IsNullOrEmpty(x)) return string.Empty;
+
+         var sb = new StringBuilder (4 * x.Length);
+
+         sb.AppendFormat ("00000000: {0:X4}", (int)x[0]);
+         int i;
+         for (i = 1; i < x.Length; i++) {
+            if ((i % 16) == 0) {
+               sb.Append ("  | ");
+               for (int j = i - 16; j < i; j++) appendChar (sb, x[j]);
+               sb.AppendFormat ("\n{0:X8}:", i);
+            }
+            sb.AppendFormat (" {0:X4}", (int)x[i]);
+         }
+         int offset = i % 16;
+         if (offset > 0) {
+            int end = i + 16 - offset;
+            for (; i < end; i++) {
+               sb.Append ("     ");
+            }
+         }
+         sb.Append ("  | ");
+         for (int j = i - 16; j < x.Length; j++) appendChar (sb, x[j]);
+         sb.Append ('\n');
+         return sb.ToString ();
+      }
+
+      private static void appendChar(StringBuilder sb, int ch) {
+         sb.Append(ch<' ' ? '.' : (char)ch);
+      }
+
 
       private int getIndexInLogFile (int ix) {
          return filter == null ? ix : filter[ix];
@@ -246,7 +320,7 @@ namespace Bitmanager.BigFile {
          return rc != 0 ? rc : x.Item2 - y.Item2;
       }
 
-      enum ContentType { Auto = 0, Text = 1, Json = 2, Xml = 3, Csv = 4 };
+      enum ContentType { Auto = 0, Text, Json, Xml, Csv, HexBytes, HexChars };
       private static ContentType determineContentType (String content) {
          int jsonChars = 0;
          int xmlChars = 0;
@@ -301,6 +375,8 @@ namespace Bitmanager.BigFile {
                   case ContentType.Json: content = convertToJson (curLine, menuNormalized.Checked, menuExpandJson.Checked); break;
                   case ContentType.Xml: content = convertToXml (curLine); break;
                   case ContentType.Csv: content = convertToCsv (curLine); break;
+                  case ContentType.HexBytes: content = convertToHexBytes (curLineBytes); break;
+                  case ContentType.HexChars: content = convertToHexChars (curLine); break;
                }
             } catch (Exception err) {
                error = err;

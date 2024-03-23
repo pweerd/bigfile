@@ -176,6 +176,21 @@ namespace Bitmanager.BigFile {
          bool truncated;
          return getLine (from, until, maxChars, out truncated, replacer);
       }
+      
+      public byte[] GetLineBytes(int from, int until, int maxLineLength, out bool truncated) {
+         long start = getLineStartEnd (from, until, out var end);
+         long diff = end - start;
+         int len = (int)diff;
+         if (diff <= maxLineLength) truncated = false;
+         else {
+            truncated = true;
+            len = maxLineLength;
+            end = start + len;
+         }
+         byte[] buf = new byte[len];
+         readPartialLineBytes (start, end, buf, 0, len);
+         return buf;
+      }
 
       //UFT16LE: new line=0a 00.
       //         for the real start we need to advance 1 byte
@@ -183,24 +198,44 @@ namespace Bitmanager.BigFile {
       //UFT16BE: new line=00 0a. So the
       //         the real start should be OK
       //         the end should be truncated to a multiple of 2
-      private unsafe String getLine (int from, int until, int maxLineLength, out bool truncated, ICharReplacer replacer) {
+      private long getLineStartEnd (int from, int until, out long end) {
          long o1 = partialLines[from] >> LineFlags.FLAGS_SHIFT;
          long o2 = partialLines[until] >> LineFlags.FLAGS_SHIFT;
-         long diff = o2 - o1;
-         int maxBytes = getMaxBytesForLimitedChars (maxLineLength);
          switch (Encoding.CodePage) {
             case FileEncoding.CP_UTF16:
                o1 = (o1 + 1) & ~1L;
                o2 = (o2 + 1) & ~1L;
-               diff = (o2 - o1);
                break;
             case FileEncoding.CP_UTF16BE:
                o1 = o1 & ~1L;
                o2 = o2 & ~1L;
-               diff = (o2 - o1);
                break;
          };
+         end = o2;
+         return o1;
+      }
+
+      private byte[] getLineBytes(int from, int until, int maxLineLength, out bool truncated) {
+         long start = getLineStartEnd(from, until, out var end);
+         long diff = end - start;
+         int len = (int)diff;
+         if (diff <= maxLineLength) truncated = false;
+         else {
+            truncated = true;
+            len = maxLineLength;
+            end = start + len;
+         }
+         byte[] buf = new byte[len];
+         readPartialLineBytes (start, end, buf, 0, len);
+         return buf;
+      }
+
+      private unsafe String getLine (int from, int until, int maxLineLength, out bool truncated, ICharReplacer replacer) {
+         long start = getLineStartEnd (from, until, out var end);
+         long diff = end - start;
+
          int len;
+         int maxBytes = getMaxBytesForLimitedChars (maxLineLength);
          if (diff > maxBytes) {
             len = maxBytes;
             truncated = true;
@@ -210,13 +245,13 @@ namespace Bitmanager.BigFile {
          }
 
          if (byteBuffer.Length >= len) { //Simple case: the line fits in the pre-allocated buffer
-            return readPartialLineInBuffer (o1, o2, replacer);
+            return readPartialLineInBuffer (start, end, replacer);
          }
 
          //Didn't fit. We allocate a 2 times larger byte buffer, to be able to contains the chars as well.
          //We will do an in-place conversion and then convert to a string
          byte[] tmp = new byte[2 * len];
-         int bytesRead = readPartialLineBytes (o1, o2, tmp, len, len);
+         int bytesRead = readPartialLineBytes (start, end, tmp, len, len);
 
          fixed (byte* pBuf = tmp) {
             byte* pSrc = pBuf + len;
@@ -249,21 +284,16 @@ namespace Bitmanager.BigFile {
       }
 
       public int GetPartialLineLengthInChars (int index) {
-         long o1 = partialLines[index] >> LineFlags.FLAGS_SHIFT;
-         long o2 = partialLines[index+1] >> LineFlags.FLAGS_SHIFT;
+         long start = getLineStartEnd (index, index+1, out var end);
+         long diff = end - start;
          switch (Encoding.CodePage) {
             case FileEncoding.CP_UTF16:
-               o1 = (o1 + 1) & ~1L;
-               o2 = (o2 + 1) & ~1L;
-               return (int)((o2 - 01)/2);
             case FileEncoding.CP_UTF16BE:
-               o1 = o1 & ~1L;
-               o2 = o2 & ~1L;
-               return (int)((o2 - 01) / 2);
+               return (int)(diff / 2);
             case FileEncoding.CP_EXTENDED_LATIN:
-               return (int)(o2 - 01);
+               return (int)diff;
             case FileEncoding.CP_UTF8:
-               int len = readPartialLineBytesInBuffer (o1, o2);
+               int len = readPartialLineBytesInBuffer (start, end);
                return Encoding.GetCharCount (byteBuffer, 0, len);
             default:
                throw new BMException ("Unexpected Encoding: {0}", Encoding);
