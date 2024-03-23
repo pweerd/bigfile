@@ -32,7 +32,7 @@ namespace Bitmanager.BigFile {
    /// Form to show one line (with highlighting and navigation)
    /// </summary>
    public partial class FormLine : Form {
-      static readonly String[] ViewAsItems = { "Auto", "Text", "Json", "Xml", "Csv", "HexBytes", "HexChars" };
+      static readonly string[] ViewAsItems = { "Auto", "Text", "Json", "Xml", "Csv", "HexBytes", "HexChars" };
       private static int lastViewAsIndex;
       private static bool lastCanonicalState;
       private static bool lastExpandEncodedState;
@@ -43,7 +43,7 @@ namespace Bitmanager.BigFile {
       private List<int> filter;
 
       //Current line as a string and as bytes
-      private String curLine;
+      private string curLine;
       private byte[] curLineBytes;
 
       private bool closed;
@@ -87,7 +87,7 @@ namespace Bitmanager.BigFile {
       /// <summary>
       /// Shows the requested line in this form
       /// </summary>
-      public void ShowLine (Point location, Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)//, String lastQueryText)
+      public void ShowLine (Point location, Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)//, string lastQueryText)
       {
          var pt =lastPosition==null ? location : new Point(lastPosition.X, lastPosition.Y);
          if (Interlocked.Add(ref numLineForms, 0) > 1 || lastPosition==null) {
@@ -101,7 +101,7 @@ namespace Bitmanager.BigFile {
             searchNodes = new List<SearchNode> ();
          else {
             searchNodes = lastQuery.CollectValueNodes ().ConvertAll<SearchNode> (x => (SearchNode)x);
-            cbSearch.Text = String.Join ("  ", searchNodes.ConvertAll (x => x.ToString ()));
+            cbSearch.Text = string.Join ("  ", searchNodes.ConvertAll (x => x.ToString ()));
          }
          this.lf = lf;
          this.filter = filter;
@@ -153,21 +153,21 @@ namespace Bitmanager.BigFile {
          loadLineInControl ();
          logger.Log ("SetLine (): loaded {0} chars in control", curLine.Length);
       }
-      private static String convertToJson (String s, bool normalized, bool handleEncodedJson) {
+      private static string convertToJson (string s, bool normalized, bool handleEncodedJson) {
          var json = JsonValue.Parse (s);
          if (normalized) json = json.Canonicalize ();
          if (handleEncodedJson) json = expandEncodedJson (json);
 
          return json.ToString (true).Replace ("\r\n", "\n");
       }
-      private static String convertToXml (String s) {
+      private static string convertToXml (string s) {
          var hlp = new XmlHelper ();
          hlp.LoadXml (s);
          return hlp.SaveToString ().Replace ("\r\n", "\n");
       }
 
-      private static String convertToCsv (String s) {
-         if (String.IsNullOrEmpty (s)) return s;
+      private static string convertToCsv (string s) {
+         if (string.IsNullOrEmpty (s)) return s;
 
          int commas = 0;
          int semi = 0;
@@ -183,7 +183,7 @@ namespace Bitmanager.BigFile {
 
          int cnt = tabs;
          char sep = '\t';
-         String sepAsText = "tab";
+         string sepAsText = "tab";
          if (commas > cnt) {
             cnt = commas;
             sep = ',';
@@ -199,7 +199,7 @@ namespace Bitmanager.BigFile {
          var sb = new StringBuilder (s.Length + 64);
          sb.AppendFormat ("Fields separated by {0}:\n", sepAsText);
          int i = 0;
-         foreach (String x in s.Split (sep)) {
+         foreach (string x in s.Split (sep)) {
             sb.AppendFormat (Invariant.Culture, "[{0:d2}]: '{1}'\n", i, x);
             i++;
          }
@@ -286,10 +286,10 @@ namespace Bitmanager.BigFile {
 
       //Reading last state from the registry
       public static void LoadState (RegistryKey key) {
-         String x = SettingsSource.ReadVal (key, "line_view_as", String.Empty);
+         string x = SettingsSource.ReadVal (key, "line_view_as", string.Empty);
          int ix;
          for (ix = 0; ix < ViewAsItems.Length; ix++) {
-            if (String.Equals (x, ViewAsItems[ix], StringComparison.InvariantCultureIgnoreCase)) {
+            if (string.Equals (x, ViewAsItems[ix], StringComparison.InvariantCultureIgnoreCase)) {
                lastViewAsIndex = ix;
             }
          }
@@ -306,7 +306,7 @@ namespace Bitmanager.BigFile {
          SettingsSource.WriteVal (key, "line_expand_encoded", lastExpandEncodedState);
       }
 
-      private List<Tuple<int, int>> extractMatches (String x) {
+      private List<Tuple<int, int>> extractMatches (string x) {
          var ret = new List<Tuple<int, int>> ();
          if (searchNodes != null && searchNodes.Count > 0) {
             foreach (var node in searchNodes) {
@@ -326,7 +326,7 @@ namespace Bitmanager.BigFile {
       }
 
       enum ContentType { Auto = 0, Text, Json, Xml, Csv, HexBytes, HexChars };
-      private static ContentType determineContentType (String content) {
+      private static ContentType determineContentType (string content) {
          int jsonChars = 0;
          int xmlChars = 0;
          int csvChars = 0;
@@ -369,7 +369,7 @@ namespace Bitmanager.BigFile {
          Cursor.Current = Cursors.WaitCursor;
          UseWaitCursor = true;
          try {
-            String content = curLine;
+            string content = curLine;
             Exception error = null;
             try {
                ContentType sel = (ContentType)cbViewAs.SelectedIndex;
@@ -388,7 +388,7 @@ namespace Bitmanager.BigFile {
             }
 
             setMatchedText (content);
-            toolStripStatusLabel1.Text = error == null ? String.Empty : error.Message.Replace ('\n', ' ');
+            toolStripStatusLabel1.Text = error == null ? string.Empty : error.Message.Replace ('\n', ' ');
 
          } finally {
             Cursor.Current = Cursors.Default;
@@ -396,7 +396,7 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      private void setMatchedText (String content) {
+      private void setMatchedText (string content) {
          textLine.Clear ();
          textLine.Text = content;
          curMatches = extractMatches (content);
@@ -531,7 +531,7 @@ namespace Bitmanager.BigFile {
       }
 
       private void btnSearch_Click (object sender, EventArgs e) {
-         if (String.IsNullOrEmpty (cbSearch.Text)) return;
+         if (string.IsNullOrEmpty (cbSearch.Text)) return;
          var topNode = new SearchNodes ().Parse (cbSearch.Text);
          var nodes = topNode.CollectValueNodes ().ConvertAll<SearchNode> (x => (SearchNode)x);
          if (nodes.Count == 0) return;
@@ -575,14 +575,14 @@ namespace Bitmanager.BigFile {
 
             case JsonType.String:
                JsonValue repl;
-               if (tryExpandJson ((String)x, out repl)) x = repl;
+               if (tryExpandJson ((string)x, out repl)) x = repl;
                break;
          }
          return x;
       }
 
-      private static bool tryExpandJson (String x, out JsonValue repl) {
-         if (String.IsNullOrEmpty (x)) goto FAILED;
+      private static bool tryExpandJson (string x, out JsonValue repl) {
+         if (string.IsNullOrEmpty (x)) goto FAILED;
 
          for (int i = 0; i < x.Length; i++) {
             switch (x[i]) {

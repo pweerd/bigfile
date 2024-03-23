@@ -25,17 +25,17 @@ using System.Threading.Tasks;
 
 namespace Bitmanager.BigFile {
    public static class Globals {
-      public const String TITLE = "BigFile";
+      public const string TITLE = "BigFile";
       public static readonly Logger MainLogger;
       public static readonly Logger SettingsLogger;
       public static readonly Logger TooltipLogger;
       public static readonly Logger StreamLogger;
 
-      public static readonly String LoadDir;
+      public static readonly string LoadDir;
       public static readonly bool IsDebug;
 
-      public static readonly String UCoreDll;
-      public static readonly String UCoreDllVersion;
+      public static readonly string UCoreDll;
+      public static readonly string UCoreDllVersion;
       public static readonly bool CanCompress;
       public static readonly bool CanInternalGZip;
 

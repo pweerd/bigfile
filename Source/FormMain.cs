@@ -559,13 +559,6 @@ namespace Bitmanager.BigFile {
 
 
       private void contextMenu_Opening (object sender, System.ComponentModel.CancelEventArgs e) {
-         //PW
-         if (false) {//gridLines.SelectedObjects.Count > this.settings.MaxCopyLines) {
-            contextMenuCopy.Enabled = false;
-            exportSelectedToolStripMenuItem.Enabled = false;
-            return;
-         }
-
          contextMenuCopy.Enabled = true;
          exportSelectedToolStripMenuItem.Enabled = true;
       }
