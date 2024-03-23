@@ -341,25 +341,32 @@ namespace Bitmanager.BigFile.Tests {
    }
 
    public class CB : ILogFileCallback {
+      Logger logger = Globals.MainLogger.Clone ("testcb");
       public Result? Result;
 
       public void OnExportComplete (ExportResult result) {
+         logger.Log ("OnExportComplete");
       }
 
       public void OnLoadComplete (Result result) {
+         logger.Log ("OnLoadComplete");
          Result = result;
       }
 
       public void OnLoadCompletePartial (LogFile cloned) {
+         logger.Log ("OnLoadCompletePartial");
       }
 
       public void OnProgress (LogFile lf, int percent) {
+         logger.Log ("OnProgress");
       }
 
       public void OnSearchComplete (SearchResult result) {
+         logger.Log ("OnSearchComplete");
       }
 
       public void OnSearchPartial (LogFile lf, int firstMatch) {
+         logger.Log ("OnSearchPartial");
       }
    }
 }

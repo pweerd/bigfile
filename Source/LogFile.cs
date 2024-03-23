@@ -665,7 +665,14 @@ namespace Bitmanager.BigFile {
             loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
       }
 
-
+      private FileEncoding detectEncodingAndAddFirstLine (IOBlock buffer) {
+         var fileEncoding =new FileEncoding (buffer);
+         detectedEncoding = fileEncoding;
+         encoding = fileEncoding.Current;
+         threadCtx.Encoding = fileEncoding.Current;
+         AddLine (fileEncoding.PreambleBytes);
+         return fileEncoding;
+      }
 
       /// <summary>
       /// Tries to load a stream into a compressed memory buffer.
@@ -692,10 +699,9 @@ namespace Bitmanager.BigFile {
             buffer = strm.GetNextBuffer (buffer);
             if (buffer == null) break;
 
-            if (detectedEncoding == null) {
-               detectedEncoding = new FileEncoding (buffer);
-               AddLine (detectedEncoding.PreambleBytes);
-            }
+            if (detectedEncoding == null) detectEncodingAndAddFirstLine (buffer);
+            
+
             position = addLinesForBuffer (buffer.Position, buffer.Buffer, buffer.Length);
             if (skipMode == SkipMode.None) {
                mem.Write (buffer.Buffer, 0, buffer.Length);
@@ -801,10 +807,7 @@ namespace Bitmanager.BigFile {
             buffer = rdr.GetNextBuffer (buffer);
             if (buffer == null) break;
 
-            if (detectedEncoding == null) {
-               detectedEncoding = new FileEncoding (buffer);
-               AddLine (detectedEncoding.PreambleBytes);
-            }
+            if (detectedEncoding == null) detectEncodingAndAddFirstLine (buffer);
 
             position = addLinesForBuffer (buffer.Position, buffer.Buffer, buffer.Length);
             loadProgress.HandleProgress (position);
@@ -822,8 +825,17 @@ namespace Bitmanager.BigFile {
             AddLine (0);
          else {
             long o2 = partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT;
-            if (o2 != position)
+            if (o2 != position) {
+               if (position == o2+1) { //possible unicode issue
+                  if (detectedEncoding.Current.CodePage == FileEncoding.CP_UTF16) {
+                     var tmp = new byte[1];
+                     var len = DirectStream.Read (o2, tmp, 0, 1);
+                     if (len==1 && tmp[0] == 0)
+                        return; //skip that last 0x00 byte
+                  }
+               }
                AddLine (position);
+            }
          }
       }
 
