@@ -54,9 +54,12 @@ namespace Bitmanager.BigFile {
       private int publicLineIndex;
       private int partialIndex;
       private int matchIdx;
-      private Point initialParentLocation;
 
-      public FormLine (FormLine other) {
+      //Keep track of the last position and the total count of open line-forms
+      private static PointClass lastPosition;
+      private static int numLineForms;
+
+      public FormLine () {
          InitializeComponent ();
          menuNormalized.Checked = lastCanonicalState;
          menuExpandJson.Checked = lastExpandEncodedState;
@@ -69,9 +72,7 @@ namespace Bitmanager.BigFile {
 
          cbViewAs.Items.AddRange (ViewAsItems);
          cbViewAs.SelectedIndex = lastViewAsIndex;
-         if (other != null) initialParentLocation = other.initialParentLocation;
          StartPosition = FormStartPosition.Manual;
-         initialParentLocation = new Point (int.MinValue, int.MinValue);
       }
 
       /// <summary>
@@ -88,8 +89,12 @@ namespace Bitmanager.BigFile {
       /// </summary>
       public void ShowLine (Point location, Settings c, LogFile lf, List<int> filter, int partialLineNo, ParserNode<SearchContext> lastQuery)//, String lastQueryText)
       {
-         if (initialParentLocation.X == int.MinValue) initialParentLocation = location;
-         DesktopLocation = new Point (initialParentLocation.X + 100, initialParentLocation.Y + 100);
+         var pt =lastPosition==null ? location : new Point(lastPosition.X, lastPosition.Y);
+         if (Interlocked.Add(ref numLineForms, 0) > 1 || lastPosition==null) {
+            pt.X += 50;
+            pt.Y += 50;
+         }
+         DesktopLocation = pt;
 
          this.settings = c;
          if (lastQuery == null)
@@ -126,13 +131,13 @@ namespace Bitmanager.BigFile {
          logger.Log ("SetLine ({0})", partialLineNo);
          if (partialLineNo < 0) {
             setIndexes (-1, -1);
-            Text = String.Format ("{0} - Before top", lf.FileName);
+            Text = Globals.CreateTitle(lf.FileName, "before top");
             clear ();
             return;
          }
          if (partialLineNo >= lf.PartialLineCount) {
             setIndexes (lf.PartialLineCount, lf.LineCount);
-            Text = String.Format ("{0} - After bottom", lf.FileName);
+            Text = Globals.CreateTitle (lf.FileName, "after bottom");
             clear ();
             return;
          }
@@ -142,7 +147,7 @@ namespace Bitmanager.BigFile {
          bool truncBytes, truncChars;
          curLine = lf.GetLine (internalLineIndex, out truncChars);
          curLineBytes = lf.GetLineBytes (internalLineIndex, out truncBytes);
-         Text = String.Format ((truncChars || truncBytes) ? "{0} - Line {1} (truncated)" : "{0} - Line {1}", lf.FileName, publicLineIndex);
+         Text = Globals.CreateTitle (lf.FileName, publicLineIndex, truncChars || truncBytes);
          logger.Log ("SetLine ({0}): loading full line {1}...", partialLineNo, publicLineIndex);
 
          loadLineInControl ();
@@ -239,7 +244,7 @@ namespace Bitmanager.BigFile {
 
       //Convert the UTF16-chars in the line into hex format
       private static string convertToHexChars (string x) {
-         if (string.IsNullOrEmpty(x)) return string.Empty;
+         if (string.IsNullOrEmpty (x)) return string.Empty;
 
          var sb = new StringBuilder (4 * x.Length);
 
@@ -266,8 +271,8 @@ namespace Bitmanager.BigFile {
          return sb.ToString ();
       }
 
-      private static void appendChar(StringBuilder sb, int ch) {
-         sb.Append(ch<' ' ? '.' : (char)ch);
+      private static void appendChar (StringBuilder sb, int ch) {
+         sb.Append (ch < ' ' ? '.' : (char)ch);
       }
 
 
@@ -503,10 +508,11 @@ namespace Bitmanager.BigFile {
       }
 
       private void FormLine_Load (object sender, EventArgs e) {
-
+         Interlocked.Increment (ref numLineForms);
       }
 
       private void FormLine_FormClosed (object sender, FormClosedEventArgs e) {
+         Interlocked.Decrement (ref numLineForms);
          closed = true;
       }
 
@@ -600,6 +606,21 @@ namespace Bitmanager.BigFile {
       FAILED:
          repl = null;
          return false;
+      }
+
+      private void FormLine_LocationChanged (object sender, EventArgs e) {
+         lastPosition = new PointClass(DesktopLocation.X, DesktopLocation.Y);
+      }
+
+      //Helper class to keep track of the last position
+      //We need a class, not a struct, so we can change the variable without locking
+      class PointClass {
+         public readonly int X;
+         public readonly int Y;
+         public PointClass (int x, int y) {
+            this.X = x;
+            this.Y = y;
+         }
       }
    }
 }

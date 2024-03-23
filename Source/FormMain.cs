@@ -410,7 +410,7 @@ namespace Bitmanager.BigFile {
          // Clear any existing filters/reset values
          clearAll ();
 
-         this.Text = String.Format ("[{0}] - {1}", filePath, Globals.TITLE);
+         this.Text = Globals.CreateTitle (filePath);
 
          statusLabelMain.Text = "Loading...";
          setSearchStatus (String.Empty);
@@ -468,10 +468,10 @@ namespace Bitmanager.BigFile {
          if (row >= 0) {
             FormLine fl;
             if ((Control.ModifierKeys & Keys.Alt) != 0)
-               fl = new FormLine (null);
+               fl = new FormLine ();
             else {
                fl = lineForm;
-               if (fl == null || fl.IsClosed) fl = lineForm = new FormLine (fl);
+               if (fl == null || fl.IsClosed) fl = lineForm = new FormLine ();
             }
             fl.ShowLine (DesktopLocation, settings, lf, gridLines.Filter, row, lastQuery);
          }

@@ -39,12 +39,49 @@ namespace Bitmanager.BigFile {
       public static readonly bool CanCompress;
       public static readonly bool CanInternalGZip;
 
+      /// <summary>
+      /// Create title for the main window
+      /// </summary>
+      public static string CreateTitle (string fn) {
+         return string.Format ("[{0}] - {1} - {2}",
+            Path.GetFileName (fn),
+            Path.GetDirectoryName (fn),
+            TITLE);
+      }
+
+      /// <summary>
+      /// Create title for the line window
+      /// </summary>
+      public static string CreateTitle (string fn, int line, bool truncated) {
+         var sb = new StringBuilder ();
+         sb.Append ('[')
+            .Append(Path.GetFileName (fn))
+            .Append("] Line ")
+            .Append(line);
+         if (truncated) sb.Append (" (truncated)");
+         sb.Append (" - ")
+            .Append (Path.GetDirectoryName (fn))
+            .Append (" - ").Append (TITLE);
+         return sb.ToString ();
+      }
+
+      /// <summary>
+      /// Create title for the line window
+      /// </summary>
+      public static string CreateTitle (string fn, string msg) {
+         return string.Format ("[{0}] ({2}) - {1} - {3}",
+            Path.GetFileName (fn),
+            Path.GetDirectoryName (fn),
+            msg,
+            TITLE);
+      }
+
       static Globals () {
          MainLogger = Logs.CreateLogger ("bigfile", "main");
          MainLogger.Log ();
          SettingsLogger = MainLogger.Clone ("settings");
-         TooltipLogger = Globals.MainLogger.Clone ("tt");
-         StreamLogger = Globals.MainLogger.Clone ("stream");
+         TooltipLogger = MainLogger.Clone ("tt");
+         StreamLogger = MainLogger.Clone ("stream");
 
 
          LoadDir = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
