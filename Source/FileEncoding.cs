@@ -70,7 +70,7 @@ namespace Bitmanager.BigFile {
             int b = arr[i];
             if (b==0) {
                prevUtf8 = false;
-               if ((i & 1) == 0) ++utf16; else ++utf16BE;
+               if ((i & 1) != 0) ++utf16; else ++utf16BE;
                --other;
                continue;
             }
