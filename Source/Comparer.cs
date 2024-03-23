@@ -38,14 +38,14 @@ namespace Bitmanager.BigFile {
       /// <summary>
       /// Check if the line contains the argument 
       /// </summary>
-      public abstract bool IsMatch (String line);
+      public abstract bool IsMatch (string line);
 
       /// <summary>
       /// Get all occurences (offset/length) of the argument within this line 
       /// </summary>
-      public abstract List<Tuple<int, int>> GetMatches (String line);
+      public abstract List<Tuple<int, int>> GetMatches (string line);
 
-      public static LineComparer Create (ComparerType type, String arg) {
+      public static LineComparer Create (ComparerType type, string arg) {
          switch (type) {
             case ComparerType.SubString:
                return new SubstringComparer (StringComparison.OrdinalIgnoreCase, arg);
@@ -62,16 +62,16 @@ namespace Bitmanager.BigFile {
 
    public class SubstringComparer : LineComparer {
       private readonly StringComparison how;
-      private readonly String arg;
+      private readonly string arg;
 
-      public SubstringComparer (StringComparison how, String arg) {
+      public SubstringComparer (StringComparison how, string arg) {
          this.how = how;
          this.arg = arg;
       }
       public override bool IsMatch (string line) {
          return (line.IndexOf (arg, 0, how) >= 0);
       }
-      public override List<Tuple<int, int>> GetMatches (String line) {
+      public override List<Tuple<int, int>> GetMatches (string line) {
          var start = line.IndexOf (arg, 0, how);
          if (start < 0) return EMPTY;
 
@@ -88,7 +88,7 @@ namespace Bitmanager.BigFile {
    public class RegexComparer : LineComparer {
       private readonly Regex expr;
 
-      public RegexComparer (ComparerType type, String arg) {
+      public RegexComparer (ComparerType type, string arg) {
          RegexOptions opt = RegexOptions.Compiled | RegexOptions.CultureInvariant;
          if (type == ComparerType.Regex) opt |= RegexOptions.IgnoreCase;
          this.expr = new Regex (arg, opt);
@@ -96,7 +96,7 @@ namespace Bitmanager.BigFile {
       public override bool IsMatch (string line) {
          return expr.IsMatch (line);
       }
-      public override List<Tuple<int, int>> GetMatches (String line) {
+      public override List<Tuple<int, int>> GetMatches (string line) {
          var matches = expr.Matches (line);
          if (matches.Count == 0) return EMPTY;
 

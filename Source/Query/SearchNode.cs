@@ -36,7 +36,7 @@ namespace Bitmanager.BigFile.Query
 
       public LineComparer Comparer { get { return cmp; } }
 
-      public SearchNode(String field, String value, int bitIndex, ComparerType type)
+      public SearchNode(string field, string value, int bitIndex, ComparerType type)
           : base(field, value)
       {
          this.BitIndex = bitIndex;
@@ -46,13 +46,13 @@ namespace Bitmanager.BigFile.Query
          this.cmp = LineComparer.Create (type, value);
       }
 
-      public bool IsSame (ComparerType type, String value)
+      public bool IsSame (ComparerType type, string value)
       {
          if (this.type != type) return false;
          StringComparison c = (type & ComparerType.CaseSensitive) == 0
             ? StringComparison.OrdinalIgnoreCase
             : StringComparison.Ordinal;
-         return String.Equals(this.Value, value, c);
+         return string.Equals(this.Value, value, c);
       }
 
       public override bool Evaluate(SearchContext ctx)

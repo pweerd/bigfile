@@ -41,16 +41,16 @@ namespace Bitmanager.IO {
    /// </summary>
    public class DirectFileStreamWrapper : IDirectStream {
       private const int DEF_BUFSIZE = 8 * 1024;
-      public readonly String FileName;
+      public readonly string FileName;
       public readonly FileStream BaseStream;
       public readonly int BufferSize;
 
-      public DirectFileStreamWrapper (String fileName, FileStream wrapped, int bufsize=-1) {
+      public DirectFileStreamWrapper (string fileName, FileStream wrapped, int bufsize=-1) {
          FileName = fileName;
          BaseStream = wrapped;
          BufferSize = bufsize >= 0 ? bufsize : DEF_BUFSIZE;
       }
-      public DirectFileStreamWrapper (String fileName, int bufsize = -1) {
+      public DirectFileStreamWrapper (string fileName, int bufsize = -1) {
          FileName = fileName;
          BufferSize = bufsize >= 0 ? bufsize : DEF_BUFSIZE;
          BaseStream = createNewFileStream ();

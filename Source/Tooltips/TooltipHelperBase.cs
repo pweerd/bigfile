@@ -91,9 +91,9 @@ namespace Bitmanager.BigFile {
          timer.Interval = (timer.Interval == duration) ? duration + 1 : duration;
          timer.Enabled = true;
       }
-      private void _show (String txt, int x, int y, int duration) {
+      private void _show (string txt, int x, int y, int duration) {
          timer.Enabled = false;
-         if (String.IsNullOrEmpty (txt)) return;
+         if (string.IsNullOrEmpty (txt)) return;
 
          restartTimer (duration);
          tooltip.Text = txt;
@@ -122,7 +122,7 @@ namespace Bitmanager.BigFile {
          tooltip.Visible = false;
       }
 
-      protected abstract String GetText ();
+      protected abstract string GetText ();
 
       protected virtual void Hide () {
          _hide ();
@@ -142,7 +142,7 @@ namespace Bitmanager.BigFile {
          logger?.Log ("TooltipHelperBase::show({0}, {1})", x, y);
          _show (GetText (), X, Y, duration);
       }
-      public void Show (int x, int y, String txt) {
+      public void Show (int x, int y, string txt) {
          logger?.Log ("TooltipHelperBase::show({0}, {1}, {2})", x, y, txt);
          _show (txt, X, Y, duration);
       }

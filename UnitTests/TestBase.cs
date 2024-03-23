@@ -26,14 +26,14 @@ using System.Threading.Tasks;
 
 namespace Bitmanager.BigFile {
    public class TestBase {
-      protected readonly String dataDir;
-      protected readonly String oldDir;
-      protected readonly String newDir;
+      protected readonly string dataDir;
+      protected readonly string oldDir;
+      protected readonly string newDir;
       protected readonly Logger logger;
 
       public TestBase () {
          logger = Logs.CreateLogger ("Test", "test");
-         String root = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
+         string root = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
          root = IOUtils.AddSlash (IOUtils.FindDirectoryToRoot (root, "data", FindToTootFlags.Except));
          dataDir = root;
          oldDir = root + @"old\";

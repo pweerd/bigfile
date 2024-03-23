@@ -25,7 +25,7 @@ namespace Bitmanager.BigFile {
    /// </summary>
    public partial class FormGoToLine : Form {
       static GotoType prevGotoType = GotoType.Line;
-      static String prevGoto = String.Empty;
+      static string prevGoto = string.Empty;
 
       public int LineNumber { get { return Invariant.ToInt32 (prevGoto); } }
       public GotoType GotoType { get { return prevGotoType; } }
@@ -38,7 +38,7 @@ namespace Bitmanager.BigFile {
       }
 
       public static void ResetGoto () {
-         prevGoto = String.Empty;
+         prevGoto = string.Empty;
       }
 
       private void buttonOK_Click (object sender, EventArgs e) {

@@ -214,7 +214,7 @@ namespace Bitmanager.BigFile {
 
          cbZipEngine.SelectedIndex = 0;
          if (Globals.IsDebug) {
-            String fn = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
+            string fn = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
             fn = IOUtils.FindFileToRoot (fn, @"UnitTests\data\test.txt", FindToTootFlags.Except);
             LoadFile (fn);
          } else {
@@ -263,7 +263,7 @@ namespace Bitmanager.BigFile {
          //Parse the arguments from our main entrypoint
          var args = Program.Arguments;
          if (args.Length>0) {
-            String startFile = args[0];
+            string startFile = args[0];
             if (File.Exists (startFile)) LoadFile (startFile);
             else if (Directory.Exists (startFile)) ShowOpenDialogAndLoad (startFile);
             else statusLabelMain.Text = Invariant.Format ("ERROR: {0} does not exist.", startFile);
@@ -287,7 +287,7 @@ namespace Bitmanager.BigFile {
 
          sb.AppendFormat (Invariant.Culture, "\n\nVersion of {0} is {1}.", Globals.UCoreDll, Globals.UCoreDllVersion)
             .Append ("\nYou can install Bitmanager's core components from https://bitmanager.nl/distrib");
-         String msg = sb.ToString ();
+         string msg = sb.ToString ();
          btnWarning.ToolTipText = msg;
          btnWarning.Visible = true;
          btnWarning.AutoToolTip = false;
@@ -349,7 +349,7 @@ namespace Bitmanager.BigFile {
       }
 
       private void createRecentItems (FileHistory hist, ToolStripMenuItem menuItem) {
-         String[] history = hist.Items;
+         string[] history = hist.Items;
 
          var subItems = new List<ToolStripMenuItem> ();
          foreach (var x in history) {
@@ -366,8 +366,8 @@ namespace Bitmanager.BigFile {
       }
 
       private void recentFile_Click (object sender, EventArgs e) {
-         String fn = ((ToolStripMenuItem)sender).Text;
-         if (!String.IsNullOrEmpty (fn)) {
+         string fn = ((ToolStripMenuItem)sender).Text;
+         if (!string.IsNullOrEmpty (fn)) {
             if (Directory.Exists (fn))
                ShowOpenDialogAndLoad (fn);
             else
@@ -379,13 +379,13 @@ namespace Bitmanager.BigFile {
       /// <summary>
       /// Creates a LogFile object and let it asynchronously load the file
       /// </summary>
-      private void LoadFile (string filePath, String zipEntry = null) {
+      private void LoadFile (string filePath, string zipEntry = null) {
          long maxLoadSize = long.MaxValue;
          long skip = 0;
-         String tmp = cbLoadLimits.Text.TrimToNull();
+         string tmp = cbLoadLimits.Text.TrimToNull();
          if (tmp != null) {
             cbLoadLimits.AddHistory (tmp);
-            String[] args = tmp.Split ('/', StringSplitOptions.TrimEntries);
+            string[] args = tmp.Split ('/', StringSplitOptions.TrimEntries);
             switch (args.Length) {
                case 1:
                   skip = toSkip (args[0]);
@@ -413,19 +413,19 @@ namespace Bitmanager.BigFile {
          this.Text = Globals.CreateTitle (filePath);
 
          statusLabelMain.Text = "Loading...";
-         setSearchStatus (String.Empty);
+         setSearchStatus (string.Empty);
          isFirstPartialLog = true;
          new LogFile (this, settings, getCurrentEncoding (), maxPartial, maxLoadSize, skip).Load (filePath, cancellationTokenSource.Token, zipEntry);
       }
 
-      private static long toSkip (String txt) {
-         if (String.IsNullOrEmpty (txt)) return 0;
+      private static long toSkip (string txt) {
+         if (string.IsNullOrEmpty (txt)) return 0;
          long tmp;
          if (Invariant.TryParse (txt, out tmp)) return tmp;
          return -Pretty.ParseSize (txt);
       }
 
-      private void setSearchStatus (String txt, int count = 1) {
+      private void setSearchStatus (string txt, int count = 1) {
          statusLabelSearch.Text = txt;
          statusLabelSearch.BackColor = count == 0 ? Color.FromArgb (0xF1, 0xD0, 0xD0) : statusLabelMain.BackColor;
       }
@@ -518,7 +518,7 @@ namespace Bitmanager.BigFile {
          int copied = 0;
          var toExport = getSelectedLineIndexes (settings.MaxCopyLines, out var truncated);
          if (toExport == null || toExport.Count == 0) {
-            Clipboard.SetText (String.Empty);
+            Clipboard.SetText (string.Empty);
             goto EXIT_RTN;
          }
 
@@ -567,7 +567,7 @@ namespace Bitmanager.BigFile {
       private void menuFileOpen_Click (object sender, EventArgs e) {
          ShowOpenDialogAndLoad (null);
       }
-      private void ShowOpenDialogAndLoad (String initialDir) {
+      private void ShowOpenDialogAndLoad (string initialDir) {
          OpenFileDialog openFileDialog = new OpenFileDialog ();
          openFileDialog.Filter = "All Files|*.*";
          openFileDialog.FileName = "*.*";
@@ -577,7 +577,7 @@ namespace Bitmanager.BigFile {
             openFileDialog.InitialDirectory = initialDir;
          else {
             var top = fileHistory.Top;
-            if (!String.IsNullOrEmpty (top))
+            if (!string.IsNullOrEmpty (top))
                openFileDialog.InitialDirectory = Path.GetDirectoryName (top);
          }
 
@@ -622,7 +622,7 @@ namespace Bitmanager.BigFile {
       }
 
       private void menuHelpHelp_Click (object sender, EventArgs e) {
-         String fn = IOUtils.FindFileToRoot (Globals.LoadDir, "help.html", FindToTootFlags.ReturnNull);
+         string fn = IOUtils.FindFileToRoot (Globals.LoadDir, "help.html", FindToTootFlags.ReturnNull);
          if (fn != null) {
             var psa = new ProcessStartInfo (fn);
             psa.UseShellExecute = true;
@@ -697,7 +697,7 @@ namespace Bitmanager.BigFile {
             int all = result.LogFile.PartialLineCount;
             int matched = result.NumMatches;
             int perc = all == 0 ? 0 : (int)(0.5 + 100.0 * matched / all);
-            var msg = String.Format ("Matched {0:n0} / {1:n0} lines ({2}%, Search Terms: {3}),  # Duration: {4}",
+            var msg = string.Format ("Matched {0:n0} / {1:n0} lines ({2}%, Search Terms: {3}),  # Duration: {4}",
                    matched,
                    all,
                    perc,
@@ -883,7 +883,7 @@ namespace Bitmanager.BigFile {
                statusLabelMain.Text = Invariant.Format ("Skipping...  {0:n0} lines / {1} so far.", cloned.SkippedLines, Pretty.PrintSize (cloned.SkippedSize));
             } else {
                setLogFile (cloned);
-               statusLabelMain.Text = String.Format ("Loading...  {0:n0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize (cloned.Size));
+               statusLabelMain.Text = string.Format ("Loading...  {0:n0} lines / {1} so far.", cloned.PartialLineCount, Pretty.PrintSize (cloned.Size));
             }
          }), null);
       }
@@ -893,7 +893,7 @@ namespace Bitmanager.BigFile {
             indicateFinished ();
 
             result.ThrowIfError ();
-            var msg = String.Format ("Exported {0:n0} lines,  # Duration: {1}",
+            var msg = string.Format ("Exported {0:n0} lines,  # Duration: {1}",
                    result.NumExported,
                    Pretty.PrintElapsedMs ((int)result.Duration.TotalMilliseconds)
             );
@@ -1188,7 +1188,7 @@ namespace Bitmanager.BigFile {
 
 
       private void registerShellExt () {
-         String exe = Path.ChangeExtension (Assembly.GetEntryAssembly ().Location, ".exe");
+         string exe = Path.ChangeExtension (Assembly.GetEntryAssembly ().Location, ".exe");
          try {
             using (var rk = Registry.ClassesRoot.CreateSubKey (@"*\shell\BigFile", true)) {
                createRegEntries (rk, exe);
@@ -1217,12 +1217,12 @@ namespace Bitmanager.BigFile {
             gridLines.MakeCellVisible (row, 0, true);
       }
 
-      private void handleSearchResult(SearchResult result, String what) {
+      private void handleSearchResult(SearchResult result, string what) {
          result.ThrowIfError ();
          int all = result.LogFile.PartialLineCount;
          int matched = result.NumMatches;
          int perc = all == 0 ? 0 : (int)(0.5 + 100.0 * matched / all);
-         var msg = String.Format ("Matched {0:n0} / {1:n0} {2} lines ({3}%), # Duration: {4}",
+         var msg = string.Format ("Matched {0:n0} / {1:n0} {2} lines ({3}%), # Duration: {4}",
                   matched,
                   all,
                   what,
@@ -1238,11 +1238,11 @@ namespace Bitmanager.BigFile {
          gridLines.Invalidate ();
       }
 
-      private void createRegEntries (RegistryKey key, String exe) {
+      private void createRegEntries (RegistryKey key, string exe) {
          key.SetValue ("", "BigFile");
          key.SetValue ("icon", exe);
          using (var rk = key.CreateSubKey (@"command", true)) {
-            rk.SetValue ("", String.Format ("\"{0}\"  \"%1\"", exe));
+            rk.SetValue ("", string.Format ("\"{0}\"  \"%1\"", exe));
          }
 
       }

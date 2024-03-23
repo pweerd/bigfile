@@ -25,17 +25,17 @@ namespace Bitmanager.BigFile {
    /// Handles the file history for the open-menu
    /// </summary>
    public class FileHistory {
-      private readonly String[] history;
-      private readonly String regPrefix;
+      private readonly string[] history;
+      private readonly string regPrefix;
 
-      public String[] Items {
+      public string[] Items {
          get {
             lock (history) {
-               return (String[])history.Clone ();
+               return (string[])history.Clone ();
             }
          }
       }
-      public String Top {
+      public string Top {
          get {
             lock (history) {
                return history[0];
@@ -44,18 +44,18 @@ namespace Bitmanager.BigFile {
       }
 
 
-      public FileHistory (String prefix) {
+      public FileHistory (string prefix) {
          this.regPrefix = prefix;
          history = SettingsSource.LoadFileHistory (prefix);
 
          //dedup entries (caused by a previous bug
          int j = 0;
          for (int i = 0; i < history.Length; i++) {
-            String tmp = history[i];
+            string tmp = history[i];
             if (tmp == null) continue;
             int k;
             for (k = j - 1; k >= 0; k--) {
-               if (String.Equals (tmp, history[k], StringComparison.OrdinalIgnoreCase))
+               if (string.Equals (tmp, history[k], StringComparison.OrdinalIgnoreCase))
                   break;
             }
             if (k >= 0) continue;
@@ -70,12 +70,12 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      public void Add (String fn) {
-         if (String.IsNullOrEmpty (fn)) return;
+      public void Add (string fn) {
+         if (string.IsNullOrEmpty (fn)) return;
          lock (history) {
             int j;
             for (j = 0; j < history.Length-1; j++) {
-               if (!String.Equals (history[j], fn, StringComparison.OrdinalIgnoreCase)) continue;
+               if (!string.Equals (history[j], fn, StringComparison.OrdinalIgnoreCase)) continue;
                fn = history[j]; //reuse oldest string to prevent garbage collected
                break;
             }
@@ -88,11 +88,11 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      public void RemoveListed (List<String> list) {
+      public void RemoveListed (List<string> list) {
          lock (history) {
             int j = 0;
             for (int i = 0; i < history.Length; i++) {
-               String fn = history[i];
+               string fn = history[i];
                if (fn != null && list.Contains (fn)) continue;
                history[j++] = fn;
             }
@@ -101,9 +101,9 @@ namespace Bitmanager.BigFile {
             }
          }
       }
-      public void RemoveInvalid (Func<String, bool> checker) {
-         String[] h = Items;
-         var toRemove = new List<String> ();
+      public void RemoveInvalid (Func<string, bool> checker) {
+         string[] h = Items;
+         var toRemove = new List<string> ();
          foreach (var fn in h) {
             if (fn != null && !checker (fn)) toRemove.Add (fn);
          }

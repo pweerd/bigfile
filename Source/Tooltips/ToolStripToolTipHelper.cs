@@ -51,7 +51,7 @@ namespace Bitmanager.BigFile {
 
       private void checkAndStart (ToolStripItem item) {
          logger?.Log ("checkAndStart: new={0}, existing={1}", mouseOverItem?.Name, item?.Name);
-         if (item == null || String.IsNullOrEmpty(item.ToolTipText)) Stop ();
+         if (item == null || string.IsNullOrEmpty(item.ToolTipText)) Stop ();
          else {
             if (item == mouseOverItem) return;
             stop ();
@@ -78,14 +78,14 @@ namespace Bitmanager.BigFile {
       }
 
       #region events
-      protected virtual void Item_MouseLeave (Object sender, EventArgs e) {
+      protected virtual void Item_MouseLeave (object sender, EventArgs e) {
          stop ();
       }
-      protected virtual void Item_MouseEnter (Object sender, EventArgs e) {
+      protected virtual void Item_MouseEnter (object sender, EventArgs e) {
          logger?.Log ("Item_MouseEnter over {0}", ((ToolStripItem)sender).Name);
          checkAndStart (sender as ToolStripItem);
       }
-      protected virtual void Item_MouseDown (Object sender, MouseEventArgs mea) {
+      protected virtual void Item_MouseDown (object sender, MouseEventArgs mea) {
          logger?.Log ("Item_MouseDown over {0}", ((ToolStripItem)sender).Name);
          stop ();
       }

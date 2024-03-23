@@ -26,8 +26,8 @@ using System.Threading;
 namespace Bitmanager.BigFile.Tests {
    [TestClass]
    public class LimitedLoadingTest : TestBaseSimple { //FileRepo
-      const String FN = "z:\\test.txt";
-      const String FNGZ = "z:\\test.txt.gz";
+      const string FN = "z:\\test.txt";
+      const string FNGZ = "z:\\test.txt.gz";
 
       public LimitedLoadingTest () {
          generateTestFiles ();
@@ -55,34 +55,34 @@ namespace Bitmanager.BigFile.Tests {
          testSkipOffset (settings, FN);
          testSkipOffset (settings, FNGZ);
       }
-      private void testSkipLines (SettingsSource settings, String fn) {
+      private void testSkipLines (SettingsSource settings, string fn) {
          var sb = new StringBuilder ();
          for (int i = 0; i < 20; i++) {
             var skip = i * 51;
             var lf = load (settings, fn, 0, skip);
 
-            String partial = lf.GetPartialLine (0);
-            String line = lf.GetLine (0);
+            string partial = lf.GetPartialLine (0);
+            string line = lf.GetLine (0);
 
-            String pfxExp = generatePrefix (sb, skip, lf.GetPartialLineOffset (0)).ToString ();
-            String pfxAct = partial.Substring (0, Math.Min(pfxExp.Length, partial.Length));
+            string pfxExp = generatePrefix (sb, skip, lf.GetPartialLineOffset (0)).ToString ();
+            string pfxAct = partial.Substring (0, Math.Min(pfxExp.Length, partial.Length));
             if (pfxAct != pfxExp) throw new BMException ("Skip {0} in {1} failed(partial): exp={2}, act={3}", skip, lf.FileName, pfxExp, pfxAct);
             pfxAct = line.Substring (0, Math.Min (pfxExp.Length, line.Length));
             if (pfxAct != pfxExp) throw new BMException ("Skip {0} in {1} failed(line): exp={2}, act={3}", skip, lf.FileName, pfxExp, pfxAct);
          }
       }
-      private void testSkipOffset (SettingsSource settings, String fn) {
+      private void testSkipOffset (SettingsSource settings, string fn) {
          var sb = new StringBuilder ();
          int[] lineNos = { 0, 16, 31, 46, 61, 76, 91, 106, 122, 137, 152, 167, 182, 197, 213, 229, 244, 259, 274, 289 };
          for (int i = 0; i < lineNos.Length; i++) {
             var skip = i * 77001L;
             var lf = load (settings, fn, 0, -skip);
 
-            String partial = lf.GetPartialLine (0);
-            String line = lf.GetLine (0);
+            string partial = lf.GetPartialLine (0);
+            string line = lf.GetLine (0);
 
-            String pfxExp = generatePrefix (sb, lineNos[i], lf.GetPartialLineOffset (0)).ToString ();
-            String pfxAct = partial.Substring (0, pfxExp.Length);
+            string pfxExp = generatePrefix (sb, lineNos[i], lf.GetPartialLineOffset (0)).ToString ();
+            string pfxAct = partial.Substring (0, pfxExp.Length);
             logger.Log ("skip[{0}]: {1}, act={2}, exp={3} skipped={4}, {5}", i, skip, pfxAct, pfxExp, lf.SkippedLines, lf.SkippedSize);
             //continue;
             if (pfxAct != pfxExp) throw new BMException ("Skip {0} in {1} failed(partial): exp={2}, act={3}", skip, lf.FileName, pfxExp, pfxAct);
@@ -91,7 +91,7 @@ namespace Bitmanager.BigFile.Tests {
          }
       }
 
-      private LogFile load (SettingsSource settings, String fn, long maxLoad, long toSkip) {
+      private LogFile load (SettingsSource settings, string fn, long maxLoad, long toSkip) {
          var cb = new CB ();
          LogFile lf = new LogFile (cb, settings.ActualizeDefaults (), Encoding.UTF8, 2048, maxLoad, toSkip);
          lf.Load (fn, CancellationToken.None, null).Wait ();

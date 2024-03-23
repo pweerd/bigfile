@@ -52,7 +52,7 @@ namespace Bitmanager.BigFile.Tests {
 
       [TestMethod]
       public void TestZipError () {
-         String result = "ok";
+         string result = "ok";
          try {
             _load (dataDir + "test.txt.gz");  //gzip
          } catch (Exception e) {
@@ -186,14 +186,14 @@ namespace Bitmanager.BigFile.Tests {
 
 
 
-      private void dumpOffsets (LogFile lf, String why) {
+      private void dumpOffsets (LogFile lf, string why) {
          logger.Log ();
          logger.Log ("Dumping offsets and flags for {0} lines. Reason={1}", lf.PartialLineCount, why);
          for (int i = 0; i < lf.PartialLineCount; i++) {
             logger.Log ("-- line[{0}]: 0x{1:X}", i, lf.GetPartialLineOffsetAndFlags (i));
          }
       }
-      private void dumpSearchNodes (SearchNodes nodes, String why) {
+      private void dumpSearchNodes (SearchNodes nodes, string why) {
          logger.Log ();
          logger.Log ("Dumping {0} searchNodes. Reason={1}", nodes.Count, why);
          int i = 0;
@@ -206,14 +206,14 @@ namespace Bitmanager.BigFile.Tests {
          return lf.GetMatchedList (0).Count;
       }
 
-      private int search (LogFile lf, String x, SearchNodes? searchNodes = null) {
+      private int search (LogFile lf, string x, SearchNodes? searchNodes = null) {
          if (searchNodes == null) searchNodes = new SearchNodes ();
          lf.Search (searchNodes.Parse (x), CancellationToken.None).Wait ();
          return lf.GetMatchedList (0).Count;
       }
 
 
-      public void _load (String fn) {
+      public void _load (string fn) {
          var cb = new CB ();
 
          //Non partial

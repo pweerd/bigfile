@@ -34,7 +34,7 @@ namespace Bitmanager.Query
          return ret;
       }
 
-      public override String ToString()
+      public override string ToString()
       {
          var sb = toString(new StringBuilder());
          int start, end;
@@ -55,14 +55,14 @@ namespace Bitmanager.Query
          return sb.ToString(start, end - start);
       }
 
-      public String DumpTree()
+      public string DumpTree()
       {
-         String lvl = String.Empty;
+         string lvl = string.Empty;
          var sb = new StringBuilder();
          dump(sb, lvl);
          return sb.ToString();
       }
-      internal protected abstract StringBuilder dump(StringBuilder sb, String lvl);
+      internal protected abstract StringBuilder dump(StringBuilder sb, string lvl);
       internal protected abstract StringBuilder toString(StringBuilder sb);
       internal protected abstract void collectValueNodes(List<ParserValueNode<T>> list);
    }
@@ -71,14 +71,14 @@ namespace Bitmanager.Query
 
    public class ParserValueNode<T> : ParserNode<T>
    {
-      public readonly String Field;
-      public readonly String Value;
-      protected readonly String fieldPlusValue;
+      public readonly string Field;
+      public readonly string Value;
+      protected readonly string fieldPlusValue;
       protected readonly int hashcode;
 
-      public ParserValueNode(String field, String value)
+      public ParserValueNode(string field, string value)
       {
-         if (String.IsNullOrEmpty(field)) field = null;
+         if (string.IsNullOrEmpty(field)) field = null;
          this.Field = field;
          this.Value = value;
          fieldPlusValue = field==null ? value : field + ":" + value;
@@ -91,7 +91,7 @@ namespace Bitmanager.Query
       {
          return sb.Append(fieldPlusValue);
       }
-      internal protected override StringBuilder dump(StringBuilder sb, String lvl)
+      internal protected override StringBuilder dump(StringBuilder sb, string lvl)
       {
          return sb.AppendLine().Append(lvl).Append(fieldPlusValue);
       }
@@ -110,7 +110,7 @@ namespace Bitmanager.Query
       {
          if (obj == null || obj.GetType() != GetType()) return false;
 
-         return String.Equals(fieldPlusValue, ((ParserValueNode<T>)obj).fieldPlusValue);
+         return string.Equals(fieldPlusValue, ((ParserValueNode<T>)obj).fieldPlusValue);
       }
    }
 
@@ -136,9 +136,9 @@ namespace Bitmanager.Query
          sb.Append(")");
          return sb;
       }
-      internal protected override StringBuilder dump(StringBuilder sb, String lvl)
+      internal protected override StringBuilder dump(StringBuilder sb, string lvl)
       {
-         String lvl2 = lvl + "-- ";
+         string lvl2 = lvl + "-- ";
          sb.AppendLine().Append(lvl).Append("OR");
          Left.dump(sb, lvl2);
          Right.dump(sb, lvl2);
@@ -174,9 +174,9 @@ namespace Bitmanager.Query
          sb.Append(")");
          return sb;
       }
-      internal protected override StringBuilder dump(StringBuilder sb, String lvl)
+      internal protected override StringBuilder dump(StringBuilder sb, string lvl)
       {
-         String lvl2 = lvl + "-- ";
+         string lvl2 = lvl + "-- ";
          sb.AppendLine().Append(lvl).Append("AND");
          Left.dump(sb, lvl2);
          Right.dump(sb, lvl2);
@@ -211,9 +211,9 @@ namespace Bitmanager.Query
          sb.Append(")");
          return sb;
       }
-      internal protected override StringBuilder dump(StringBuilder sb, String lvl)
+      internal protected override StringBuilder dump(StringBuilder sb, string lvl)
       {
-         String lvl2 = lvl + "-- ";
+         string lvl2 = lvl + "-- ";
          sb.AppendLine().Append(lvl).Append("NOT2");
          Left.dump(sb, lvl2);
          Right.dump(sb, lvl2);
@@ -243,9 +243,9 @@ namespace Bitmanager.Query
          Sub.toString(sb);
          return sb;
       }
-      internal protected override StringBuilder dump(StringBuilder sb, String lvl)
+      internal protected override StringBuilder dump(StringBuilder sb, string lvl)
       {
-         String lvl2 = lvl + "-- ";
+         string lvl2 = lvl + "-- ";
          sb.AppendLine().Append(lvl).Append("NOT1");
          Sub.dump(sb, lvl2);
          return sb;

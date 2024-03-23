@@ -89,9 +89,9 @@ namespace Bitmanager.BigFile {
    /// </summary>
    public class SettingsSource {
       public const string DEF_7Z = "7z;arj;bz2;bzip2;cab;img;iso;jar;lha;lzh;lzma;pkg;rar;tar.gz;tbz;tbz2;tgz;zar";
-      public const String AUTO = @"Auto";
+      public const string AUTO = @"Auto";
       public Settings Settings { get; private set; }
-      private const String _KEY = @"software\bitmanager\bigfile";
+      private const string _KEY = @"software\bitmanager\bigfile";
       public readonly long TotalPhysicalMemory;
       public readonly long AvailablePhysicalMemory;
 
@@ -163,7 +163,7 @@ namespace Bitmanager.BigFile {
          Load ();
       }
 
-      public void Dump (String why) {
+      public void Dump (string why) {
          var logger = Globals.SettingsLogger;
          logger.Log ("Dumping current registry settings ({0}):", why);
          logger.Log ("-- {0}", HighlightColor);
@@ -179,7 +179,7 @@ namespace Bitmanager.BigFile {
       }
 
 
-      public static long GetActualSize (String size, String auto) {
+      public static long GetActualSize (string size, string auto) {
          size = size.TrimToNull ();
          if (size == null) size = auto;
          switch (size.ToLowerInvariant ()) {
@@ -195,7 +195,7 @@ namespace Bitmanager.BigFile {
       }
 
       public static void SaveFormPosition (int left, int top, int w, int h) {
-         String sizeStr = Invariant.Format ("{0};{1};{2};{3}", w, h, left, top);
+         string sizeStr = Invariant.Format ("{0};{1};{2};{3}", w, h, left, top);
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey (_KEY, true)) {
             WriteVal (key, "position", sizeStr);
@@ -203,7 +203,7 @@ namespace Bitmanager.BigFile {
       }
 
       public static bool LoadFormPosition (out int left, out int top, out int w, out int h) {
-         String sizeStr;
+         string sizeStr;
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey (_KEY, false)) {
             sizeStr = ReadVal (key, "position", null);
@@ -214,9 +214,9 @@ namespace Bitmanager.BigFile {
          top = -1;
          w = -1;
          h = -1;
-         if (String.IsNullOrEmpty (sizeStr)) return false;
+         if (string.IsNullOrEmpty (sizeStr)) return false;
 
-         String[] parts = sizeStr.Split (';');
+         string[] parts = sizeStr.Split (';');
          for (int i = 0; i < parts.Length; i++) {
             int v;
             if (!int.TryParse (parts[i], out v)) break;
@@ -233,7 +233,7 @@ namespace Bitmanager.BigFile {
          return (w >= 0);
       }
 
-      public static void SaveFileHistory (String[] list, String prefix) {
+      public static void SaveFileHistory (string[] list, string prefix) {
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey (_KEY, true)) {
             for (int i = 0; i < list.Length; i++) {
@@ -241,8 +241,8 @@ namespace Bitmanager.BigFile {
             }
          }
       }
-      public static String[] LoadFileHistory (String prefix) {
-         String[] ret = new string[10];
+      public static string[] LoadFileHistory (string prefix) {
+         string[] ret = new string[10];
          var rootKey = Registry.CurrentUser;
          using (var key = rootKey.CreateSubKey (_KEY, false)) {
             for (int i = 0; i < ret.Length; i++) {
@@ -253,41 +253,41 @@ namespace Bitmanager.BigFile {
          return ret;
       }
 
-      public static String ReadVal (RegistryKey key, String valName, String def) {
+      public static string ReadVal (RegistryKey key, string valName, string def) {
          if (key == null) return def;
          var v = key.GetValue (valName, def);
          if (v == null) return def;
 
-         String ret = v.ToString ();
-         return String.IsNullOrEmpty (ret) ? def : ret;
+         string ret = v.ToString ();
+         return string.IsNullOrEmpty (ret) ? def : ret;
       }
-      public static Color ReadVal (RegistryKey key, String valName, Color def) {
+      public static Color ReadVal (RegistryKey key, string valName, Color def) {
          return ColorTranslator.FromHtml (ReadVal (key, valName, ColorTranslator.ToHtml (def)));
       }
-      public static int ReadVal (RegistryKey key, String valName, int def) {
+      public static int ReadVal (RegistryKey key, string valName, int def) {
          if (key == null) return def;
          var v = key.GetValue (valName, def);
          return v == null ? def : (int)v;
       }
-      public static bool ReadVal (RegistryKey key, String valName, bool def) {
+      public static bool ReadVal (RegistryKey key, string valName, bool def) {
          if (key == null) return def;
          var v = key.GetValue (valName, def ? 1 : 0);
          return v == null ? def : (0 != (int)v);
       }
-      public static void WriteVal (RegistryKey key, String valName, String val) {
+      public static void WriteVal (RegistryKey key, string valName, string val) {
          if (key == null) return;
-         if (val == null) val = String.Empty;
+         if (val == null) val = string.Empty;
          key.SetValue (valName, val);
       }
-      public static void WriteVal (RegistryKey key, String valName, int val) {
+      public static void WriteVal (RegistryKey key, string valName, int val) {
          if (key == null) return;
          key.SetValue (valName, val);
       }
-      public static void WriteVal (RegistryKey key, String valName, bool val) {
+      public static void WriteVal (RegistryKey key, string valName, bool val) {
          if (key == null) return;
          key.SetValue (valName, val ? 1 : 0);
       }
-      public static void WriteVal (RegistryKey key, String valName, Color val) {
+      public static void WriteVal (RegistryKey key, string valName, Color val) {
          if (key == null) return;
          WriteVal (key, valName, ColorTranslator.ToHtml (val));
       }

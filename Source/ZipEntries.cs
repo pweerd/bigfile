@@ -74,13 +74,13 @@ namespace Bitmanager.BigFile {
    /// without holding a reference to the ZipArchive
    /// </summary>
    public class ZipEntry {
-      public readonly String Name;
-      public readonly String FullName;
+      public readonly string Name;
+      public readonly string FullName;
       public readonly long Length;
-      public readonly String ArchiveName;
-      private readonly String _tos;
+      public readonly string ArchiveName;
+      private readonly string _tos;
 
-      public ZipEntry (String archiveName, ZipArchiveEntry e) {
+      public ZipEntry (string archiveName, ZipArchiveEntry e) {
          Name = e.Name;
          FullName = e.FullName;
          Length = e.Length;
@@ -88,7 +88,7 @@ namespace Bitmanager.BigFile {
          _tos = Invariant.Format ("{0} ({1})", e.FullName, Pretty.PrintSize (e.Length));
       }
 
-      public ZipEntry (String archiveName, SevenZipEntry e) {
+      public ZipEntry (string archiveName, SevenZipEntry e) {
          Name = Path.GetFileName(e.Name);
          FullName = e.Name;
          Length = e.Size;
@@ -121,15 +121,15 @@ namespace Bitmanager.BigFile {
       }
 
       public static int SortName (ZipEntry x, ZipEntry y) {
-         return String.Compare (x._tos, y._tos, StringComparison.OrdinalIgnoreCase);
+         return string.Compare (x._tos, y._tos, StringComparison.OrdinalIgnoreCase);
       }
       public static int SortSize (ZipEntry x, ZipEntry y) {
          if (x.Length > y.Length) return -1;
          if (x.Length < y.Length) return 1;
-         return String.CompareOrdinal (x.Name, y.Name);
+         return string.CompareOrdinal (x.Name, y.Name);
       }
 
-      public override String ToString () {
+      public override string ToString () {
          return _tos;
       }
    }

@@ -27,7 +27,7 @@ using System.Windows.Forms;
 namespace Bitmanager.BigFile {
    public class SearchHistory {
       private readonly ToolStripComboBox cb;
-      private readonly List<String> history;
+      private readonly List<string> history;
       private AutoCompleteStringCollection autoComplete;
       private readonly SearchNodes searchNodes;
       private readonly Logger logger;
@@ -62,8 +62,8 @@ namespace Bitmanager.BigFile {
          return;
          autoComplete = new AutoCompleteStringCollection ();
          autoComplete.Add ("piet");
-         //foreach (String x in history) autoComplete.Add(x);
-         foreach (String x in cb.Items) autoComplete.Add (x);
+         //foreach (string x in history) autoComplete.Add(x);
+         foreach (string x in cb.Items) autoComplete.Add (x);
 
          if (txt.EndsWith ("AND ") || txt.EndsWith ("OR ") || txt.EndsWith ("NOT ")) {
             foreach (var n in searchNodes) autoComplete.Add (txt + n.ToString ());
@@ -72,7 +72,7 @@ namespace Bitmanager.BigFile {
             return;
          }
          foreach (var n in searchNodes) {
-            String x = n.ToString ();
+            string x = n.ToString ();
             autoComplete.Add (txt + "AND " + x);
             autoComplete.Add (txt + "NOT " + x);
             autoComplete.Add (txt + "OR " + x);
@@ -88,8 +88,8 @@ namespace Bitmanager.BigFile {
       }
 
       public ParserNode<SearchContext> GetParsedQuery () {
-         String s = cb.Text;
-         if (String.IsNullOrEmpty (s)) return null;
+         string s = cb.Text;
+         if (string.IsNullOrEmpty (s)) return null;
 
          int idx = history.IndexOf (s);
          if (idx >= 0) history.RemoveAt (idx);
@@ -106,10 +106,10 @@ namespace Bitmanager.BigFile {
    }
 
    public static class ComboboxExtensions {
-      public static void AddHistory (this ToolStripComboBox cb, Object item, int max=int.MaxValue) {
+      public static void AddHistory (this ToolStripComboBox cb, object item, int max=int.MaxValue) {
          if (item == null) return;
-         String key = item.ToString ();
-         var dict = new Dictionary<String, Object> ();
+         string key = item.ToString ();
+         var dict = new Dictionary<string, object> ();
          dict[key] = item;
          foreach (var x in cb.Items) dict[x.ToString ()] = x;
          cb.Items.Clear ();

@@ -207,10 +207,10 @@ namespace Bitmanager.BigFile {
       }
       #endregion
 
-      private void dump (String fmt, params Object[] args) {
+      private void dump (string fmt, params object[] args) {
          logger.Log (fmt, args);
          if (!DUMP_STACK) return;
-         String[] stack = Environment.StackTrace.Split ('\n');
+         string[] stack = Environment.StackTrace.Split ('\n');
          int N = stack.Length;
          if (N > 7) N = 7;
 

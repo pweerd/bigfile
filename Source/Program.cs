@@ -19,13 +19,13 @@ using System.Windows.Forms;
 
 namespace Bitmanager.BigFile {
    public static class Program {
-      public static String[] Arguments;
+      public static string[] Arguments;
 
       /// <summary>
       /// The main entry point for the application.
       /// </summary>
       [STAThread]
-      static void Main (String[] args) {
+      static void Main (string[] args) {
          Arguments = args;
          Application.EnableVisualStyles ();
          Application.SetCompatibleTextRenderingDefault (false);

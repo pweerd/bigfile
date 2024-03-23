@@ -52,7 +52,7 @@ namespace Bitmanager.IO {
       /// <paramref name="capacity" /> is negative. </exception>
       public ChunkedMemoryStream (int chunckSize) {
          if (chunckSize < 4096)
-            throw new ArgumentOutOfRangeException (String.Format ("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
+            throw new ArgumentOutOfRangeException (string.Format ("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
          this._buffers = new List<byte[]> ();
          this._chunckSize = chunckSize;
          this._isOpen = true;

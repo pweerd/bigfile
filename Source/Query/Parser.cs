@@ -25,10 +25,10 @@ namespace Bitmanager.Query
     public class Parser<TArg> 
    {
       protected readonly Lexer lexer;
-      protected readonly Func<String, String, ParserValueNode<TArg>> valueFactory;
+      protected readonly Func<string, string, ParserValueNode<TArg>> valueFactory;
       protected Lexer.Token _token;
 
-      public Parser (Lexer lexer, Func<String, String, ParserValueNode<TArg>> valueFactory=null)
+      public Parser (Lexer lexer, Func<string, string, ParserValueNode<TArg>> valueFactory=null)
       {
          this.lexer = lexer;
          this.valueFactory = valueFactory == null ? ValueNodeFactory : valueFactory;
@@ -149,7 +149,7 @@ namespace Bitmanager.Query
          return valueFactory(null, token.Text);
       }
 
-      protected static ParserValueNode<TArg> ValueNodeFactory(String field, String text)
+      protected static ParserValueNode<TArg> ValueNodeFactory(string field, string text)
       {
          return new ParserValueNode<TArg>(field, text);
       }

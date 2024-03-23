@@ -32,7 +32,7 @@ namespace Bitmanager.BigFile {
       protected const int WM_CONTEXTMENU = 0x7B;
       private const int WM_MOUSEWHEEL = 0x20A;
       private const int MK_CONTROL = 0x0008;
-      public delegate void FontTick (Object sender, FontTickArgs e);  // delegate
+      public delegate void FontTick (object sender, FontTickArgs e);  // delegate
       public event FontTick OnFontTick;
 
 
@@ -90,7 +90,7 @@ namespace Bitmanager.BigFile {
       }
 
       private int measurePartialLineWidth (int index) {
-         String txt = lf.GetPartialLine (index, -1, TabsReplacer.INSTANCE);
+         string txt = lf.GetPartialLine (index, -1, TabsReplacer.INSTANCE);
          return base.MeasureTextWidth (txt);
       }
       
@@ -185,7 +185,7 @@ namespace Bitmanager.BigFile {
       }
 
 
-      public String GetTooltipForRow (int row) {
+      public string GetTooltipForRow (int row) {
          if (lf == null || lf.PartialLineCount == 0) return null;
 
 

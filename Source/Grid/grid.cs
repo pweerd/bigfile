@@ -31,7 +31,7 @@ namespace Bitmanager.Grid {
    /// </summary>
    [System.ComponentModel.DesignerCategory ("")]
    public class RawGrid : Control {
-      public delegate Cell ON_GETCELL (Object sender, int row, int col);
+      public delegate Cell ON_GETCELL (object sender, int row, int col);
       public delegate void ON_SELECTED_INDEX_CHANGED (object sender, EventArgs e);
       public event ON_GETCELL OnGetCell;
       public event EventHandler SelectedIndexChanged;
@@ -370,8 +370,8 @@ namespace Bitmanager.Grid {
          }
       }
 
-      public int MeasureTextWidth (String txt) {
-         if (String.IsNullOrEmpty (txt)) return 0;
+      public int MeasureTextWidth (string txt) {
+         if (string.IsNullOrEmpty (txt)) return 0;
          return Gdi32.Measure (_graphicsHdc, txt, _fontManager.GetHdc (FontStyle.Regular)).Width;
       }
 

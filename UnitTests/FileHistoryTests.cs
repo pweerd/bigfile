@@ -51,7 +51,7 @@ namespace Bitmanager.BigFile.Tests {
          Assert.AreEqual ("test1.txt", fh.Top);
       }
 
-      private void dump(FileHistory fh, String why) {
+      private void dump(FileHistory fh, string why) {
          Console.WriteLine ("Dumping items ({0})", why);
          foreach (var x in fh.Items) Console.WriteLine (x ?? "null");
       }

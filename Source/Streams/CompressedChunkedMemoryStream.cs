@@ -65,7 +65,7 @@ namespace Bitmanager.IO {
       /// <paramref name="capacity" /> is negative. </exception>
       public CompressedChunkedMemoryStream (int chunckSize, Logger logger = null) {
          if (chunckSize < 4096)
-            throw new ArgumentOutOfRangeException (String.Format ("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
+            throw new ArgumentOutOfRangeException (string.Format ("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
          this._buffers = new List<byte[]> (100);
          this._recycledBuffers = new Stack<byte[]> (50);
          this._chunckSize = chunckSize;
@@ -83,7 +83,7 @@ namespace Bitmanager.IO {
       /// </summary>
       public CompressedChunkedMemoryStream (int chunckSize, List<byte[]> buffers, long position, long length, Logger logger = null) {
          if (chunckSize < 4096)
-            throw new ArgumentOutOfRangeException (String.Format ("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
+            throw new ArgumentOutOfRangeException (string.Format ("Invalid chunckSize [{0}]. Should be >= 4096.", chunckSize));
          this._buffers = new List<byte[]> (buffers);
          this._recycledBuffers = new Stack<byte[]> (50);
          this._chunckSize = chunckSize;
@@ -211,7 +211,7 @@ namespace Bitmanager.IO {
                }
             } catch (Exception e) {
                _compressDisabled = true;
-               String msg = Invariant.Format ("Compression error at index {0}, offset 0x{1}: {2}", idx, idx * _chunckSize, e.Message);
+               string msg = Invariant.Format ("Compression error at index {0}, offset 0x{1}: {2}", idx, idx * _chunckSize, e.Message);
                Logs.ErrorLog.Log (e, msg);
                throw new BMException (e, msg);
             }

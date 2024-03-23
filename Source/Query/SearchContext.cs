@@ -34,7 +34,7 @@ namespace Bitmanager.BigFile.Query
       public readonly long BitsToBeCleared;
       public readonly long NotBitMask;
 
-      public String Line;
+      public string Line;
       public long OffsetAndFlags;
       public int Index;
 
@@ -72,7 +72,7 @@ namespace Bitmanager.BigFile.Query
       }
 
 
-      public void SetLine (long offset, String line)
+      public void SetLine (long offset, string line)
       {
          Line = line;
          OffsetAndFlags = offset & NotBitMask;

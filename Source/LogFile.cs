@@ -39,7 +39,7 @@ namespace Bitmanager.BigFile {
    /// LogFile is responsible for loading the data and splitting it into lines.
    /// </summary>
    public class LogFile {
-      static public String DbgStr = "gzip";
+      static public string DbgStr = "gzip";
       static readonly Logger logger = Globals.MainLogger.Clone ("logfile");
       static readonly byte[] EMPTY_BYTES = new byte[0];
 
@@ -53,7 +53,7 @@ namespace Bitmanager.BigFile {
       public int PartialLineCount { get { return partialLines.Count - 1; } }
       public long Size { get { return partialLines[partialLines.Count - 1] >> LineFlags.FLAGS_SHIFT; } }
       public int LineCount { get { return lines == null ? partialLines.Count - 1 : lines.Count - 1; } }
-      public String FileName { get { return fileName; } }
+      public string FileName { get { return fileName; } }
       private FileEncoding detectedEncoding;
       public FileEncoding DetectedEncoding => detectedEncoding;
 
@@ -90,7 +90,7 @@ namespace Bitmanager.BigFile {
          SetEncoding (enc);
       }
 
-      private String fileName;
+      private string fileName;
       private readonly ILogFileCallback cb;
 
       #region reflected_settings
@@ -465,7 +465,7 @@ namespace Bitmanager.BigFile {
       /// Load a .zip file.
       /// This is done by taking the largest file and stream that into memory
       /// </summary>
-      private void loadZipFile (String fn, String zipEntryName) {
+      private void loadZipFile (string fn, string zipEntryName) {
          CachedArchive ca = ArchiveCache.Instance.Get (fn);
          if (ca != null && !(ca.Archive is ZipArchive)) {
             loadZipFileViaSharpZlib (fn, zipEntryName);
@@ -511,7 +511,7 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      private void loadZipFileViaSharpZlib (String fn, String zipEntryName) {
+      private void loadZipFileViaSharpZlib (string fn, string zipEntryName) {
          CachedArchive ca = ArchiveCache.Instance.Get (fn);
          if (ca != null && !(ca.Archive is ICSharpCode.SharpZipLib.Zip.ZipFile)) ca = null;
          FileStream fs = null;
@@ -553,7 +553,7 @@ namespace Bitmanager.BigFile {
       /// Load a .7zip file.
       /// We reset the background state to foreground, since, if we are terminated, 7z is still running
       /// </summary>
-      private void loadSevenZipFile (String fn, String zipEntryName) {
+      private void loadSevenZipFile (string fn, string zipEntryName) {
          Thread cur = Thread.CurrentThread;
          bool isBackground = cur.IsBackground;
          cur.IsBackground = false;  //Make sure that the process is kept alive as long as this thread is alive
@@ -587,7 +587,7 @@ namespace Bitmanager.BigFile {
       /// Load a gz file.
       /// Unzip is preferrable done by starting gzip, and otherwise by using sharpzlib
       /// </summary>
-      private void loadGZipFile (String fn) {
+      private void loadGZipFile (string fn) {
          if (!Globals.CanInternalGZip || (DbgStr != null && DbgStr != "intern")) {
             loadGZipFileViaSharpZlib (fn);
          } else {
@@ -605,7 +605,7 @@ namespace Bitmanager.BigFile {
          }
       }
 
-      private void loadGZipFileViaSharpZlib (String fn) {
+      private void loadGZipFileViaSharpZlib (string fn) {
          Stream strm = null;
          try {
             logger.Log ("Loading '{0}' via SharpZipLib.", fn);
@@ -763,10 +763,10 @@ namespace Bitmanager.BigFile {
          for (int i = 0; i < N; i++) prev = dumpOffset (prev, i);
       }
       private long dumpOffset (long prev, int i) {
-         //String data = GetPartialLine (i);
+         //string data = GetPartialLine (i);
          //int N = Math.Min (32, data.Length);
-         //String start = data.Substring (0, N);
-         //String end = data.Substring (data.Length-N);
+         //string start = data.Substring (0, N);
+         //string end = data.Substring (data.Length-N);
          long x = partialLines[i];
          long offs = x >> LineFlags.FLAGS_SHIFT;
          long mask = x & LineFlags.FLAGS_MASK;
@@ -845,7 +845,7 @@ namespace Bitmanager.BigFile {
          return true;
       }
 
-      static byte[] setLimiters (byte[] arr, int v, String seps) {
+      static byte[] setLimiters (byte[] arr, int v, string seps) {
          for (int i=0; i<seps.Length; i++) {
             arr[(int)seps[i]] = (byte)v;
          }
@@ -858,7 +858,7 @@ namespace Bitmanager.BigFile {
       private void dbgIncLineNo () {
          ++lineNo;
       }
-      static String dbgGetLine (byte[] buf, int offset) {
+      static string dbgGetLine (byte[] buf, int offset) {
          int max = buf.Length - offset;
          if (max > 128) max = 128;
          return Encoding.Latin1.GetString (buf, offset, max);
@@ -969,7 +969,7 @@ namespace Bitmanager.BigFile {
       /// <summary>
       /// Load a (zip) file
       /// </summary>
-      public Task Load (string fn, CancellationToken ct, String zipEntry = null) {
+      public Task Load (string fn, CancellationToken ct, string zipEntry = null) {
          zipEntries = null;
          largestPartialLine = PartialLineStats.ZERO;
          largestLineIndex= -1;
@@ -1410,7 +1410,7 @@ namespace Bitmanager.BigFile {
             try {
                using (Stream fs = new FileStream (filePath, FileMode.Create, FileAccess.Write, FileShare.Read, 16 * 1024)) {
                   Stream strm = fs;
-                  if (String.Equals (Path.GetExtension (filePath), ".gz", StringComparison.OrdinalIgnoreCase))
+                  if (string.Equals (Path.GetExtension (filePath), ".gz", StringComparison.OrdinalIgnoreCase))
                      strm = wrapToGZipCompressStream (fs);
 
                   byte[] endLine = new byte[2] { 13, 10 };
@@ -1524,7 +1524,7 @@ namespace Bitmanager.BigFile {
       public string GetPartialLine (int index, int maxChars = -1, ICharReplacer replacer = null) {
          //dumpOffset (index, "GetPartialLine");
          //logger.Log("GetPartialLine: index={0}, count={1}", index, partialLines.Count - 1);
-         if (index < 0 || index >= partialLines.Count - 1) return String.Empty;
+         if (index < 0 || index >= partialLines.Count - 1) return string.Empty;
          return threadCtx.GetPartialLine (index, index + 1, maxChars, replacer);
       }
 
@@ -1541,7 +1541,7 @@ namespace Bitmanager.BigFile {
       /// </summary>
       public int GetPartialLineLengthInChars (int index) {
          if (index < 0 || index >= partialLines.Count - 1) return 0;
-         String tmp = threadCtx.GetPartialLine (index, index + 1, -1, null);
+         string tmp = threadCtx.GetPartialLine (index, index + 1, -1, null);
          return tmp.Length;
       }
 
@@ -1562,35 +1562,35 @@ namespace Bitmanager.BigFile {
       public int GetLineLengthInChars (int index) {
          if (lines == null) return GetPartialLineLengthInChars (index);
          if (index < 0 || index >= lines.Count - 1) return 0;
-         String tmp = threadCtx.GetLine (index, index + 1, -1, out bool truncated);
+         string tmp = threadCtx.GetLine (index, index + 1, -1, out bool truncated);
          return tmp.Length;
       }
       public int GetLineLengthInChars (int index, out bool truncated) {
          truncated = false;
          if (lines == null) return GetPartialLineLengthInChars (index);
          if (index < 0 || index >= lines.Count - 1) return 0;
-         String tmp = threadCtx.GetLine (index, index + 1, -1, out truncated);
+         string tmp = threadCtx.GetLine (index, index + 1, -1, out truncated);
          return tmp.Length;
       }
 
       /// <summary>
       /// Get a complete line
       /// </summary>
-      public String GetLine (int index, out bool truncated) {
+      public string GetLine (int index, out bool truncated) {
          truncated = false;
-         if (index < 0) return String.Empty;
+         if (index < 0) return string.Empty;
          if (lines != null) {
-            if (index >= lines.Count - 1) return String.Empty;
+            if (index >= lines.Count - 1) return string.Empty;
             return threadCtx.GetLine (lines[index], lines[index + 1], settings.MaxLineLength, out truncated);
          }
-         if (index >= partialLines.Count - 1) return String.Empty;
+         if (index >= partialLines.Count - 1) return string.Empty;
          return threadCtx.GetLine (index, index + 1, settings.MaxLineLength, out truncated);
       }
 
       /// <summary>
       /// Get a complete line
       /// </summary>
-      public String GetLine (int index) {
+      public string GetLine (int index) {
          bool truncated;
          return GetLine (index, out truncated);
       }

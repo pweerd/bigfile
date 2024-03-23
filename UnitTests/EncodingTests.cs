@@ -26,7 +26,7 @@ namespace Bitmanager.BigFile.Tests {
    [TestClass]
    public class EncodingTests: TestBase {
       private readonly SettingsSource settingsSource;
-      private readonly String text;
+      private readonly string text;
 
       public EncodingTests() {
          settingsSource = new SettingsSource ();
@@ -125,7 +125,7 @@ namespace Bitmanager.BigFile.Tests {
       }
 
 
-      private void createTextFile (String fn, Encoding enc) {
+      private void createTextFile (string fn, Encoding enc) {
          File.WriteAllText (Path.Combine(this.dataDir, fn), text, enc);
       }
    }

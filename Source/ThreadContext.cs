@@ -94,7 +94,7 @@ namespace Bitmanager.BigFile {
             }
          } catch (Exception err) {
             Logs.ErrorLog.Log (err);
-            String msg = err.ToString ();
+            string msg = err.ToString ();
             return Encoding.GetBytes (msg, 0, msg.Length, byteBuffer, 0);
          }
          return bytesRead;
@@ -120,23 +120,23 @@ namespace Bitmanager.BigFile {
             }
          } catch (Exception err) {
             Logs.ErrorLog.Log (err);
-            String msg = err.ToString ();
+            string msg = err.ToString ();
             return Encoding.GetBytes (msg, 0, msg.Length, buf, offset);
          }
 
          return bytesRead;
       }
 
-      public String ReadPartialLineInBuffer (int from, int until) {
+      public string ReadPartialLineInBuffer (int from, int until) {
          int bytes = ReadPartialLineBytesInBuffer (from, until);
          return byteBufferViaCharBufferToString (bytes, null);
       }
-      private String readPartialLineInBuffer (long from, long until, ICharReplacer replacer) {
+      private string readPartialLineInBuffer (long from, long until, ICharReplacer replacer) {
          int bytes = readPartialLineBytesInBuffer (from, until);
          return byteBufferViaCharBufferToString (bytes, replacer);
       }
 
-      private unsafe String byteBufferViaCharBufferToString (int bytes, ICharReplacer replacer) {
+      private unsafe string byteBufferViaCharBufferToString (int bytes, ICharReplacer replacer) {
          int N = Encoding.GetChars (byteBuffer, 0, bytes, charBuffer, 0);
 
          //Strip the cr/lf at the beginning/end, and eventual replace some chars
@@ -168,11 +168,11 @@ namespace Bitmanager.BigFile {
          return ll;
       }
 
-      public String GetLine (int from, int until, int maxLineLength, out bool truncated) {
+      public string GetLine (int from, int until, int maxLineLength, out bool truncated) {
          return getLine (from, until, maxLineLength, out truncated, null);
       }
 
-      public String GetPartialLine (int from, int until, int maxChars, ICharReplacer replacer) {
+      public string GetPartialLine (int from, int until, int maxChars, ICharReplacer replacer) {
          bool truncated;
          return getLine (from, until, maxChars, out truncated, replacer);
       }
@@ -230,7 +230,7 @@ namespace Bitmanager.BigFile {
          return buf;
       }
 
-      private unsafe String getLine (int from, int until, int maxLineLength, out bool truncated, ICharReplacer replacer) {
+      private unsafe string getLine (int from, int until, int maxLineLength, out bool truncated, ICharReplacer replacer) {
          long start = getLineStartEnd (from, until, out var end);
          long diff = end - start;
 
@@ -279,7 +279,7 @@ namespace Bitmanager.BigFile {
             }
             if (replacer != null) replacer.Replace (pDst, pEnd);
 
-            return new String (pDst, 0, chars);
+            return new string (pDst, 0, chars);
          }
       }
 

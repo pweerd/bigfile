@@ -25,13 +25,13 @@ namespace Bitmanager.Query
 {
    public class Lexer
    {
-      private readonly String expr;
+      private readonly string expr;
       private int nextIndex = 0;
       private int endIndex;
       private readonly bool isSimple;
       private readonly Token eof;
 
-      public Lexer (String expr)
+      public Lexer (string expr)
       {
          this.expr = expr;
          //this.isSimple = IsSimple(expr);
@@ -48,7 +48,7 @@ namespace Bitmanager.Query
             nextIndex = endIndex;
             if (expr == null) return eof;
             var trimmed = expr.Trim();
-            return String.IsNullOrEmpty(trimmed) ? eof : new Token (TokenType.Value, expr);
+            return string.IsNullOrEmpty(trimmed) ? eof : new Token (TokenType.Value, expr);
          }
 
          int i;
@@ -181,7 +181,7 @@ namespace Bitmanager.Query
          return new Token(sb.ToString());
       }
 
-      public static bool IsSimple (String expr)
+      public static bool IsSimple (string expr)
       {
          if (expr == null) return true;
          return
@@ -197,8 +197,8 @@ namespace Bitmanager.Query
       public class Token
       {
          public readonly TokenType Type;
-         public readonly String Text;
-         public Token(TokenType type, String text)
+         public readonly string Text;
+         public Token(TokenType type, string text)
          {
             this.Type = type;
             this.Text = text;
@@ -208,13 +208,13 @@ namespace Bitmanager.Query
             this.Type = type;
             this.Text = null;
          }
-         public Token(String text)
+         public Token(string text)
          {
             this.Type = TokenType.Value;
             this.Text = text;
          }
 
-         public override String ToString ()
+         public override string ToString ()
          {
             return Type == TokenType.Value ? Type + ":" + Text : Type.ToString();
          }

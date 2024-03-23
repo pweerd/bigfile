@@ -47,7 +47,7 @@ namespace Bitmanager.BigFile.Query
       }
 
 
-      private ComparerType normalizeField(ref String field)
+      private ComparerType normalizeField(ref string field)
       {
          switch (field)
          {
@@ -73,7 +73,7 @@ namespace Bitmanager.BigFile.Query
          }
       }
 
-      SearchNode createSearchNode(String fld, String value)
+      SearchNode createSearchNode(string fld, string value)
       {
          SearchNode ret;
          numCreated++;
@@ -109,7 +109,7 @@ namespace Bitmanager.BigFile.Query
          return ret;
       }
 
-      public ParserNode<SearchContext> Parse (String expr)
+      public ParserNode<SearchContext> Parse (string expr)
       {
          numCreated = 0;
          var parsed = new Parser<SearchContext>(new Lexer(expr), createSearchNode).Parse();

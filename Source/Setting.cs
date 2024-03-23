@@ -32,28 +32,28 @@ namespace Bitmanager.BigFile {
    /// or via the implicit operators from the derived classes
    /// </summary>
    public abstract class Setting<T> {
-      public readonly String Name;
-      public readonly String Default;
-      protected String value;
-      public String Value => value;
+      public readonly string Name;
+      public readonly string Default;
+      protected string value;
+      public string Value => value;
 
-      public Setting (String name, String def, String initial) {
+      public Setting (string name, string def, string initial) {
          Name = name;
          Default = def;
          value = initial == null ? def : initial;
       }
 
-      public void Set (String s) {
+      public void Set (string s) {
          convert (s);
          value = s;
       }
 
-      public static String ColorToHtmlString (Color c) {
+      public static string ColorToHtmlString (Color c) {
          return ColorTranslator.ToHtml (c);
       }
 
-      protected virtual T convert (String s) {
-         if (String.Equals (SettingsSource.AUTO, s, StringComparison.OrdinalIgnoreCase))
+      protected virtual T convert (string s) {
+         if (string.Equals (SettingsSource.AUTO, s, StringComparison.OrdinalIgnoreCase))
             s = Default;
          else {
             s = s.TrimToNull ();
@@ -61,11 +61,11 @@ namespace Bitmanager.BigFile {
          }
          return convertStr (s);
       }
-      protected abstract T convertStr (String s);
+      protected abstract T convertStr (string s);
 
       public void Load (RegistryKey k) {
          if (k == null) return;
-         String v = ReadVal (k);
+         string v = ReadVal (k);
          try {
             convert (v);
          } catch (Exception e) {
@@ -77,15 +77,15 @@ namespace Bitmanager.BigFile {
       }
       public void Save (RegistryKey k) {
          if (k == null) return;
-         k.SetValue (Name, value == null ? String.Empty : value);
+         k.SetValue (Name, value == null ? string.Empty : value);
       }
 
-      protected String ReadVal (RegistryKey key) {
+      protected string ReadVal (RegistryKey key) {
          if (key == null) return Default;
          var v = key.GetValue (Name, Default);
          if (v == null) return Default;
 
-         String ret = v == null ? null : v.ToString ().TrimToNull ();
+         string ret = v == null ? null : v.ToString ().TrimToNull ();
          return ret == null ? Default : ret;
       }
 
@@ -96,7 +96,7 @@ namespace Bitmanager.BigFile {
    /// The converted actual value is an int
    /// </summary>
    public class IntSetting : Setting<int> {
-      public IntSetting (String name, String def, String initial = null) : base (name, def, initial) { }
+      public IntSetting (string name, string def, string initial = null) : base (name, def, initial) { }
 
       protected override int convertStr (string s) {
          return Invariant.ToInt32 (s);
@@ -114,7 +114,7 @@ namespace Bitmanager.BigFile {
    /// The converted actual value is an int
    /// </summary>
    public class StringSetting : Setting<string> {
-      public StringSetting (String name, String def, String initial = null) : base (name, def, initial) { }
+      public StringSetting (string name, string def, string initial = null) : base (name, def, initial) { }
 
       protected override string convertStr (string s) {
          return s;
@@ -133,10 +133,10 @@ namespace Bitmanager.BigFile {
    /// Otherwise it is the #threads itself
    /// </summary>
    public class ThreadsSetting : Setting<int> {
-      public ThreadsSetting (String name, String def, String initial = null) : base (name, def, initial) { }
+      public ThreadsSetting (string name, string def, string initial = null) : base (name, def, initial) { }
 
       protected override int convertStr (string s) {
-         int ret = String.Equals (s, SettingsSource.AUTO, StringComparison.OrdinalIgnoreCase) ? 0 : Invariant.ToInt32 (s);
+         int ret = string.Equals (s, SettingsSource.AUTO, StringComparison.OrdinalIgnoreCase) ? 0 : Invariant.ToInt32 (s);
          var N = Environment.ProcessorCount;
          if (ret <= 0) ret += N;
 
@@ -157,11 +157,11 @@ namespace Bitmanager.BigFile {
    /// Sizes are converted into a long. Values can be specified like 0.5MB.
    /// </summary>
    public class SizeSetting : Setting<long> {
-      public SizeSetting (String name, String def, String initial = null) : base (name, def, initial) { }
+      public SizeSetting (string name, string def, string initial = null) : base (name, def, initial) { }
 
       protected override long convertStr (string s) {
-         if (String.Equals (s, "off")) return long.MaxValue;
-         if (String.Equals (s, "on")) return -1;
+         if (string.Equals (s, "off")) return long.MaxValue;
+         if (string.Equals (s, "on")) return -1;
          return Pretty.ParseSize (s);
       }
 
@@ -181,7 +181,7 @@ namespace Bitmanager.BigFile {
    /// Colors are stored in the registry as HtmlColors.
    /// </summary>
    public class ColorSetting : Setting<Color> {
-      public ColorSetting (String name, Color def, String initial = null) : base (name, ColorToHtmlString (def), initial) { }
+      public ColorSetting (string name, Color def, string initial = null) : base (name, ColorToHtmlString (def), initial) { }
 
       protected override Color convertStr (string s) {
          return ColorTranslator.FromHtml (s);
