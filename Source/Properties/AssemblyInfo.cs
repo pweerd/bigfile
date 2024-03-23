@@ -15,22 +15,21 @@
  */
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
+// General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BigFile")]
+[assembly: AssemblyTitle("BigFile, viewer for (very) large text files")]
 [assembly: AssemblyDescription("Viewer for (very) large text files")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("De Bitmanager")]
 [assembly: AssemblyProduct("BigFile")]
-[assembly: AssemblyCopyright("Copyright © 2023 De Bitmanager")]
+[assembly: AssemblyCopyright("Copyright © 2024 De Bitmanager")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("1.1.2023.1005")]
-[assembly: AssemblyFileVersion("1.1.2023.1005")]
+[assembly: AssemblyVersion("1.2.2024.0323")]
+[assembly: AssemblyFileVersion("1.2.2024.0323")]

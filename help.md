@@ -1,4 +1,4 @@
-﻿# BigFile (V1.1.2023.1005)
+﻿# BigFile (V1.2.2024.0323)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems. Typical used as a viewer for:
 
@@ -193,7 +193,7 @@ I used his Grid as a starting point.
 
 ## Changes
 
-#### V1.1.2023.1005
+#### V1.2.2024.0323
 
 - Many bugfixes
 - Supporting more archives via 7zip (If 7z.exe is found). Also Bitmanager's FileStorage is supported.
