@@ -1073,12 +1073,23 @@ namespace Bitmanager.BigFile {
       }
 
       public void MarkSelected (int from, int to) {
+         if (from < 0) from = 0;
+         if (to >= partialLines.Count) to = partialLines.Count-1;
          for (int i = from; i < to; i++) {
             partialLines[i] |= LineFlags.SELECTED;
          }
       }
+      public void MarkSelected (int from, int to, List<int> filter) {
+         if (from < 0) from = 0;
+         if (to > filter.Count) to = filter.Count;
+         for (int i = from; i < to; i++) {
+            partialLines[filter[i]] |= LineFlags.SELECTED;
+         }
+      }
 
       public void MarkUnselected (int from, int to) {
+         if (from < 0) from = 0;
+         if (to >= partialLines.Count) to = partialLines.Count - 1;
          logger.Log (_LogType.ltTimerStart, "MarkUnselected"); //PW clear later
          long mask = ~LineFlags.SELECTED;
          for (int i = from; i < to; i++) {
@@ -1086,11 +1097,31 @@ namespace Bitmanager.BigFile {
          }
          logger.Log (_LogType.ltTimerStop, "MarkUnselected took");
       }
+      public void MarkUnselected (int from, int to, List<int> filter) {
+         if (from < 0) from = 0;
+         if (to > filter.Count) to = filter.Count;
+         logger.Log (_LogType.ltTimerStart, "MarkUnselected filter"); //PW clear later
+         long mask = ~LineFlags.SELECTED;
+         for (int i = from; i < to; i++) {
+            partialLines[filter[i]] &= mask;
+         }
+         logger.Log (_LogType.ltTimerStop, "MarkUnselected took");
+      }
 
       public void ToggleSelected (int from, int to) {
+         if (from < 0) from = 0;
+         if (to >= partialLines.Count) to = partialLines.Count - 1;
          long mask = LineFlags.SELECTED;
          for (int i = from; i < to; i++) {
             partialLines[i] ^= mask;
+         }
+      }
+      public void ToggleSelected (int from, int to, List<int> filter) {
+         if (from < 0) from = 0;
+         if (to > filter.Count) to = filter.Count;
+         long mask = LineFlags.SELECTED;
+         for (int i = from; i < to; i++) {
+            partialLines[filter[i]] ^= mask;
          }
       }
 

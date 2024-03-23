@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+//#define ENABLE_DUMP_SELECTION
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -443,19 +443,11 @@ namespace Bitmanager.BigFile {
          lf.Search (lastQuery, cancellationTokenSource.Token);
       }
 
-
       private List<int> getSelectedLineIndexes (int maxCount, out bool truncated) {
          truncated = false;
          if (lf == null) return null;
          var selected = lf.GetSelectedPartialLines (maxCount, out truncated);
          if (selected.Count == 0) return null;
-
-         var filter = gridLines.Filter;
-         if (filter != null) {
-            var list = new List<int> (selected.Count);
-            foreach (int x in selected) list.Add (filter[x]);
-            selected = list;
-         }
 
          return lf.ConvertToLines (selected);
       }
@@ -994,6 +986,14 @@ namespace Bitmanager.BigFile {
                   gotoLine (int.MaxValue, GotoType.Row); break;
                case Keys.F3:
                   gotoPrevHit (); break;
+
+#if ENABLE_DUMP_SELECTION
+               //Dumping current selection on Ctrl-F12
+               case Keys.F12:
+                  dumpSelected (lf.GetSelectedPartialLines (100000, out var _), "partial");
+                  break;
+#endif
+                  
             }
             e.Handled = true;
             return;
@@ -1007,6 +1007,16 @@ namespace Bitmanager.BigFile {
          }
          e.Handled = true;
       }
+
+      //Debug code to check on selections
+      private void dumpSelected (List<int> list, string what) {
+         var logger = Globals.MainLogger;
+         logger.Log ("Dumping {0} {1} lines", list.Count, what);
+         for (int i = 0; i < list.Count; i++) {
+            logger.Log ("-- {0}: {1}", i, list[i]);
+         }
+      }
+
 
       private void gotoNextHit (int? _row=null) {
          if (lf == null) return;
@@ -1103,7 +1113,7 @@ namespace Bitmanager.BigFile {
          var cb = sender as ToolStripComboBox;
          int ix = cb.SelectedIndex;
          if (ix < 0) return;
-         LogFile.DbgStr = (String)cb.Items[ix];
+         LogFile.DbgStr = (string)cb.Items[ix];
       }
 
       #region selection-logic
@@ -1121,21 +1131,28 @@ namespace Bitmanager.BigFile {
 
       private void selectionHandler_Add (int from, int to) {
          if (lf == null) return;
-         if (to >= gridLines.RowCount) to = gridLines.RowCount;
-         lf.MarkSelected (gridLines.GridRowToRow (from), gridLines.GridRowToRow (to));
+         if (gridLines.Filter != null)
+            lf.MarkSelected (from, to, gridLines.Filter);
+         else
+            lf.MarkSelected (from, to);
          gridLines.Invalidate ();
-         logger.Log ("done");
       }
+
       private void selectionHandler_Remove (int from, int to) {
          if (lf == null) return;
-         if (to >= gridLines.RowCount) to = gridLines.RowCount;
-         lf.MarkUnselected (gridLines.GridRowToRow (from), gridLines.GridRowToRow (to));
+         if (gridLines.Filter != null)
+            lf.MarkUnselected (from, to, gridLines.Filter);
+         else
+            lf.MarkUnselected (from, to);
          gridLines.Invalidate ();
       }
+
       private void selectionHandler_Toggle (int from, int to) {
          if (lf == null) return;
-         if (to >= gridLines.RowCount) to = gridLines.RowCount;
-         lf.ToggleSelected (gridLines.GridRowToRow (from), gridLines.GridRowToRow (to));
+         if (gridLines.Filter != null)
+            lf.ToggleSelected (from, to, gridLines.Filter);
+         else
+            lf.ToggleSelected (from, to);
          gridLines.Invalidate ();
       }
       #endregion
