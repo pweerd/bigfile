@@ -46,7 +46,7 @@ namespace Bitmanager.BigFile {
             var fn = IOUtils.FindFileToRoot (Globals.LoadDir + @"\about.txt", FindToTootFlags.Except);
             richTextBox1.Text = IOUtils.LoadFromFile (fn);
          }
-         if (year != null) richTextBox1.Rtf = richTextBox1.Rtf.Replace ("2019", year);
+         if (year != null && year != "2024") richTextBox1.Rtf = richTextBox1.Rtf.Replace ("2024", year);
          richTextBox1.ShowSelectionMargin = true;
          var m = richTextBox1.Margin;
          m.All = 10;

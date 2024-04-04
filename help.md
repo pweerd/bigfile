@@ -1,13 +1,13 @@
-﻿# BigFile (V1.2.2024.0323)
+﻿# BigFile (V2.0.2024.0404)
 
 BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems. Typical used as a viewer for:
 
 - very large logfiles
 - very large json dumps
-- very large xml-dums
+- very large xml-dumps
 - etc
 
-NB: If the interface shows a big yellow exclamation mark, you probably miss the Bitmanager Core Components. Bigfile will work, but much slower. The core components can be downloaded from (https://bitmanager.nl/distrib).
+NB: If the interface shows a big yellow exclamation mark, you probably miss the Bitmanager Core Components. Bigfile will work in that case, but much slower. The core components can be downloaded from (https://bitmanager.nl/distrib).
 
 The following provides a brief help guide for the core operations of BigFile.
 
@@ -109,11 +109,13 @@ There are two modes for filtering; hide matched and show matched. Filtering and 
 
 ## Detail view
 
-If you double click on a line, a new form is opened where the current line is viewed in a textbox. The form will be reused whenever a different line is opened, unless you you the alt-key. Using the alt-key makes sure that a new window is opened.
+If you double click on a line, a new form is opened where the current line is viewed in a textbox.
+The form will be reused whenever a different line is opened, unless you use the alt-key. Using the alt-key makes sure that a ***new*** window is opened.
 
-The formatting can be changed between auto (default), text, json, xml and csv.
+The formatting can be changed between auto (default), text, json, xml, csv, hex(bytes) and hex(chars).
 In auto-mode, a quick check is done for the content type and the text is formatted in that content type. In case of errors, it is shown as text.
 Some formatters support a 'normalized' mode (click the wrench button). For instance, when normalize mode, all keys in a json object will be sorted.
+The difference between hex(bytes) and hex(chars) is that the first shows the backing bytes as hex, while the latter shows the UTF16-charcodes for each char.
 
 Eventual hits (after a search) are highlighted, and one can navigate between the hits via the same navigation keys as in the main window.
 
@@ -193,13 +195,15 @@ I used his Grid as a starting point.
 
 ## Changes
 
-#### V1.2.2024.0323
+#### V2.0.2024.0404
 
 - Many bugfixes
 - Supporting more archives via 7zip (If 7z.exe is found). Also Bitmanager's FileStorage is supported.
 - Fallback to SharpZLib if .Net's native ZipArchive fails.
 - Archive entries are accessible via an auto-complete.
-- Archives are cached (1 at the moment). This speeds up processing of archives with a lot of entries. 
+- Archives are cached (1 at the moment). This speeds up processing of archives with a lot of entries.
+- Hex views in the detail view.
+  
 
 #### V1.1.2023.0202
 
