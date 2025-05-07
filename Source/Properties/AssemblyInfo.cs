@@ -16,6 +16,7 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -25,11 +26,12 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("De Bitmanager")]
 [assembly: AssemblyProduct("BigFile")]
-[assembly: AssemblyCopyright("Copyright © 2024 De Bitmanager")]
+[assembly: AssemblyCopyright("Copyright © 2025 De Bitmanager")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+[assembly: SupportedOSPlatform ("windows")]
 
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("2.0.2024.0404")]
-[assembly: AssemblyFileVersion("2.0.2024.0404")]
+[assembly: AssemblyVersion("2.0.2025.0507")]
+[assembly: AssemblyFileVersion("2.0.2025.0507")]
