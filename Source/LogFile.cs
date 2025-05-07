@@ -660,9 +660,13 @@ namespace Bitmanager.BigFile {
             }
          }
 
-         using (var entryStrm = stor.GetStream (zipEntries.SelectedItem.FullName))
-         using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
-            loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+         if (zipEntries.SelectedItem == null)
+            loadEmpty();
+         else {
+            using (var entryStrm = stor.GetStream (zipEntries.SelectedItem.FullName))
+            using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
+               loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+         }
       }
 
       private FileEncoding detectEncodingAndAddFirstLine (IOBlock buffer) {
