@@ -25,6 +25,7 @@ using System.Threading;
 
 namespace Bitmanager.BigFile.Tests {
    [TestClass]
+   [System.Diagnostics.CodeAnalysis.SuppressMessage ("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>")]
    public class LimitedLoadingTest : TestBaseSimple { //FileRepo
       const string FN = "z:\\test.txt";
       const string FNGZ = "z:\\test.txt.gz";
@@ -39,7 +40,7 @@ namespace Bitmanager.BigFile.Tests {
          settings.CompressMemoryIfBigger.Set ("1");
          testSkipLines (settings, FN);
          testSkipLines (settings, FNGZ);
-         settings.LoadMemoryIfBigger.Set ("1");
+         settings.AllowInMemory.Set ("true");
          testSkipLines (settings, FN);
          testSkipLines (settings, FNGZ);
       }
@@ -51,7 +52,7 @@ namespace Bitmanager.BigFile.Tests {
          settings.CompressMemoryIfBigger.Set ("1");
          testSkipOffset (settings, FN);
          testSkipOffset (settings, FNGZ);
-         settings.LoadMemoryIfBigger.Set ("1");
+         settings.AllowInMemory.Set ("true");
          testSkipOffset (settings, FN);
          testSkipOffset (settings, FNGZ);
       }

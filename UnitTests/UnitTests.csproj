@@ -5,6 +5,7 @@
     <Nullable>disable</Nullable>
      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
      <IsPackable>false</IsPackable>
+     <NoWarn>CA1416</NoWarn>
   </PropertyGroup>
    <ItemGroup>
       <None Remove="*.bak" />

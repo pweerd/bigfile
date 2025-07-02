@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
-    Microsoft ResX Schema 
+    Microsoft ResX Schema
 
     Version 2.0
 
@@ -48,7 +48,7 @@
     value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
     value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
@@ -121,7 +121,7 @@
   <data name="pictureBox1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        wQAADsEBuJFr7QAAC4tJREFUeF7tnFtQlMkVxydJZfcheUhVHpJU3rZqX5I8eanUpirlyoyKGHVLY6KV
+        wAAADsABataJCQAAC4tJREFUeF7tnFtQlMkVxydJZfcheUhVHpJU3rZqX5I8eanUpirlyoyKGHVLY6KV
         BS8IuCqKKzPM980MAzMgFxUE5gLMMNwvAgqoXAVFUEFRXN3F1VLRjaumNrvuetlYyaon5/T0MFyai3eU
         71T9Zebrr093//p091yOo1JMMcUUU0wxxRRTTLEXYbboWb+269Uz7ZJmiUPWROHfVLukduHjKoesbkWd
         ssuaK/j8ul1W3/bJIWl+wGvAhI+HlLF7qY76lNeHpop8en1rNlNb2bJmhksK+BXvxuQ3m3nWzx2GOQE4
@@ -174,15 +174,14 @@
 </value>
   </data>
   <data name="richTextBox1.Text" xml:space="preserve">
-    <value>
-BigFile (c) 2024 - De Bitmanager (https://bitmanager.nl)
+    <value>BigFile (c) 2022 - De Bitmanager (https://bitmanager.nl)
 
 BigFile is inspired by Woanware's LogViewer (https://github.com/woanware/LogViewer)
 Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.
 
 The biggest changes are:
 - Very fast loading/searching 
-- Loading of .gz / .zip and other (via 7zip) compressed files
+- Loading of .gz / .zip files
 - In memory loading
 - For large files (15GB is large?) memory compression is used.
 - Encoding can be changed dynamically
@@ -190,15 +189,14 @@ The biggest changes are:
 - Multi-threaded search, as well as caching previous searches
 - Super fast grid that supports 2 billion rows (the ListView stopped at 100M)
 
-The project can be downloaded from https://github.com/pweerd/bigfile
+The project is available at https://github.com/pweerd/bigfile
 
 Credits:
 - Mark Woan (https://www.woanware.co.uk)
 - Tomasz Rewak ( https://github.com/TomaszRewak/DynamicGrid)
 - SharpZipLib (https://github.com/icsharpcode/SharpZipLib)
 - LZ4 - Fast LZ compression algorithm (http://fastcompression.blogspot.com/p/lz4.html)
-- Icons8 (https://icons8.com)
-</value>
+- Icons8 (https://icons8.com)</value>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

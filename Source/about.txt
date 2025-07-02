@@ -14,7 +14,7 @@ The biggest changes are:
 - Multi-threaded search, as well as caching previous searches
 - Super fast grid that supports 2 billion rows (the ListView stopped at 100M)
 
-The project can be downloaded from https://github.com/pweerd/bigfile
+The project is available at https://github.com/pweerd/bigfile
 
 Credits:
 - Mark Woan (https://www.woanware.co.uk)

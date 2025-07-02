@@ -25,6 +25,7 @@ using Bitmanager.Core;
 
 namespace Bitmanager.BigFile.Tests {
    [TestClass]
+   [System.Diagnostics.CodeAnalysis.SuppressMessage ("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>")]
    public class LogFileTests : TestBase {
       private readonly SettingsSource settingsSource;
       public LogFileTests () {
@@ -112,7 +113,7 @@ namespace Bitmanager.BigFile.Tests {
       public void TestCompressErrors () {
          var settingsSource = new SettingsSource ();
          settingsSource.CompressMemoryIfBigger.Set ("0");
-         settingsSource.LoadMemoryIfBigger.Set ("0");
+         settingsSource.AllowInMemory.Set ("true");
          var cb = new CB ();
          var logFile = new LogFile (cb, settingsSource.ActualizeDefaults (), null, -1);
          logFile.Load (dataDir + "compress-errors.txt", CancellationToken.None).Wait ();
@@ -206,7 +207,7 @@ namespace Bitmanager.BigFile.Tests {
          return lf.GetMatchedList (0).Count;
       }
 
-      private int search (LogFile lf, string x, SearchNodes? searchNodes = null) {
+      private int search (LogFile lf, string x, SearchNodes searchNodes = null) {
          if (searchNodes == null) searchNodes = new SearchNodes ();
          lf.Search (searchNodes.Parse (x), CancellationToken.None).Wait ();
          return lf.GetMatchedList (0).Count;
@@ -342,7 +343,7 @@ namespace Bitmanager.BigFile.Tests {
 
    public class CB : ILogFileCallback {
       Logger logger = Globals.MainLogger.Clone ("testcb");
-      public Result? Result;
+      public Result Result;
 
       public void OnExportComplete (ExportResult result) {
          logger.Log ("OnExportComplete");

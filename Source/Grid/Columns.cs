@@ -89,7 +89,7 @@ namespace Bitmanager.Grid {
       public readonly int Width;
       public readonly int GlobalOffset;
 
-      public readonly Font? Font;
+      public readonly Font Font;
       public readonly FontStyle FontStyle;
       public readonly Color? ForeColor;
       public readonly Color? BackColor;

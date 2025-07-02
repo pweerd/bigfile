@@ -36,384 +36,350 @@ namespace Bitmanager.BigFile
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+      #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
-        private void InitializeComponent()
-        {
-         System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormSettings));
-         this.comboNumLines = new System.Windows.Forms.ComboBox();
-         this.label1 = new System.Windows.Forms.Label();
-         this.buttonCancel = new System.Windows.Forms.Button();
-         this.buttonOK = new System.Windows.Forms.Button();
-         this.colorDialog1 = new System.Windows.Forms.ColorDialog();
-         this.label2 = new System.Windows.Forms.Label();
-         this.txtHilight = new System.Windows.Forms.TextBox();
-         this.label3 = new System.Windows.Forms.Label();
-         this.txtContext = new System.Windows.Forms.TextBox();
-         this.cbSearchThreads = new System.Windows.Forms.ComboBox();
-         this.label5 = new System.Windows.Forms.Label();
-         this.label6 = new System.Windows.Forms.Label();
-         this.cbInMemory = new System.Windows.Forms.ComboBox();
-         this.label7 = new System.Windows.Forms.Label();
-         this.label8 = new System.Windows.Forms.Label();
-         this.cbCompress = new System.Windows.Forms.ComboBox();
-         this.label9 = new System.Windows.Forms.Label();
-         this.cbLineLength = new System.Windows.Forms.ComboBox();
-         this.label10 = new System.Windows.Forms.Label();
-         this.label11 = new System.Windows.Forms.Label();
-         this.txtMaxCopySize = new System.Windows.Forms.TextBox();
-         this.txtMaxCopyLines = new System.Windows.Forms.TextBox();
-         this.label4 = new System.Windows.Forms.Label();
-         this.label12 = new System.Windows.Forms.Label();
-         this.label13 = new System.Windows.Forms.Label();
-         this.label14 = new System.Windows.Forms.Label();
-         this.txtHandledBySevenZip = new System.Windows.Forms.TextBox();
-         this.SuspendLayout();
+      /// <summary>
+      /// Required method for Designer support - do not modify
+      /// the contents of this method with the code editor.
+      /// </summary>
+      private void InitializeComponent () {
+         System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager (typeof (FormSettings));
+         comboNumLines = new ComboBox ();
+         label1 = new Label ();
+         buttonCancel = new Button ();
+         buttonOK = new Button ();
+         colorDialog1 = new ColorDialog ();
+         label2 = new Label ();
+         txtHilight = new TextBox ();
+         label3 = new Label ();
+         txtContext = new TextBox ();
+         cbSearchThreads = new ComboBox ();
+         label5 = new Label ();
+         label6 = new Label ();
+         label7 = new Label ();
+         label8 = new Label ();
+         cbCompress = new ComboBox ();
+         label9 = new Label ();
+         cbLineLength = new ComboBox ();
+         label10 = new Label ();
+         label11 = new Label ();
+         txtMaxCopySize = new TextBox ();
+         txtMaxCopyLines = new TextBox ();
+         label4 = new Label ();
+         label12 = new Label ();
+         label13 = new Label ();
+         label14 = new Label ();
+         txtHandledBySevenZip = new TextBox ();
+         chkAllowInMemory = new CheckBox ();
+         SuspendLayout ();
          // 
          // comboNumLines
          // 
-         this.comboNumLines.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-         this.comboNumLines.FormattingEnabled = true;
-         this.comboNumLines.Items.AddRange(new object[] {
-            "0",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"});
-         this.comboNumLines.Location = new System.Drawing.Point(135, 20);
-         this.comboNumLines.Margin = new System.Windows.Forms.Padding(2);
-         this.comboNumLines.Name = "comboNumLines";
-         this.comboNumLines.Size = new System.Drawing.Size(72, 23);
-         this.comboNumLines.TabIndex = 1;
+         comboNumLines.DropDownStyle = ComboBoxStyle.DropDownList;
+         comboNumLines.FormattingEnabled = true;
+         comboNumLines.Items.AddRange (new object[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" });
+         comboNumLines.Location = new Point (135, 20);
+         comboNumLines.Margin = new Padding (2);
+         comboNumLines.Name = "comboNumLines";
+         comboNumLines.Size = new Size (72, 23);
+         comboNumLines.TabIndex = 1;
          // 
          // label1
          // 
-         this.label1.AutoSize = true;
-         this.label1.Location = new System.Drawing.Point(22, 23);
-         this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-         this.label1.Name = "label1";
-         this.label1.Size = new System.Drawing.Size(83, 15);
-         this.label1.TabIndex = 2;
-         this.label1.Text = "#Context lines";
+         label1.AutoSize = true;
+         label1.Location = new Point (22, 23);
+         label1.Margin = new Padding (2, 0, 2, 0);
+         label1.Name = "label1";
+         label1.Size = new Size (83, 15);
+         label1.TabIndex = 2;
+         label1.Text = "#Context lines";
          // 
          // buttonCancel
          // 
-         this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-         this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.buttonCancel.Location = new System.Drawing.Point(365, 420);
-         this.buttonCancel.Margin = new System.Windows.Forms.Padding(2);
-         this.buttonCancel.Name = "buttonCancel";
-         this.buttonCancel.Size = new System.Drawing.Size(93, 30);
-         this.buttonCancel.TabIndex = 4;
-         this.buttonCancel.Text = "Cancel";
-         this.buttonCancel.UseVisualStyleBackColor = true;
-         this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
+         buttonCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+         buttonCancel.DialogResult = DialogResult.Cancel;
+         buttonCancel.Location = new Point (365, 420);
+         buttonCancel.Margin = new Padding (2);
+         buttonCancel.Name = "buttonCancel";
+         buttonCancel.Size = new Size (93, 30);
+         buttonCancel.TabIndex = 4;
+         buttonCancel.Text = "Cancel";
+         buttonCancel.UseVisualStyleBackColor = true;
+         buttonCancel.Click += buttonCancel_Click;
          // 
          // buttonOK
          // 
-         this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-         this.buttonOK.Location = new System.Drawing.Point(267, 420);
-         this.buttonOK.Margin = new System.Windows.Forms.Padding(2);
-         this.buttonOK.Name = "buttonOK";
-         this.buttonOK.Size = new System.Drawing.Size(93, 30);
-         this.buttonOK.TabIndex = 3;
-         this.buttonOK.Text = "OK";
-         this.buttonOK.UseVisualStyleBackColor = true;
-         this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
+         buttonOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+         buttonOK.Location = new Point (267, 420);
+         buttonOK.Margin = new Padding (2);
+         buttonOK.Name = "buttonOK";
+         buttonOK.Size = new Size (93, 30);
+         buttonOK.TabIndex = 3;
+         buttonOK.Text = "OK";
+         buttonOK.UseVisualStyleBackColor = true;
+         buttonOK.Click += buttonOK_Click;
          // 
          // label2
          // 
-         this.label2.AutoSize = true;
-         this.label2.Location = new System.Drawing.Point(22, 51);
-         this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label2.Name = "label2";
-         this.label2.Size = new System.Drawing.Size(86, 15);
-         this.label2.TabIndex = 5;
-         this.label2.Text = "HighlightColor";
+         label2.AutoSize = true;
+         label2.Location = new Point (22, 51);
+         label2.Margin = new Padding (4, 0, 4, 0);
+         label2.Name = "label2";
+         label2.Size = new Size (86, 15);
+         label2.TabIndex = 5;
+         label2.Text = "HighlightColor";
          // 
          // txtHilight
          // 
-         this.txtHilight.Location = new System.Drawing.Point(135, 48);
-         this.txtHilight.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.txtHilight.Name = "txtHilight";
-         this.txtHilight.ReadOnly = true;
-         this.txtHilight.Size = new System.Drawing.Size(116, 23);
-         this.txtHilight.TabIndex = 6;
-         this.txtHilight.Click += new System.EventHandler(this.colorBox_Click);
+         txtHilight.Location = new Point (135, 48);
+         txtHilight.Margin = new Padding (4, 3, 4, 3);
+         txtHilight.Name = "txtHilight";
+         txtHilight.ReadOnly = true;
+         txtHilight.Size = new Size (116, 23);
+         txtHilight.TabIndex = 6;
+         txtHilight.Click += colorBox_Click;
          // 
          // label3
          // 
-         this.label3.AutoSize = true;
-         this.label3.Location = new System.Drawing.Point(22, 80);
-         this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label3.Name = "label3";
-         this.label3.Size = new System.Drawing.Size(78, 15);
-         this.label3.TabIndex = 7;
-         this.label3.Text = "ContextColor";
+         label3.AutoSize = true;
+         label3.Location = new Point (22, 80);
+         label3.Margin = new Padding (4, 0, 4, 0);
+         label3.Name = "label3";
+         label3.Size = new Size (78, 15);
+         label3.TabIndex = 7;
+         label3.Text = "ContextColor";
          // 
          // txtContext
          // 
-         this.txtContext.Location = new System.Drawing.Point(135, 77);
-         this.txtContext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.txtContext.Name = "txtContext";
-         this.txtContext.ReadOnly = true;
-         this.txtContext.Size = new System.Drawing.Size(116, 23);
-         this.txtContext.TabIndex = 8;
-         this.txtContext.Click += new System.EventHandler(this.colorBox_Click);
+         txtContext.Location = new Point (135, 77);
+         txtContext.Margin = new Padding (4, 3, 4, 3);
+         txtContext.Name = "txtContext";
+         txtContext.ReadOnly = true;
+         txtContext.Size = new Size (116, 23);
+         txtContext.TabIndex = 8;
+         txtContext.Click += colorBox_Click;
          // 
          // cbSearchThreads
          // 
-         this.cbSearchThreads.FormattingEnabled = true;
-         this.cbSearchThreads.Items.AddRange(new object[] {
-            "auto",
-            "1",
-            "2",
-            "3",
-            "4"});
-         this.cbSearchThreads.Location = new System.Drawing.Point(134, 128);
-         this.cbSearchThreads.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.cbSearchThreads.Name = "cbSearchThreads";
-         this.cbSearchThreads.Size = new System.Drawing.Size(116, 23);
-         this.cbSearchThreads.TabIndex = 14;
+         cbSearchThreads.FormattingEnabled = true;
+         cbSearchThreads.Items.AddRange (new object[] { "auto", "1", "2", "3", "4" });
+         cbSearchThreads.Location = new Point (134, 128);
+         cbSearchThreads.Margin = new Padding (4, 3, 4, 3);
+         cbSearchThreads.Name = "cbSearchThreads";
+         cbSearchThreads.Size = new Size (116, 23);
+         cbSearchThreads.TabIndex = 14;
          // 
          // label5
          // 
-         this.label5.AutoSize = true;
-         this.label5.Location = new System.Drawing.Point(22, 131);
-         this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label5.Name = "label5";
-         this.label5.Size = new System.Drawing.Size(91, 15);
-         this.label5.TabIndex = 15;
-         this.label5.Text = "#Search threads";
+         label5.AutoSize = true;
+         label5.Location = new Point (22, 131);
+         label5.Margin = new Padding (4, 0, 4, 0);
+         label5.Name = "label5";
+         label5.Size = new Size (91, 15);
+         label5.TabIndex = 15;
+         label5.Text = "#Search threads";
          // 
          // label6
          // 
-         this.label6.AutoSize = true;
-         this.label6.Location = new System.Drawing.Point(267, 131);
-         this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label6.Name = "label6";
-         this.label6.Size = new System.Drawing.Size(38, 15);
-         this.label6.TabIndex = 16;
-         this.label6.Text = "label6";
-         // 
-         // cbInMemory
-         // 
-         this.cbInMemory.FormattingEnabled = true;
-         this.cbInMemory.Items.AddRange(new object[] {
-            "Auto",
-            "Off",
-            "1GB",
-            "2GB"});
-         this.cbInMemory.Location = new System.Drawing.Point(134, 157);
-         this.cbInMemory.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.cbInMemory.Name = "cbInMemory";
-         this.cbInMemory.Size = new System.Drawing.Size(117, 23);
-         this.cbInMemory.TabIndex = 17;
+         label6.AutoSize = true;
+         label6.Location = new Point (267, 131);
+         label6.Margin = new Padding (4, 0, 4, 0);
+         label6.Name = "label6";
+         label6.Size = new Size (38, 15);
+         label6.TabIndex = 16;
+         label6.Text = "label6";
          // 
          // label7
          // 
-         this.label7.AutoSize = true;
-         this.label7.Location = new System.Drawing.Point(22, 160);
-         this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label7.Name = "label7";
-         this.label7.Size = new System.Drawing.Size(86, 15);
-         this.label7.TabIndex = 18;
-         this.label7.Text = "In memory if >";
+         label7.AutoSize = true;
+         label7.Location = new Point (22, 160);
+         label7.Margin = new Padding (4, 0, 4, 0);
+         label7.Name = "label7";
+         label7.Size = new Size (98, 15);
+         label7.TabIndex = 18;
+         label7.Text = "Allow in memory";
          // 
          // label8
          // 
-         this.label8.AutoSize = true;
-         this.label8.Location = new System.Drawing.Point(22, 189);
-         this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label8.Name = "label8";
-         this.label8.Size = new System.Drawing.Size(81, 15);
-         this.label8.TabIndex = 20;
-         this.label8.Text = "Compress if >";
+         label8.AutoSize = true;
+         label8.Location = new Point (22, 189);
+         label8.Margin = new Padding (4, 0, 4, 0);
+         label8.Name = "label8";
+         label8.Size = new Size (81, 15);
+         label8.TabIndex = 20;
+         label8.Text = "Compress if >";
          // 
          // cbCompress
          // 
-         this.cbCompress.FormattingEnabled = true;
-         this.cbCompress.Items.AddRange(new object[] {
-            "Auto",
-            "Off",
-            "1GB",
-            "2GB",
-            "3GB",
-            "4GB"});
-         this.cbCompress.Location = new System.Drawing.Point(134, 186);
-         this.cbCompress.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.cbCompress.Name = "cbCompress";
-         this.cbCompress.Size = new System.Drawing.Size(116, 23);
-         this.cbCompress.TabIndex = 21;
+         cbCompress.FormattingEnabled = true;
+         cbCompress.Items.AddRange (new object[] { "Auto", "Off", "1GB", "2GB", "3GB", "4GB" });
+         cbCompress.Location = new Point (134, 186);
+         cbCompress.Margin = new Padding (4, 3, 4, 3);
+         cbCompress.Name = "cbCompress";
+         cbCompress.Size = new Size (116, 23);
+         cbCompress.TabIndex = 21;
          // 
          // label9
          // 
-         this.label9.AutoSize = true;
-         this.label9.Location = new System.Drawing.Point(267, 189);
-         this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label9.Name = "label9";
-         this.label9.Size = new System.Drawing.Size(38, 15);
-         this.label9.TabIndex = 22;
-         this.label9.Text = "label9";
+         label9.AutoSize = true;
+         label9.Location = new Point (267, 189);
+         label9.Margin = new Padding (4, 0, 4, 0);
+         label9.Name = "label9";
+         label9.Size = new Size (38, 15);
+         label9.TabIndex = 22;
+         label9.Text = "label9";
          // 
          // cbLineLength
          // 
-         this.cbLineLength.FormattingEnabled = true;
-         this.cbLineLength.Items.AddRange(new object[] {
-            "auto",
-            "1MB",
-            "2MB",
-            "10MB",
-            "20MB",
-            "32MB",
-            "off"});
-         this.cbLineLength.Location = new System.Drawing.Point(134, 215);
-         this.cbLineLength.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.cbLineLength.Name = "cbLineLength";
-         this.cbLineLength.Size = new System.Drawing.Size(116, 23);
-         this.cbLineLength.TabIndex = 23;
+         cbLineLength.FormattingEnabled = true;
+         cbLineLength.Items.AddRange (new object[] { "auto", "1MB", "2MB", "10MB", "20MB", "32MB", "off" });
+         cbLineLength.Location = new Point (134, 215);
+         cbLineLength.Margin = new Padding (4, 3, 4, 3);
+         cbLineLength.Name = "cbLineLength";
+         cbLineLength.Size = new Size (116, 23);
+         cbLineLength.TabIndex = 23;
          // 
          // label10
          // 
-         this.label10.AutoSize = true;
-         this.label10.Location = new System.Drawing.Point(22, 218);
-         this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label10.Name = "label10";
-         this.label10.Size = new System.Drawing.Size(74, 15);
-         this.label10.TabIndex = 24;
-         this.label10.Text = "Max line size";
+         label10.AutoSize = true;
+         label10.Location = new Point (22, 218);
+         label10.Margin = new Padding (4, 0, 4, 0);
+         label10.Name = "label10";
+         label10.Size = new Size (74, 15);
+         label10.TabIndex = 24;
+         label10.Text = "Max line size";
          // 
          // label11
          // 
-         this.label11.AutoSize = true;
-         this.label11.Location = new System.Drawing.Point(264, 267);
-         this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label11.Name = "label11";
-         this.label11.Size = new System.Drawing.Size(180, 15);
-         this.label11.TabIndex = 25;
-         this.label11.Text = "(when the line details are shown)";
+         label11.AutoSize = true;
+         label11.Location = new Point (264, 267);
+         label11.Margin = new Padding (4, 0, 4, 0);
+         label11.Name = "label11";
+         label11.Size = new Size (180, 15);
+         label11.TabIndex = 25;
+         label11.Text = "(when the line details are shown)";
          // 
          // txtMaxCopySize
          // 
-         this.txtMaxCopySize.Location = new System.Drawing.Point(134, 264);
-         this.txtMaxCopySize.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.txtMaxCopySize.Name = "txtMaxCopySize";
-         this.txtMaxCopySize.Size = new System.Drawing.Size(116, 23);
-         this.txtMaxCopySize.TabIndex = 26;
+         txtMaxCopySize.Location = new Point (134, 264);
+         txtMaxCopySize.Margin = new Padding (4, 3, 4, 3);
+         txtMaxCopySize.Name = "txtMaxCopySize";
+         txtMaxCopySize.Size = new Size (116, 23);
+         txtMaxCopySize.TabIndex = 26;
          // 
          // txtMaxCopyLines
          // 
-         this.txtMaxCopyLines.Location = new System.Drawing.Point(134, 293);
-         this.txtMaxCopyLines.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-         this.txtMaxCopyLines.Name = "txtMaxCopyLines";
-         this.txtMaxCopyLines.Size = new System.Drawing.Size(116, 23);
-         this.txtMaxCopyLines.TabIndex = 27;
+         txtMaxCopyLines.Location = new Point (134, 293);
+         txtMaxCopyLines.Margin = new Padding (4, 3, 4, 3);
+         txtMaxCopyLines.Name = "txtMaxCopyLines";
+         txtMaxCopyLines.Size = new Size (116, 23);
+         txtMaxCopyLines.TabIndex = 27;
          // 
          // label4
          // 
-         this.label4.AutoSize = true;
-         this.label4.Location = new System.Drawing.Point(22, 296);
-         this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label4.Name = "label4";
-         this.label4.Size = new System.Drawing.Size(107, 15);
-         this.label4.TabIndex = 28;
-         this.label4.Text = "Max #lines to copy";
+         label4.AutoSize = true;
+         label4.Location = new Point (22, 296);
+         label4.Margin = new Padding (4, 0, 4, 0);
+         label4.Name = "label4";
+         label4.Size = new Size (107, 15);
+         label4.TabIndex = 28;
+         label4.Text = "Max #lines to copy";
          // 
          // label12
          // 
-         this.label12.AutoSize = true;
-         this.label12.Location = new System.Drawing.Point(22, 267);
-         this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label12.Name = "label12";
-         this.label12.Size = new System.Drawing.Size(81, 15);
-         this.label12.TabIndex = 29;
-         this.label12.Text = "Max copy size";
+         label12.AutoSize = true;
+         label12.Location = new Point (22, 267);
+         label12.Margin = new Padding (4, 0, 4, 0);
+         label12.Name = "label12";
+         label12.Size = new Size (81, 15);
+         label12.TabIndex = 29;
+         label12.Text = "Max copy size";
          // 
          // label13
          // 
-         this.label13.AutoSize = true;
-         this.label13.Location = new System.Drawing.Point(264, 296);
-         this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-         this.label13.Name = "label13";
-         this.label13.Size = new System.Drawing.Size(99, 15);
-         this.label13.TabIndex = 30;
-         this.label13.Text = "(Clipboard limits)";
+         label13.AutoSize = true;
+         label13.Location = new Point (264, 296);
+         label13.Margin = new Padding (4, 0, 4, 0);
+         label13.Name = "label13";
+         label13.Size = new Size (99, 15);
+         label13.TabIndex = 30;
+         label13.Text = "(Clipboard limits)";
          // 
          // label14
          // 
-         this.label14.AutoSize = true;
-         this.label14.Location = new System.Drawing.Point(22, 346);
-         this.label14.Name = "label14";
-         this.label14.Size = new System.Drawing.Size(103, 15);
-         this.label14.TabIndex = 32;
-         this.label14.Text = "Handled by 7z.exe";
+         label14.AutoSize = true;
+         label14.Location = new Point (22, 346);
+         label14.Name = "label14";
+         label14.Size = new Size (103, 15);
+         label14.TabIndex = 32;
+         label14.Text = "Handled by 7z.exe";
          // 
          // txtHandledBySevenZip
          // 
-         this.txtHandledBySevenZip.Location = new System.Drawing.Point(135, 343);
-         this.txtHandledBySevenZip.Name = "txtHandledBySevenZip";
-         this.txtHandledBySevenZip.Size = new System.Drawing.Size(309, 23);
-         this.txtHandledBySevenZip.TabIndex = 33;
+         txtHandledBySevenZip.Location = new Point (135, 343);
+         txtHandledBySevenZip.Name = "txtHandledBySevenZip";
+         txtHandledBySevenZip.Size = new Size (309, 23);
+         txtHandledBySevenZip.TabIndex = 33;
+         // 
+         // chkAllowInMemory
+         // 
+         chkAllowInMemory.AutoSize = true;
+         chkAllowInMemory.Location = new Point (135, 160);
+         chkAllowInMemory.Name = "chkAllowInMemory";
+         chkAllowInMemory.Size = new Size (15, 14);
+         chkAllowInMemory.TabIndex = 34;
+         chkAllowInMemory.UseVisualStyleBackColor = true;
          // 
          // FormSettings
          // 
-         this.AcceptButton = this.buttonOK;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.CancelButton = this.buttonCancel;
-         this.ClientSize = new System.Drawing.Size(468, 459);
-         this.Controls.Add(this.txtHandledBySevenZip);
-         this.Controls.Add(this.label14);
-         this.Controls.Add(this.label13);
-         this.Controls.Add(this.label12);
-         this.Controls.Add(this.label4);
-         this.Controls.Add(this.txtMaxCopyLines);
-         this.Controls.Add(this.txtMaxCopySize);
-         this.Controls.Add(this.label11);
-         this.Controls.Add(this.label10);
-         this.Controls.Add(this.cbLineLength);
-         this.Controls.Add(this.label9);
-         this.Controls.Add(this.cbCompress);
-         this.Controls.Add(this.label8);
-         this.Controls.Add(this.label7);
-         this.Controls.Add(this.cbInMemory);
-         this.Controls.Add(this.label6);
-         this.Controls.Add(this.label5);
-         this.Controls.Add(this.cbSearchThreads);
-         this.Controls.Add(this.txtContext);
-         this.Controls.Add(this.label3);
-         this.Controls.Add(this.txtHilight);
-         this.Controls.Add(this.label2);
-         this.Controls.Add(this.buttonCancel);
-         this.Controls.Add(this.buttonOK);
-         this.Controls.Add(this.label1);
-         this.Controls.Add(this.comboNumLines);
-         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-         this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-         this.Margin = new System.Windows.Forms.Padding(2);
-         this.MaximizeBox = false;
-         this.MinimizeBox = false;
-         this.Name = "FormSettings";
-         this.ShowInTaskbar = false;
-         this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-         this.Text = "Configuration";
-         this.Load += new System.EventHandler(this.FormSettings_Load);
-         this.ResumeLayout(false);
-         this.PerformLayout();
+         AcceptButton = buttonOK;
+         AutoScaleDimensions = new SizeF (7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         CancelButton = buttonCancel;
+         ClientSize = new Size (468, 459);
+         Controls.Add (chkAllowInMemory);
+         Controls.Add (txtHandledBySevenZip);
+         Controls.Add (label14);
+         Controls.Add (label13);
+         Controls.Add (label12);
+         Controls.Add (label4);
+         Controls.Add (txtMaxCopyLines);
+         Controls.Add (txtMaxCopySize);
+         Controls.Add (label11);
+         Controls.Add (label10);
+         Controls.Add (cbLineLength);
+         Controls.Add (label9);
+         Controls.Add (cbCompress);
+         Controls.Add (label8);
+         Controls.Add (label7);
+         Controls.Add (label6);
+         Controls.Add (label5);
+         Controls.Add (cbSearchThreads);
+         Controls.Add (txtContext);
+         Controls.Add (label3);
+         Controls.Add (txtHilight);
+         Controls.Add (label2);
+         Controls.Add (buttonCancel);
+         Controls.Add (buttonOK);
+         Controls.Add (label1);
+         Controls.Add (comboNumLines);
+         FormBorderStyle = FormBorderStyle.FixedSingle;
+         Icon = (Icon)resources.GetObject ("$this.Icon");
+         Margin = new Padding (2);
+         MaximizeBox = false;
+         MinimizeBox = false;
+         Name = "FormSettings";
+         ShowInTaskbar = false;
+         StartPosition = FormStartPosition.CenterParent;
+         Text = "Configuration";
+         Load += FormSettings_Load;
+         ResumeLayout (false);
+         PerformLayout ();
 
-        }
+      }
 
-        #endregion
-        private System.Windows.Forms.ComboBox comboNumLines;
+      #endregion
+      private System.Windows.Forms.ComboBox comboNumLines;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Button buttonOK;
@@ -425,7 +391,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.ComboBox cbSearchThreads;
       private System.Windows.Forms.Label label5;
       private System.Windows.Forms.Label label6;
-      private System.Windows.Forms.ComboBox cbInMemory;
       private System.Windows.Forms.Label label7;
       private System.Windows.Forms.Label label8;
       private System.Windows.Forms.ComboBox cbCompress;
@@ -440,5 +405,6 @@ namespace Bitmanager.BigFile
       private System.Windows.Forms.Label label13;
       private Label label14;
       private TextBox txtHandledBySevenZip;
+      private CheckBox chkAllowInMemory;
    }
 }

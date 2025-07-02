@@ -580,8 +580,7 @@ namespace Bitmanager.BigFile {
                break;
 
             case JsonType.String:
-               JsonValue repl;
-               if (tryExpandJson ((string)x, out repl)) x = repl;
+               if (tryExpandJson ((string)x, out var repl)) x = repl;
                break;
          }
          return x;

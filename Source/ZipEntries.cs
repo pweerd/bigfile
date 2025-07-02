@@ -37,12 +37,12 @@ namespace Bitmanager.BigFile {
          base.Add(e);
       }
 
-      public void SortAndSelect (string archiveName, string entryName) {
+      public ZipEntry SortAndSelect (string archiveName, string entryName) {
          Sort (ZipEntry.SortSize);
-         Select (archiveName, entryName);
+         return Select (archiveName, entryName);
       }
 
-      public void Select (string archiveName, string entryName) {
+      public ZipEntry Select (string archiveName, string entryName) {
          long max = -1;
          int ixMax = -1;
          if (string.IsNullOrEmpty (entryName)) {
@@ -56,6 +56,7 @@ namespace Bitmanager.BigFile {
             SelectedItemIndex = FindIndex (x => x.FullName == entryName);
             if (SelectedItemIndex < 0) throw new BMException ("Requested entry '{0}' not found in archive '{1}'.", entryName, archiveName);
          }
+         return SelectedItemIndex < 0 ? null : this[SelectedItemIndex];
       }
 
       public int IndexOf (string entryName) {

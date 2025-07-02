@@ -38,7 +38,10 @@ namespace Bitmanager.BigFile {
    /// <summary>
    /// LogFile is responsible for loading the data and splitting it into lines.
    /// </summary>
-   public class LogFile {
+   public partial class LogFile {
+      private const int EXPECTED_GZ_RATIO = 4;
+      private const int EXPECTED_LZ4_RATIO = 3;
+
       static public string DbgStr = "gzip";
       static readonly Logger logger = Globals.MainLogger.Clone ("logfile");
       static readonly byte[] EMPTY_BYTES = new byte[0];
@@ -503,7 +506,7 @@ namespace Bitmanager.BigFile {
                var entry = getZipArchiveEntry (archive.Entries, zipEntries.SelectedItem);
                using (var entryStrm = entry.Open ())
                using (var threadedReader = new ThreadedIOBlockReader (entryStrm, true, 64 * 1024))
-                  loadStreamIntoMemory (threadedReader, new LoadProgress (this, -1), false);
+                  loadStreamIntoMemory (threadedReader, new LoadProgress (this, entry.Length), entry.Length, false);
             }
          } catch (Exception err) {
             logger.Log (err, "Error while reading zip [{0}]. Fallback to SharpZLib.", fn);
@@ -545,7 +548,7 @@ namespace Bitmanager.BigFile {
             var entry = getZipArchiveEntry (archive, zipEntries.SelectedItem);
             using (var entryStrm = archive.GetInputStream (entry))
             using (var threadedReader = new ThreadedIOBlockReader (entryStrm, true, 64 * 1024))
-               loadStreamIntoMemory (threadedReader, new LoadProgress (this, -1), false);
+               loadStreamIntoMemory (threadedReader, new LoadProgress (this, entry.Size), entry.Size, false);
          }
       }
 
@@ -573,10 +576,10 @@ namespace Bitmanager.BigFile {
             if (zipEntries.Count == 0)
                loadEmpty ();
             else {
-               zipEntries.SortAndSelect (fn, zipEntryName);
-               using (var entryStrm = new SevenZipInputStream (fn + "::" + zipEntries.SelectedItem.FullName))
+               var entry = zipEntries.SortAndSelect (fn, zipEntryName);
+               using (var entryStrm = new SevenZipInputStream (fn + "::" + entry.FullName))
                using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
-                  loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+                  loadStreamIntoMemory (blockRdr, new LoadProgress (this, entry.Length), entry.Length, false);
             }
          } finally {
             cur.IsBackground = isBackground;
@@ -595,10 +598,11 @@ namespace Bitmanager.BigFile {
             try {
                logger.Log ("Loading '{0}' via internal Zlib.DLL", fn);
                strm = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024);
+               var size = strm.Length;
                var gz = new GZipDecompressStream (strm, false, 64 * 1024);
                strm = gz;
                using (var rdr = new ThreadedIOBlockReader (strm, false, 64 * 1024))
-                  loadStreamIntoMemory (rdr, new LoadProgress (this, -1), false);
+                  loadStreamIntoMemory (rdr, new LoadProgress (this, -1), EXPECTED_GZ_RATIO * size, false);
             } finally {
                strm?.Dispose ();
             }
@@ -610,11 +614,12 @@ namespace Bitmanager.BigFile {
          try {
             logger.Log ("Loading '{0}' via SharpZipLib.", fn);
             strm = new FileStream (fn, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024);
+            var size = strm.Length;
             var gz = new ICSharpCode.SharpZipLib.GZip.GZipInputStream (strm, 64 * 1024);
             gz.IsStreamOwner = true;
             strm = gz;
             using (var rdr = new ThreadedIOBlockReader (strm, false, 64 * 1024))
-               loadStreamIntoMemory (rdr, new LoadProgress (this, -1), false);
+               loadStreamIntoMemory (rdr, new LoadProgress (this, -1), size * EXPECTED_GZ_RATIO, false);
          } finally {
             strm?.Dispose ();
          }
@@ -663,9 +668,10 @@ namespace Bitmanager.BigFile {
          if (zipEntries.SelectedItem == null)
             loadEmpty();
          else {
-            using (var entryStrm = stor.GetStream (zipEntries.SelectedItem.FullName))
+            var entry = zipEntries.SelectedItem;
+            using (var entryStrm = stor.GetStream (entry.FullName))
             using (var blockRdr = new ThreadedIOBlockReader (entryStrm, true, 4 * 1024, 32))
-               loadStreamIntoMemory (blockRdr, new LoadProgress (this, -1), false);
+               loadStreamIntoMemory (blockRdr, new LoadProgress (this, entry.Length), entry.Length, false);
          }
       }
 
@@ -684,11 +690,11 @@ namespace Bitmanager.BigFile {
       /// If the size of the file is too large, and we load from a filestream, we simply exit
       /// and let our caller do the rest
       /// </summary>
-      private bool loadStreamIntoMemory (IBlockReader strm, LoadProgress loadProgress, bool allowDegradeToNonMem) {
+      private bool loadStreamIntoMemory (IBlockReader strm, LoadProgress loadProgress, long expSize, bool allowDegradeToNonMem) {
          const int chunksize = 256 * 1024;
          Logger compressLogger = Globals.MainLogger.Clone ("compress");
          Stream mem;
-         if (settings.CompressMemoryIfBigger <= 0)
+         if (settings.CompressMemoryIfBigger <= 0 || expSize > settings.CompressMemoryIfBigger)
             mem = new CompressedChunkedMemoryStream (chunksize, compressLogger);
          else
             mem = new ChunkedMemoryStream (chunksize);
@@ -784,19 +790,24 @@ namespace Bitmanager.BigFile {
          var fileStream = directStream.BaseStream;
          var rdr = new ThreadedIOBlockReader (fileStream, true, 64 * 1024, 4);
 
-         long totalLength = fileStream.Length;
-         var loadProgress = new LoadProgress (this, fileStream.Length);
+         var totalLength = fileStream.Length;
+         var loadProgress = new LoadProgress (this, totalLength);
 
-         logger.Log ("Loading '{0}' via FileStream.", fn);
-         if (totalLength >= settings.LoadMemoryIfBigger) {
-            long limit = settings.AvailablePhysicalMemory - 800 * 1024 * 1024;
-            if (totalLength >= settings.CompressMemoryIfBigger) limit *= 3;
+         long limit = settings.AvailablePhysicalMemory;
+         logger.Log ("Loading '{0}' via FileStream. Len={1}, AvailMem={2}, AllowInMemory={3}, CompressMemoryIfBigger={3}",
+            fn,
+            Pretty.PrintSize (totalLength),
+            Pretty.PrintSize (limit),
+            settings.AllowInMemory,
+            Pretty.PrintSize (settings.CompressMemoryIfBigger)
+         );
+         if (settings.AllowInMemory) {
+            if (totalLength >= settings.CompressMemoryIfBigger) limit *= EXPECTED_LZ4_RATIO;
             if (totalLength < limit) {
-               logger.Log ("-- Loading into memory since '{0}' is between {1} and {2}.",
+               logger.Log ("-- Loading into memory since size [{0}] < limit [{1}].",
                   Pretty.PrintSize (totalLength),
-                  Pretty.PrintSize (settings.LoadMemoryIfBigger),
                   Pretty.PrintSize (limit));
-               if (loadStreamIntoMemory (rdr, loadProgress, true)) return;
+               if (loadStreamIntoMemory (rdr, loadProgress, totalLength, true)) return;
                //Fallthrough, since the compression failed. We fallback to filestream loading
             }
          }
@@ -1255,19 +1266,24 @@ namespace Bitmanager.BigFile {
             int firstHit = -1;
 
             try {
+               var fact = Task.Factory;
                Task<int>[] tasks = new Task<int>[settings.SearchThreads - 1];
+               //SearchThread[] tasks = new SearchThread[settings.SearchThreads - 1];
                int N = partialLines.Count - 1;
                int M = N / settings.SearchThreads;
                for (int i = 0; i < tasks.Length; i++) {
                   int end = N;
                   N -= M;
                   tasks[i] = Task.Run (() => _search (ctx.NewInstanceForThread (), end - M, end));
+                  //tasks[i] = new SearchThread (ctx.NewInstanceForThread (), end - M, end, _search);
                }
                int matches0 = matches = _search (ctx, 0, N);
                for (int i = 0; i < tasks.Length; i++) {
+                  //tasks[i].Thread.Join ();
                   matches += tasks[i].Result;
-                  tasks[i].Dispose ();
+                  //err ??= tasks[i].Error;
                }
+
 
                if (matches0 == 0 && matches > 0) {
                   firstHit = this.NextPartialHit (N-1);
@@ -1278,7 +1294,7 @@ namespace Bitmanager.BigFile {
                ctx.MarkComputed ();
                logger.Log ("Search: phase1 ended. Total #matches={0}", matches);
             } catch (Exception e) {
-               err = e;
+               err ??= e;
             } finally {
                this.ct = CancellationToken.None;
                if (!disposed)
@@ -1288,28 +1304,37 @@ namespace Bitmanager.BigFile {
       }
 
       private int _search (SearchContext ctx, int start, int end) {
-         const int MOD = 50000;
-         int matches = 0;
+         const int CHUNCKS = 20;
          var query = ctx.Query;
-
-         logger.Log ("Search: thread start: from {0} to {1} ", start, end);
+         int matches = 0;
+         int progressInc = 1 + (end - start) / CHUNCKS;
+         int i = start;
+         int j,end2;
+         logger.Log ("Search: thread start: from {0} to {1}, cnt={2}, inc={3} ", start, end, end-start, progressInc);
          if (ctx.NeedLine) goto NEEDLINE;
-         for (ctx.Index = start; ctx.Index < end; ctx.Index++) {
-            if (ctx.Index % MOD == 0) {
-               checkCancelled ();
-               if (start == 0 && !onProgress ((100.0 * ctx.Index) / end)) break;
+
+         //We divided the collection in CHUNCKS parts.
+         //For each part we will
+         //- check cancelled
+         //- do progress
+         //- search
+         for (j = 1; j <= CHUNCKS; j++) {
+            end2 = start + (j * progressInc);
+            if (end2 > end) end2 = end;
+            checkCancelled ();
+            if (start == 0 && !onProgress ((100.0 * i) / end)) break;
+
+            for (; i < end2; i++) {
+               ctx.SetLine (partialLines[i], null);
+               if (!query.Evaluate (ctx)) {
+                  partialLines[i] = ctx.OffsetAndFlags;
+                  continue;
+               }
+               partialLines[i] = ctx.OffsetAndFlags | LineFlags.MATCHED;
+
+               if (++matches == 1 && !disposed && start == 0)
+                  cb.OnSearchPartial (this, i);
             }
-
-            ctx.SetLine (partialLines[ctx.Index], null);
-            if (!query.Evaluate (ctx)) {
-               partialLines[ctx.Index] = ctx.OffsetAndFlags;
-               continue;
-            }
-
-            partialLines[ctx.Index] = ctx.OffsetAndFlags | LineFlags.MATCHED;
-
-            if (++matches == 1 && !disposed && start == 0)
-               cb.OnSearchPartial (this, ctx.Index);
          }
          goto EXIT_RTN;
 
@@ -1317,22 +1342,24 @@ namespace Bitmanager.BigFile {
       NEEDLINE:;
          var threadCtx = this.threadCtx.NewInstanceForThread ();
          try {
-            for (ctx.Index = start; ctx.Index < end; ctx.Index++) {
-               if (ctx.Index % MOD == 0) {
-                  if (ct.IsCancellationRequested) break;
-                  if (start == 0 && !onProgress ((100.0 * ctx.Index) / end)) break;
+            for (j = 1; j <= CHUNCKS; j++) {
+               end2 = start + (j * progressInc);
+               if (end2 > end) end2 = end;
+               checkCancelled ();
+               if (start == 0 && !onProgress ((100.0 * i) / end)) break;
+
+               //logger.Log ("next chunck: j={0}, i={1}, end2={2}, start={3}, end={4}", j, i, end2, start, end);
+               for (; i < end2; i++) {
+                  ctx.SetLine (partialLines[i], threadCtx.ReadPartialLineInBuffer (i, i + 1));
+                  if (!query.EvaluateDeep (ctx)) {
+                     partialLines[i] = ctx.OffsetAndFlags;
+                     continue;
+                  }
+                  partialLines[i] = ctx.OffsetAndFlags | LineFlags.MATCHED;
+
+                  if (++matches == 1 && !disposed && start == 0)
+                     cb.OnSearchPartial (this, i);
                }
-
-               ctx.SetLine (partialLines[ctx.Index], threadCtx.ReadPartialLineInBuffer (ctx.Index, ctx.Index + 1));
-               if (!query.EvaluateDeep (ctx)) {
-                  partialLines[ctx.Index] = ctx.OffsetAndFlags; ;
-                  continue;
-               }
-
-               partialLines[ctx.Index] = ctx.OffsetAndFlags | LineFlags.MATCHED;
-
-               if (++matches == 1 && !disposed && start == 0)
-                  cb.OnSearchPartial (this, ctx.Index);
             }
          } finally {
             threadCtx.CloseInstance ();
@@ -1340,6 +1367,7 @@ namespace Bitmanager.BigFile {
          goto EXIT_RTN;
 
       EXIT_RTN:
+         if (start == 0) onProgress (100);
          logger.Log ("Search: thread end: from {0} to {1}: {2} out of {3}", start, end, matches, end - start);
          return matches;
       }

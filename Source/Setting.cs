@@ -110,6 +110,24 @@ namespace Bitmanager.BigFile {
    }
 
    /// <summary>
+   /// BoolSetting.
+   /// The converted actual value is an int
+   /// </summary>
+   public class BoolSetting : Setting<bool> {
+      public BoolSetting (string name, string def, string initial = null) : base (name, def, initial) { }
+
+      protected override bool convertStr (string s) {
+         return Invariant.ToBool (s);
+      }
+      public static implicit operator bool (BoolSetting x) {
+         return x.convert (x.value);
+      }
+      public override string ToString () {
+         return Invariant.Format ("{0}: {1} ({2})", Name, value, convert (value));
+      }
+   }
+
+   /// <summary>
    /// IntSetting.
    /// The converted actual value is an int
    /// </summary>
@@ -160,8 +178,8 @@ namespace Bitmanager.BigFile {
       public SizeSetting (string name, string def, string initial = null) : base (name, def, initial) { }
 
       protected override long convertStr (string s) {
-         if (string.Equals (s, "off")) return long.MaxValue;
-         if (string.Equals (s, "on")) return -1;
+         if (string.Equals (s, "off", StringComparison.OrdinalIgnoreCase)) return long.MaxValue;
+         if (string.Equals (s, "on", StringComparison.OrdinalIgnoreCase)) return -1;
          return Pretty.ParseSize (s);
       }
 

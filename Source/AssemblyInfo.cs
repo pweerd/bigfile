@@ -33,5 +33,6 @@ using System.Runtime.Versioning;
 
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("2.0.2025.0507")]
-[assembly: AssemblyFileVersion("2.0.2025.0507")]
+[assembly: AssemblyVersion("2.1.2025.0702")]
+[assembly: AssemblyFileVersion ("2.1.2025.0702")]
+[assembly: AssemblyInformationalVersion ("2.1.2025.0702")]

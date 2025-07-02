@@ -1,49 +1,43 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <RollForward>Major</RollForward>
-    <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>disable</Nullable>
-    <ApplicationIcon>bigfile.ico</ApplicationIcon>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <RootNamespace>Bitmanager.BigFile</RootNamespace>
- <!--   <PublishSingleFile>true</PublishSingleFile>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
+      <OutputType>WinExe</OutputType>
+      <TargetFramework>net8.0-windows</TargetFramework>
+      <RollForward>Major</RollForward>
+      <UseWindowsForms>true</UseWindowsForms>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <Nullable>disable</Nullable>
+      <ApplicationIcon>bigfile.ico</ApplicationIcon>
+      <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+      <RootNamespace>Bitmanager.BigFile</RootNamespace>
+      <!--   <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>-->
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>False</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>True</Optimize>
-  </PropertyGroup>
-
-  <ItemGroup>
-     <None Remove="*.bak" />
-     <None Remove="_*.meta" />
-     <None Remove="*.suo" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="bigfile.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="BMCore102">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\_References\BMCore102.dll</HintPath>
-    </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Bitmanager\_References\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-
+      <NoWarn>$(NoWarn);CS8600</NoWarn>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <Optimize>False</Optimize>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <Optimize>True</Optimize>
+   </PropertyGroup>
+   <ItemGroup>
+      <None Remove="*.bak" />
+      <None Remove="_*.meta" />
+      <None Remove="*.suo" />
+   </ItemGroup>
+   <ItemGroup>
+      <Content Include="bigfile.ico" />
+   </ItemGroup>
+   <ItemGroup>
+      <Reference Include="BMCore102">
+         <SpecificVersion>False</SpecificVersion>
+         <HintPath>..\..\_References\BMCore102.dll</HintPath>
+      </Reference>
+      <Reference Include="ICSharpCode.SharpZipLib">
+         <SpecificVersion>False</SpecificVersion>
+         <HintPath>..\..\..\Bitmanager\_References\ICSharpCode.SharpZipLib.dll</HintPath>
+      </Reference>
+   </ItemGroup>
 </Project>

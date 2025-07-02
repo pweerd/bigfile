@@ -26,7 +26,7 @@ namespace Bitmanager.BigFile.Query
 {
    public class SearchContext
    {
-      static Logger logger = Globals.MainLogger.Clone("bits");
+      //static readonly Logger logger = Globals.MainLogger.Clone("bits");
       public readonly List<SearchNode> ToCompute;
       public readonly List<ParserValueNode<SearchContext>> LeafNodes;
       public readonly ParserNode<SearchContext> Query;
@@ -36,7 +36,6 @@ namespace Bitmanager.BigFile.Query
 
       public string Line;
       public long OffsetAndFlags;
-      public int Index;
 
       public SearchContext(ParserNode<SearchContext> query)
       {

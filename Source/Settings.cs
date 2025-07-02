@@ -34,7 +34,6 @@ namespace Bitmanager.BigFile {
       public readonly long AvailablePhysicalMemory;
 
       public readonly long CompressMemoryIfBigger;
-      public readonly long LoadMemoryIfBigger;
 
       public readonly Color HighlightColor;
       public readonly Color SelectedHighlightColor;
@@ -45,6 +44,7 @@ namespace Bitmanager.BigFile {
       public readonly int MaxCopyLines;
       public readonly int MaxCopySize;
       public readonly LoaderSelector LoaderSelector;
+      public readonly bool AllowInMemory;
 
       public Settings (SettingsSource src) {
          Source = src;
@@ -64,7 +64,7 @@ namespace Bitmanager.BigFile {
          SearchThreads = src.SearchThreads;
 
          CompressMemoryIfBigger = src.CompressMemoryIfBigger;
-         LoadMemoryIfBigger = src.LoadMemoryIfBigger;
+         AllowInMemory = src.AllowInMemory;
       }
 
       public void Dump () {
@@ -76,7 +76,7 @@ namespace Bitmanager.BigFile {
          logger.Log ("-- MaxLineLength: {0} ({1})", MaxLineLength, Pretty.PrintSize (MaxLineLength));
          logger.Log ("-- SearchThreads: {0}", SearchThreads);
          logger.Log ("-- CompressMemoryIfBigger: {0} ({1})", CompressMemoryIfBigger, Pretty.PrintSize (CompressMemoryIfBigger));
-         logger.Log ("-- LoadMemoryIfBigger: {0} ({1})", LoadMemoryIfBigger, Pretty.PrintSize (LoadMemoryIfBigger));
+         logger.Log ("-- AllowInMemory: {0}", AllowInMemory);
          logger.Log ("-- PhysicalMem: total={0}, available={1}", Pretty.PrintSize (TotalPhysicalMemory), Pretty.PrintSize (AvailablePhysicalMemory));
          logger.Log ("-- ExtensionsBy7Z: {0}", ExtensionsBySevenZip);
       }
@@ -101,21 +101,24 @@ namespace Bitmanager.BigFile {
       public readonly IntSetting NumContextLines = new IntSetting ("context_lines", "0");
 
       public readonly ThreadsSetting SearchThreads = new ThreadsSetting ("search_threads", "0", AUTO);
-      public readonly SizeSetting LoadMemoryIfBigger = new SizeSetting ("load_memory", "32GB", AUTO);
-      public readonly SizeSetting CompressMemoryIfBigger = new SizeSetting ("compress_memory", "1GB", AUTO);
+      public readonly BoolSetting AllowInMemory = new BoolSetting ("allow_in_memory", "true", "true");
+      public readonly SizeSetting CompressMemoryIfBigger;
 
       public readonly IntSetting MaxCopyLines = new IntSetting ("max_copy_lines", "100000");
       public readonly SizeSetting MaxCopySize = new SizeSetting ("max_copy_size", "100MB");
       public readonly StringSetting ExtensionsBySevenZip = new StringSetting ("extensions_by_7z", DEF_7Z);
 
       public SettingsSource (bool autoLoad = false) {
-         if (autoLoad)
-            Load ();
-
          var ci = new Microsoft.VisualBasic.Devices.ComputerInfo ();
          this.TotalPhysicalMemory = (long)ci.TotalPhysicalMemory;
          this.AvailablePhysicalMemory = (long)Math.Min (ci.AvailablePhysicalMemory, ci.AvailableVirtualMemory);
          Globals.MainLogger.Log ("Total memory={0}, available={1}.", Pretty.PrintSize (TotalPhysicalMemory), Pretty.PrintSize (AvailablePhysicalMemory));
+
+         long autoLimit = AvailablePhysicalMemory - 500 * 1024 * 1024;
+         if (autoLimit< 0) autoLimit = 0;
+         CompressMemoryIfBigger = new SizeSetting ("compress_memory", Pretty.PrintSize(autoLimit), AUTO);
+         if (autoLoad)
+            Load ();
 
          ActualizeDefaults ();
       }
@@ -136,7 +139,7 @@ namespace Bitmanager.BigFile {
             MaxCopyLines.Load (key);
             MaxCopySize.Load (key);
             SearchThreads.Load (key);
-            LoadMemoryIfBigger.Load (key);
+            AllowInMemory.Load (key);
             CompressMemoryIfBigger.Load (key);
             ExtensionsBySevenZip.Load(key);
 
@@ -154,7 +157,7 @@ namespace Bitmanager.BigFile {
             MaxCopyLines.Save (key);
             MaxCopySize.Save (key);
             SearchThreads.Save (key);
-            LoadMemoryIfBigger.Save (key);
+            AllowInMemory.Save (key);
             CompressMemoryIfBigger.Save (key);
             ExtensionsBySevenZip.Save (key);
 
@@ -171,8 +174,8 @@ namespace Bitmanager.BigFile {
          logger.Log ("-- {0}, {1}", MaxCopyLines, MaxCopySize);
          logger.Log ("-- {0}", MaxLineLength);
          logger.Log ("-- {0}", SearchThreads);
+         logger.Log ("-- {0}", AllowInMemory);
          logger.Log ("-- {0}", CompressMemoryIfBigger);
-         logger.Log ("-- {0}", LoadMemoryIfBigger);
          logger.Log ("-- {0}", ExtensionsBySevenZip);
          logger.Log ("-- PhysicalMem: total={0}, available={1}", Pretty.PrintSize (TotalPhysicalMemory), Pretty.PrintSize (AvailablePhysicalMemory));
          if (Settings != null) Settings.Dump ();

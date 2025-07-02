@@ -34,7 +34,7 @@ namespace Bitmanager.BigFile {
          txtContext.Text = ColorTranslator.ToHtml (settings.ContextColor);
          cbSearchThreads.Text = settings.SearchThreads.Value;
          cbCompress.Text = settings.CompressMemoryIfBigger.Value;
-         cbInMemory.Text = settings.LoadMemoryIfBigger.Value;
+         chkAllowInMemory.Checked = settings.AllowInMemory;
          txtMaxCopyLines.Text = settingsSource.MaxCopyLines.Value;
          txtMaxCopySize.Text = settingsSource.MaxCopySize.Value;
          txtHandledBySevenZip.Text = settingsSource.ExtensionsBySevenZip.Value;
@@ -48,7 +48,7 @@ namespace Bitmanager.BigFile {
          settingsSource.NumContextLines.Set (comboNumLines.SelectedIndex.ToString ());
          settingsSource.SearchThreads.Set (cbSearchThreads.Text);
          settingsSource.CompressMemoryIfBigger.Set (cbCompress.Text);
-         settingsSource.LoadMemoryIfBigger.Set (cbInMemory.Text);
+         settingsSource.AllowInMemory.Set (chkAllowInMemory.Checked ? "true" : "false");
          settingsSource.MaxLineLength.Set (cbLineLength.Text);
          settingsSource.MaxCopyLines.Set (txtMaxCopyLines.Text);
          settingsSource.MaxCopySize.Set (txtMaxCopySize.Text);

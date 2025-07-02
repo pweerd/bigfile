@@ -80,7 +80,7 @@ namespace Bitmanager.BigFile
          // 
          lblApp.AutoSize = true;
          lblApp.BackColor = Color.White;
-         lblApp.Font = new Font ("Verdana", 18F, FontStyle.Bold, GraphicsUnit.Point);
+         lblApp.Font = new Font ("Verdana", 18F, FontStyle.Bold);
          lblApp.Location = new Point (90, 42);
          lblApp.Margin = new Padding (2, 0, 2, 0);
          lblApp.Name = "lblApp";
@@ -124,7 +124,7 @@ namespace Bitmanager.BigFile
          Controls.Add (pictureBox1);
          Controls.Add (pictureBox2);
          Controls.Add (btnClose);
-         Font = new Font ("Arial", 9F, FontStyle.Regular, GraphicsUnit.Point);
+         Font = new Font ("Arial", 9F);
          FormBorderStyle = FormBorderStyle.FixedSingle;
          Icon = (Icon)resources.GetObject ("$this.Icon");
          Margin = new Padding (2);
