@@ -2,11 +2,13 @@
 
 Bigfile is designed to view and search in very large text files like logfiles, json-dumps, xml-dumps, etc.
 
+It uses the .Net8 runtime.
+
 I needed something like 'less' on unix systems, but easier and for Windows. Stumbled across the logviewer from Mark Woan, which did a lot of good things, but not everything. So I took his approach as an example and created Bigfile.
 
 Main Bigfile features:
 
-- Loading of compressed (.gz or .zip) files without unpacking.
+- Loading of compressed (.gz or .zip or other) files without unpacking.
 - Background loading of files
 - Different encodings
 - Memory compression to support loading huge files in memory

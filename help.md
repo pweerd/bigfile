@@ -1,22 +1,22 @@
-﻿# BigFile (V2.0.2025.0507)
+﻿# BigFile (V2.1.2025.0702)
 
-BigFile is meant as a viewer for large files on Windows. Like 'less' on Unix systems. Typical used as a viewer for:
+`BigFile` is meant as a viewer for large files on Windows. Like '`less`' on Unix systems. Typical used as a viewer for:
 
 - very large logfiles
 - very large json dumps
 - very large xml-dumps
 - etc
 
-NB: If the interface shows a big yellow exclamation mark, you probably miss the Bitmanager Core Components. Bigfile will work in that case, but much slower. The core components can be downloaded from (https://bitmanager.nl/distrib).
+NB: If the interface shows a big yellow exclamation mark, you probably miss the Bitmanager Core Components. `Bigfile` will work in that case, but much slower. The core components can be downloaded from (https://bitmanager.nl/distrib).
 
-The following provides a brief help guide for the core operations of BigFile.
+The following provides a brief help guide for the core operations of `BigFile`.
 
 
 
 ## History
 
-BigFile is inspired by Mark Woan's LogViewer (https://github.com/woanware/LogViewer)
-Unfortunately BigFile diverged way too far from the original logviewer, so I decided it deserves its own place.
+`BigFile` is inspired by Mark Woan's LogViewer (https://github.com/woanware/LogViewer)
+Unfortunately `BigFile` diverged way too far from the original logviewer, so I decided it deserves its own place.
 
 
 
@@ -146,9 +146,9 @@ Because the content is splitted into lines, the content needs to be read complet
 
 For very large files it is difficult to keep them in memory. Bigfile uses LZW compression to compress large chunks of memory. Because LZW is extremely fast, this combination is typically faster when the system would need to swap memory.
 
-On my laptop Bigfile loads a 2GB gz json file in ~20 secongs into memory (raw: 15GB, LZW compressed ~3GB).
+On my laptop `Bigfile` loads a 2GB gz json file in ~20 seconds into memory (raw: 15GB, LZW compressed ~3GB).
 
-The exact behavior can be configured via tools->settings.
+The exact behavior can be configured via `tools`->`settings`.
 
 
 
@@ -195,7 +195,13 @@ I used his Grid as a starting point.
 
 ## Changes
 
-#### V2.0.2025.0507
+#### V2.1.2025.0702
+
+- Moved to .Net8, which introduced a small performance boost.
+- Searching is slightly faster due to loop-unrolling. Also, in very large files, updating the progressbar while searching was delayed.
+- Settings has been changed. Now we have an option to load in memory or not. This switch applies only to normal files!
+
+#### V2.0.2024.0404
 
 - Many bugfixes
 - Supporting more archives via 7zip (If 7z.exe is found). Also Bitmanager's FileStorage is supported.
@@ -203,7 +209,6 @@ I used his Grid as a starting point.
 - Archive entries are accessible via an auto-complete.
 - Archives are cached (1 at the moment). This speeds up processing of archives with a lot of entries.
 - Hex views in the detail view.
-  
 
 #### V1.1.2023.0202
 
