@@ -95,7 +95,7 @@ namespace Bitmanager.BigFile {
          btnResplit.Visible = false;
 
          showZipEntries (false);
-         selectionHandler = new SelectionHandler (this, gridLines);
+         selectionHandler = new SelectionHandler (gridLines);
          selectionHandler.OnAddSelection += selectionHandler_Add;
          selectionHandler.OnRemoveSelection += selectionHandler_Remove;
          selectionHandler.OnToggleSelection += selectionHandler_Toggle;
@@ -690,14 +690,13 @@ namespace Bitmanager.BigFile {
          synchronizationContext.Post (new SendOrPostCallback (o => {
             gridLines.Invalidate ();
             handleViewSelection ();
-            selectionHandler.NotifyExternalChange ();
             indicateFinished ();
 
             result.ThrowIfError ();
             int all = result.LogFile.PartialLineCount;
             int matched = result.NumMatches;
             int perc = all == 0 ? 0 : (int)(0.5 + 100.0 * matched / all);
-            var msg = string.Format ("Matched {0:n0} / {1:n0} lines ({2}%, Search Terms: {3}),  # Duration: {4}",
+            var msg = string.Format ("Matched {0:n0} / {1:n0} rows ({2}%, Search Terms: {3}),  # Duration: {4}",
                    matched,
                    all,
                    perc,
@@ -752,7 +751,10 @@ namespace Bitmanager.BigFile {
       void ILogFileCallback.OnSearchPartial (LogFile lf, int firstMatch) {
          synchronizationContext.Post (new SendOrPostCallback (o => {
             gridLines.Filter = null;
-            selectionHandler.NotifyExternalChange ();
+            //No NotifyExternalChange(). Not needed and the next select might take a long time in case of many lines.
+            //It will cause the progressbar not updated.
+            //Same in OnSearchComplete
+            //selectionHandler.NotifyExternalChange ();
             positionToFirstHit (firstMatch);
          }), null);
       }

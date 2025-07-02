@@ -38,21 +38,20 @@ namespace Bitmanager.BigFile {
    /// </summary>
    public class SelectionHandler {
       private const bool DUMP_STACK = false;
+      private static readonly Logger logger = Globals.MainLogger.Clone ("select");
       private enum InducedBy { Other, Mouse, Keypress, Self };
       public event SelectionEventHandler OnToggleSelection;
       public event SelectionEventHandler OnAddSelection;
       public event SelectionEventHandler OnRemoveSelection;
       public readonly RawGrid Grid;
-      private Logger logger;
 
       private InducedBy inducedBy;
       private bool complex;
       private int low, high;
       private int prevRow;
 
-      public SelectionHandler (FormMain form, RawGrid grid) {
+      public SelectionHandler (RawGrid grid) {
          this.Grid = grid;
-         this.logger = Globals.MainLogger.Clone ("select");
          prevRow = -1;
          grid.MouseDown += Grid_MouseDown;
          grid.SelectedIndexChanged += Grid_SelectedIndexChanged;
